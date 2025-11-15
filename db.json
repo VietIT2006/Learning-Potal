@@ -1,0 +1,23 @@
+{
+  "quizzes": [
+    {
+      "id": 1,
+      "lessonId": 2,
+      "title": "Kiểm tra bài 2: JSX là gì?",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "JSX là viết tắt của...",
+          "options": ["JavaScript XML", "Java Syntax Extension", "JSON Syntax", "JavaScript Xylophone"],
+          "correctAnswerIndex": 0 
+        },
+        {
+          "id": "q2",
+          "questionText": "Bạn có thể viết JavaScript trực tiếp trong JSX bằng cách sử dụng...",
+          "options": ["Dấu ngoặc kép ()", "Dấu ngoặc nhọn {}", "Dấu ngoặc vuông []", "Dấu thăng #"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    }
+  ]
+}
