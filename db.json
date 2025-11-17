@@ -2,55 +2,419 @@
   "users": [
     {
       "id": 1,
-      "username": "user",
+      "username": "hocvien01",
       "password": "123",
-      "role": "user"
+      "role": "user",
+      "fullname": "Nguyễn Văn An",
+      "email": "an.nguyen@example.com",
+      "phone": "0901234567",
+      "joinDate": "2023-10-15",
+      "status": "active",
+      "coursesEnrolled": 2
     },
     {
       "id": 2,
       "username": "admin",
       "password": "123",
-      "role": "admin"
+      "role": "admin",
+      "fullname": "Quản Trị Viên",
+      "email": "admin@learnhub.com",
+      "phone": "0999888777",
+      "joinDate": "2023-01-01",
+      "status": "active",
+      "coursesEnrolled": 0
+    },
+    {
+      "id": 3,
+      "username": "hocvien02",
+      "password": "123",
+      "role": "user",
+      "fullname": "Trần Thị Bích",
+      "email": "bich.tran@example.com",
+      "phone": "0912345678",
+      "joinDate": "2023-11-20",
+      "status": "active",
+      "coursesEnrolled": 1
+    },
+    {
+      "id": 4,
+      "username": "hocvien03",
+      "password": "123",
+      "role": "user",
+      "fullname": "Lê Hoàng Nam",
+      "email": "nam.le@example.com",
+      "phone": "0987654321",
+      "joinDate": "2024-01-05",
+      "status": "inactive",
+      "coursesEnrolled": 0
+    },
+    {
+      "id": 5,
+      "username": "hocvien04",
+      "password": "123",
+      "role": "user",
+      "fullname": "Phạm Minh Tuấn",
+      "email": "tuan.pham@example.com",
+      "phone": "0933444555",
+      "joinDate": "2024-02-10",
+      "status": "active",
+      "coursesEnrolled": 3
     }
   ],
   "courses": [
     {
       "id": 1,
-      "title": "Khóa học React cơ bản",
-      "description": "Học React từ A-Z cho người mới bắt đầu.",
-      "thumbnail": "https://via.placeholder.com/300x200?text=React"
+      "title": "ReactJS Cơ Bản đến Nâng Cao",
+      "description": "Học React từ con số 0. Làm chủ Components, Hooks, Redux và xây dựng dự án thực tế.",
+      "thumbnail": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop",
+      "category": "frontend",
+      "level": "Beginner",
+      "price": 299000,
+      "rating": 4.8,
+      "reviews": 125,
+      "students": 1234,
+      "duration": "4 tuần",
+      "instructor": "Nguyễn Văn A"
     },
     {
       "id": 2,
-      "title": "Khóa học TypeScript",
-      "description": "Làm chủ TypeScript trong 1 tuần.",
-      "thumbnail": "https://via.placeholder.com/300x200?text=TypeScript"
+      "title": "Làm chủ TypeScript trong 7 ngày",
+      "description": "Tăng cường sức mạnh cho JavaScript với static typing. Hiểu sâu về Interface, Generics và Type Utility.",
+      "thumbnail": "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1000&auto=format&fit=crop",
+      "category": "frontend",
+      "level": "Intermediate",
+      "price": 349000,
+      "rating": 4.9,
+      "reviews": 89,
+      "students": 856,
+      "duration": "1 tuần",
+      "instructor": "Trần Thị B"
+    },
+    {
+      "id": 3,
+      "title": "Node.js & Express cho Backend",
+      "description": "Xây dựng RESTful API mạnh mẽ, bảo mật và hiệu quả với Node.js, Express và MongoDB.",
+      "thumbnail": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=1000&auto=format&fit=crop",
+      "category": "backend",
+      "level": "Advanced",
+      "price": 499000,
+      "rating": 4.7,
+      "reviews": 210,
+      "students": 1567,
+      "duration": "6 tuần",
+      "instructor": "Lê Văn C"
+    },
+    {
+      "id": 4,
+      "title": "UI/UX Design với Figma",
+      "description": "Học tư duy thiết kế, quy trình UX research và thiết kế giao diện UI đẹp mắt chuyên nghiệp.",
+      "thumbnail": "https://images.unsplash.com/photo-1586717791821-3f44a5638d48?q=80&w=1000&auto=format&fit=crop",
+      "category": "design",
+      "level": "Beginner",
+      "price": 199000,
+      "rating": 4.6,
+      "reviews": 56,
+      "students": 543,
+      "duration": "3 tuần",
+      "instructor": "Phạm Thị D"
+    },
+    {
+      "id": 5,
+      "title": "Lập trình Flutter toàn tập",
+      "description": "Phát triển ứng dụng di động đa nền tảng (iOS & Android) chỉ với một codebase duy nhất.",
+      "thumbnail": "https://images.unsplash.com/photo-1617040619263-41c5a9ca7521?q=80&w=1000&auto=format&fit=crop",
+      "category": "mobile",
+      "level": "Intermediate",
+      "price": 599000,
+      "rating": 4.9,
+      "reviews": 142,
+      "students": 890,
+      "duration": "8 tuần",
+      "instructor": "Đỗ Văn E"
+    },
+    {
+      "id": 6,
+      "title": "Angular - The Complete Guide",
+      "description": "Làm chủ Angular framework, RxJS và NgRx để xây dựng ứng dụng doanh nghiệp quy mô lớn.",
+      "thumbnail": "https://images.unsplash.com/photo-1593720213428-28a5b9e94613?q=80&w=1000&auto=format&fit=crop",
+      "category": "frontend",
+      "level": "Advanced",
+      "price": 450000,
+      "rating": 4.5,
+      "reviews": 78,
+      "students": 450,
+      "duration": "6 tuần",
+      "instructor": "Hoàng Văn F"
+    },
+    {
+      "id": 7,
+      "title": "Python cho Data Science",
+      "description": "Phân tích dữ liệu, trực quan hóa và Machine Learning cơ bản với Python, Pandas và NumPy.",
+      "thumbnail": "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=1000&auto=format&fit=crop",
+      "category": "data",
+      "level": "Beginner",
+      "price": 399000,
+      "rating": 4.8,
+      "reviews": 320,
+      "students": 2100,
+      "duration": "5 tuần",
+      "instructor": "Ngô Thị G"
+    },
+    {
+      "id": 8,
+      "title": "Docker & Kubernetes Masterclass",
+      "description": "Triển khai ứng dụng Containerization và Orchestration. Kỹ năng DevOps thiết yếu cho năm 2024.",
+      "thumbnail": "https://images.unsplash.com/photo-1605745341117-957a0441e7a9?q=80&w=1000&auto=format&fit=crop",
+      "category": "devops",
+      "level": "Advanced",
+      "price": 699000,
+      "rating": 4.9,
+      "reviews": 150,
+      "students": 980,
+      "duration": "4 tuần",
+      "instructor": "Bùi Văn H"
+    },
+    {
+      "id": 9,
+      "title": "Vue.js 3 - Composition API",
+      "description": "Xây dựng ứng dụng web hiện đại, hiệu năng cao với Vue 3, Vite và Pinia store.",
+      "thumbnail": "https://images.unsplash.com/photo-1654277041218-84424c78f0ae?q=80&w=1000&auto=format&fit=crop",
+      "category": "frontend",
+      "level": "Intermediate",
+      "price": 259000,
+      "rating": 4.7,
+      "reviews": 95,
+      "students": 670,
+      "duration": "3 tuần",
+      "instructor": "Vũ Thị I"
+    },
+    {
+      "id": 10,
+      "title": "Java Spring Boot Microservices",
+      "description": "Kiến trúc Microservices với Java Spring Boot, Spring Cloud và Kafka.",
+      "thumbnail": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop",
+      "category": "backend",
+      "level": "Advanced",
+      "price": 799000,
+      "rating": 4.8,
+      "reviews": 112,
+      "students": 560,
+      "duration": "10 tuần",
+      "instructor": "Đặng Văn K"
+    },
+    {
+      "id": 11,
+      "title": "Digital Marketing Tổng Hợp",
+      "description": "SEO, Google Ads, Facebook Ads và Content Marketing. Chiến lược marketing toàn diện.",
+      "thumbnail": "https://images.unsplash.com/photo-1533750516457-a7f992034fec?q=80&w=1000&auto=format&fit=crop",
+      "category": "marketing",
+      "level": "Beginner",
+      "price": 199000,
+      "rating": 4.6,
+      "reviews": 400,
+      "students": 3200,
+      "duration": "4 tuần",
+      "instructor": "Lý Thị L"
+    },
+    {
+      "id": 12,
+      "title": "SQL & Database Design",
+      "description": "Thiết kế cơ sở dữ liệu chuẩn hóa, viết truy vấn SQL phức tạp và tối ưu hiệu năng.",
+      "thumbnail": "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1000&auto=format&fit=crop",
+      "category": "database",
+      "level": "Intermediate",
+      "price": 229000,
+      "rating": 4.7,
+      "reviews": 180,
+      "students": 1100,
+      "duration": "3 tuần",
+      "instructor": "Phan Văn M"
+    },
+    {
+      "id": 13,
+      "title": "AWS Cloud Practitioner",
+      "description": "Luyện thi chứng chỉ AWS Cloud Practitioner. Nắm vững các dịch vụ đám mây cơ bản.",
+      "thumbnail": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop",
+      "category": "cloud",
+      "level": "Beginner",
+      "price": 499000,
+      "rating": 4.9,
+      "reviews": 250,
+      "students": 1800,
+      "duration": "5 tuần",
+      "instructor": "Hồ Thị N"
+    },
+    {
+      "id": 14,
+      "title": "Adobe Photoshop Mastery",
+      "description": "Từ cơ bản đến nâng cao. Chỉnh sửa ảnh, thiết kế đồ họa và manipulation chuyên nghiệp.",
+      "thumbnail": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000&auto=format&fit=crop",
+      "category": "design",
+      "level": "All Levels",
+      "price": 249000,
+      "rating": 4.8,
+      "reviews": 310,
+      "students": 2500,
+      "duration": "4 tuần",
+      "instructor": "Trịnh Văn O"
+    },
+    {
+      "id": 15,
+      "title": "C# .NET Core Web API",
+      "description": "Xây dựng Web API hiệu năng cao với .NET Core 8. Entity Framework, Identity và JWT.",
+      "thumbnail": "https://images.unsplash.com/photo-1607799275518-d580e11cc63b?q=80&w=1000&auto=format&fit=crop",
+      "category": "backend",
+      "level": "Intermediate",
+      "price": 399000,
+      "rating": 4.7,
+      "reviews": 130,
+      "students": 780,
+      "duration": "6 tuần",
+      "instructor": "Đinh Thị P"
     }
   ],
   "lessons": [
-    { "id": 1, "courseId": 1, "title": "Bài 1: Giới thiệu React", "videoUrl": "video1.mp4" },
-    { "id": 2, "courseId": 1, "title": "Bài 2: JSX là gì?", "videoUrl": "video2.mp4" },
-    { "id": 3, "courseId": 2, "title": "Bài 1: Kiểu dữ liệu", "videoUrl": "video3.mp4" }
+    { "id": 1, "courseId": 1, "title": "Bài 1: Giới thiệu về React", "videoUrl": "intro-react.mp4", "duration": "10:05" },
+    { "id": 2, "courseId": 1, "title": "Bài 2: JSX là gì?", "videoUrl": "what-is-jsx.mp4", "duration": "15:30" },
+    { "id": 3, "courseId": 1, "title": "Bài 3: Components & Props", "videoUrl": "components-props.mp4", "duration": "20:12" },
+    { "id": 4, "courseId": 1, "title": "Bài 4: State & Lifecycle", "videoUrl": "state-lifecycle.mp4", "duration": "25:45" },
+    { "id": 5, "courseId": 2, "title": "Bài 1: Tại sao cần TypeScript?", "videoUrl": "why-ts.mp4", "duration": "08:20" },
+    { "id": 6, "courseId": 2, "title": "Bài 2: Basic Types", "videoUrl": "basic-types.mp4", "duration": "12:50" },
+    { "id": 7, "courseId": 2, "title": "Bài 3: Interfaces & Types", "videoUrl": "interfaces.mp4", "duration": "18:15" },
+    { "id": 8, "courseId": 3, "title": "Bài 1: Node.js Architecture", "videoUrl": "node-arch.mp4", "duration": "14:00" },
+    { "id": 9, "courseId": 3, "title": "Bài 2: Express Routing", "videoUrl": "express-routing.mp4", "duration": "22:10" },
+    { "id": 10, "courseId": 4, "title": "Bài 1: Tư duy thiết kế", "videoUrl": "design-thinking.mp4", "duration": "11:30" },
+    { "id": 11, "courseId": 4, "title": "Bài 2: Làm quen với Figma", "videoUrl": "figma-intro.mp4", "duration": "28:45" },
+    { "id": 12, "courseId": 5, "title": "Bài 1: Cài đặt môi trường Flutter", "videoUrl": "flutter-env.mp4", "duration": "16:20" },
+    { "id": 13, "courseId": 5, "title": "Bài 2: Dart cơ bản", "videoUrl": "dart-basics.mp4", "duration": "30:00" },
+    { "id": 14, "courseId": 6, "title": "Bài 1: Angular CLI & Project Structure", "videoUrl": "angular-cli.mp4", "duration": "19:10" },
+    { "id": 15, "courseId": 7, "title": "Bài 1: Python Syntax", "videoUrl": "python-syntax.mp4", "duration": "25:00" },
+    { "id": 16, "courseId": 8, "title": "Bài 1: Docker là gì?", "videoUrl": "what-is-docker.mp4", "duration": "13:45" },
+    { "id": 17, "courseId": 9, "title": "Bài 1: Vue Instance", "videoUrl": "vue-instance.mp4", "duration": "10:50" },
+    { "id": 18, "courseId": 10, "title": "Bài 1: Microservices Overview", "videoUrl": "microservices.mp4", "duration": "21:30" },
+    { "id": 19, "courseId": 11, "title": "Bài 1: Tổng quan Digital Marketing", "videoUrl": "dm-overview.mp4", "duration": "15:00" },
+    { "id": 20, "courseId": 12, "title": "Bài 1: RDBMS Concepts", "videoUrl": "rdbms.mp4", "duration": "17:25" },
+    { "id": 21, "courseId": 13, "title": "Bài 1: Cloud Computing Basics", "videoUrl": "cloud-basics.mp4", "duration": "14:40" },
+    { "id": 22, "courseId": 14, "title": "Bài 1: Photoshop Interface", "videoUrl": "ps-interface.mp4", "duration": "12:15" },
+    { "id": 23, "courseId": 15, "title": "Bài 1: .NET Core Intro", "videoUrl": "dotnet-intro.mp4", "duration": "18:30" }
   ],
   "quizzes": [
     {
       "id": 1,
       "lessonId": 2,
-      "title": "Kiểm tra bài 2: JSX là gì?",
+      "title": "Kiểm tra kiến thức: JSX",
       "questions": [
         {
           "id": "q1",
-          "questionText": "JSX là viết tắt của...",
+          "questionText": "JSX là viết tắt của từ gì?",
           "options": ["JavaScript XML", "Java Syntax Extension", "JSON Syntax", "JavaScript Xylophone"],
-          "correctAnswerIndex": 0 
+          "correctAnswerIndex": 0
         },
         {
           "id": "q2",
-          "questionText": "Bạn có thể viết JavaScript trực tiếp trong JSX bằng cách sử dụng...",
-          "options": ["Dấu ngoặc kép ()", "Dấu ngoặc nhọn {}", "Dấu ngoặc vuông []", "Dấu thăng #"],
+          "questionText": "Để viết biểu thức JavaScript bên trong JSX, ta dùng ký tự nào?",
+          "options": ["( )", "{ }", "[ ]", "< >"],
+          "correctAnswerIndex": 1
+        },
+        {
+          "id": "q3",
+          "questionText": "Thuộc tính 'class' trong HTML được viết lại thành gì trong JSX?",
+          "options": ["class", "styleClass", "className", "cssClass"],
+          "correctAnswerIndex": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "lessonId": 5,
+      "title": "Kiểm tra kiến thức: TypeScript Intro",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "TypeScript là gì?",
+          "options": ["Một framework của JS", "Một thư viện UI", "Một superset của JavaScript", "Một database"],
+          "correctAnswerIndex": 2
+        },
+        {
+          "id": "q2",
+          "questionText": "Đuôi file của TypeScript là gì?",
+          "options": [".js", ".jsx", ".ts", ".java"],
+          "correctAnswerIndex": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "lessonId": 8,
+      "title": "Kiểm tra: Node.js",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Node.js chạy trên engine nào?",
+          "options": ["SpiderMonkey", "V8", "Chakra", "JavaScriptCore"],
           "correctAnswerIndex": 1
         }
       ]
+    },
+    {
+      "id": 4,
+      "lessonId": 11,
+      "title": "Kiểm tra: Figma",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Figma là công cụ dùng để làm gì?",
+          "options": ["Lập trình backend", "Thiết kế giao diện", "Quản lý cơ sở dữ liệu", "Chỉnh sửa video"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "lessonId": 16,
+      "title": "Kiểm tra: Docker",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Docker sử dụng công nghệ gì để đóng gói ứng dụng?",
+          "options": ["Virtual Machine", "Container", "Pod", "Hypervisor"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    }
+  ],
+  "testimonials": [
+    {
+      "id": 1,
+      "name": "Trần Minh Tuấn",
+      "role": "Frontend Developer @ VNG",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa học React tại đây thực sự chất lượng. Lộ trình bài bản giúp mình từ một người chưa biết gì về Framework đã có thể tự làm dự án.",
+      "rating": 5
+    },
+    {
+      "id": 2,
+      "name": "Lê Thị Hồng",
+      "role": "UI/UX Designer",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
+      "content": "Giáo viên hướng dẫn rất nhiệt tình. Phần thực hành chiếm 70% thời lượng giúp mình nắm bắt kiến thức nhanh chóng.",
+      "rating": 5
+    },
+    {
+      "id": 3,
+      "name": "Nguyễn Văn Nam",
+      "role": "Sinh viên CNTT",
+      "avatar": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
+      "content": "Giá khóa học rất sinh viên nhưng chất lượng thì tuyệt vời. Hệ thống bài tập và Quiz giúp củng cố kiến thức rất tốt.",
+      "rating": 4
+    },
+    {
+      "id": 4,
+      "name": "Người dùng trải nghiệm",
+      "role": "Học viên",
+      "avatar": "https://i.pravatar.cc/150?u=1",
+      "content": "Giao diện web rất đẹp và dễ sử dụng. Tôi rất thích chức năng feedback này!",
+      "rating": 5
     }
   ]
 }

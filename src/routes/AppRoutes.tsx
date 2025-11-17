@@ -3,17 +3,21 @@ import { Routes, Route } from 'react-router-dom';
 
 // --- Layouts ---
 import MainLayout from '../layouts/MainLayout'; 
+import AdminLayout from '../layouts/AdminLayout';
 
 // --- Pages (Người dùng) ---
 import HomePage from '../pages/Home';
-import CoursesPage from '../pages/Courses'; // Import trang mới
+import CoursesPage from '../pages/Courses';
 import LoginPage from '../pages/Login';
 import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
 import QuizPage from '../pages/Quiz';
 
 // --- Pages (Admin) ---
+import Dashboard from '../pages/Admin/Dashboard';
 import CourseManagement from '../pages/Admin/CourseManagement';
+import StudentManagement from '../pages/Admin/StudentManagement';
+import SettingsPage from '../pages/Admin/Settings'; // Import trang Cài đặt mới
 
 // --- Logic bảo vệ Route ---
 import ProtectedRoute from './ProtectedRoute';
@@ -21,33 +25,51 @@ import ProtectedRoute from './ProtectedRoute';
 function AppRoutes() {
   return (
     <Routes>
-      {/* === LUỒNG NGƯỜI DÙNG CHÍNH === */}
+      
+      {/* =========================================
+          LUỒNG 1: NGƯỜI DÙNG (User / Guest)
+          Sử dụng MainLayout (Navbar ngang, Footer)
+      ========================================= */}
       <Route path="/" element={<MainLayout />}>
+        {/* Các trang công khai */}
         <Route index element={<HomePage />} />
-        <Route path="courses" element={<CoursesPage />} /> {/* Thêm Route này */}
+        <Route path="courses" element={<CoursesPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="course/:id" element={<CourseDetailPage />} />
 
-        {/* === CÁC ROUTE CẦN ĐĂNG NHẬP (USER) === */}
+        {/* Các trang cần đăng nhập (User) */}
         <Route element={<ProtectedRoute />}>
-          <Route 
-            path="watch/:courseId/lesson/:lessonId" 
-            element={<WatchCoursePage />} 
-          />
-          <Route 
-            path="quiz/:quizId" 
-            element={<QuizPage />}
-          />
+          <Route path="watch/:courseId/lesson/:lessonId" element={<WatchCoursePage />} />
+          <Route path="quiz/:quizId" element={<QuizPage />} />
         </Route>
       </Route>
 
-      {/* === LUỒNG ADMIN === */}
-      <Route path="/admin" element={<MainLayout />}>
-        <Route element={<ProtectedRoute adminOnly={true} />}>
-          <Route index element={<CourseManagement />} />
+
+      {/* =========================================
+          LUỒNG 2: QUẢN TRỊ VIÊN (Admin)
+          Sử dụng AdminLayout (Sidebar dọc, Header riêng)
+      ========================================= */}
+      <Route path="/admin" element={<ProtectedRoute adminOnly={true} />}>
+        <Route element={<AdminLayout />}>
+          
+          {/* Dashboard Thống kê */}
+          <Route index element={<Dashboard />} />
+          
+          {/* Quản lý Khóa học */}
           <Route path="courses" element={<CourseManagement />} />
+          
+          {/* Quản lý Học viên */}
+          <Route path="students" element={<StudentManagement />} />
+          
+          {/* Cài đặt (Dark Mode) */}
+          <Route path="settings" element={<SettingsPage />} />
+          
+          {/* Các route khác chưa phát triển */}
+          <Route path="analytics" element={<div className="p-8 text-gray-500">Tính năng Thống kê đang phát triển</div>} />
+
         </Route>
       </Route>
+
     </Routes>
   );
 }

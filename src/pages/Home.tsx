@@ -1,39 +1,60 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Star, TrendingUp, Award, Clock } from 'lucide-react';
+import CourseCard from '../components/CourseCard';
+import Testimonials from '../components/Testimonials'; // Đảm bảo bạn đã tạo file này ở bước trước
 
-// Dữ liệu giả lập cho phần Testimonials và Stats
-const stats = [
-  { label: 'Khóa học', value: '50+', icon: BookOpen },
-  { label: 'Học viên', value: '10K+', icon: Users },
-  { label: 'Giáo viên', value: '100+', icon: Star }
-];
-
-const testimonials = [
-  {
-    name: 'Hồ Thị Kim',
-    role: 'Frontend Developer',
-    image: '👩‍💼',
-    text: 'Khóa học React của LearnHub đã thay đổi sự nghiệp của tôi. Giáo viên rất tận tâm!'
-  },
-  {
-    name: 'Trương Văn Minh',
-    role: 'Full Stack Developer',
-    image: '👨‍💼',
-    text: 'Chất lượng bài giảng tuyệt vời. Tôi đã tìm được công việc mơ ước sau khóa học này.'
-  },
-  {
-    name: 'Ngô Mỹ Linh',
-    role: 'UI/UX Designer',
-    image: '👩‍🎨',
-    text: 'Khóa web design giúp tôi nâng cao kỹ năng thiết kế một cách nhanh chóng.'
-  }
-];
+// Định nghĩa kiểu dữ liệu cho khóa học
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  thumbnail: string;
+  // Các trường tùy chọn khác nếu có trong db.json
+  price?: number;
+  rating?: number;
+  students?: number;
+}
 
 function HomePage() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch dữ liệu khóa học từ API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/courses');
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Lỗi khi tải khóa học:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  // Dữ liệu thống kê tĩnh
+  const stats = [
+    { label: 'Khóa học', value: '50+', icon: BookOpen },
+    { label: 'Học viên', value: '10K+', icon: Users },
+    { label: 'Giáo viên', value: '100+', icon: Star }
+  ];
+
+  // Màn hình loading
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-purple-600 border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white">
-      {/* Hero Section */}
+      {/* --- Hero Section --- */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-purple-50 via-white to-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -63,7 +84,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* --- Stats Section --- */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
           {stats.map((stat, idx) => (
@@ -78,7 +99,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
+       {/* --- Features Section --- */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -87,7 +108,7 @@ function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { icon: TrendingUp, title: 'Nội dung cập nhật', desc: 'Các khóa học được cập nhật theo xu hướng công nghệ mới nhất' },
-              { icon: Award, title: 'Chứng chỉ chuyên nghiệp', desc: 'Nhận chứng chỉ công nhân được công ty hàng đầu công nhận' },
+              { icon: Award, title: 'Chứng chỉ chuyên nghiệp', desc: 'Nhận chứng chỉ công nhận được công ty hàng đầu công nhận' },
               { icon: Clock, title: 'Học theo tốc độ của bạn', desc: 'Học bất kỳ lúc nào, bất kỳ nơi nào với tốc độ của riêng bạn' }
             ].map((feature, idx) => (
               <div key={idx} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition text-center">
@@ -102,35 +123,39 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      {/* --- Courses Section (Danh sách khóa học nổi bật) --- */}
+      <section id="courses" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-purple-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Học viên nói gì về chúng tôi?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Khóa học nổi bật
+            </h2>
+            <p className="text-xl text-gray-600">
+              Chọn từ những khóa học được đánh giá cao nhất
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="text-4xl">{testimonial.image}</div>
-                  <div>
-                    <div className="font-bold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.role}</div>
-                  </div>
-                </div>
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />)}
-                </div>
-                <p className="text-gray-700">"{testimonial.text}"</p>
-              </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Chỉ hiển thị 4 khóa học đầu tiên cho trang chủ */}
+            {courses.slice(0, 4).map(course => (
+              <CourseCard key={course.id} course={course} />
             ))}
+          </div>
+          
+          <div className="text-center mt-12">
+             <Link to="/courses" className="inline-flex items-center gap-2 text-purple-600 font-semibold hover:text-purple-700 transition">
+                Xem tất cả khóa học <ArrowRight className="w-5 h-5" />
+             </Link>
           </div>
         </div>
       </section>
+      
+      {/* --- Testimonials Section (Học viên Feedback) --- */}
+      <Testimonials />
 
-      {/* CTA Section */}
+      {/* --- CTA Section (Kêu gọi hành động) --- */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-12 text-white text-center">
+        <div className="max-w-4xl mx-auto bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-12 text-white text-center shadow-2xl">
           <h2 className="text-4xl font-bold mb-4">Bắt đầu hành trình học tập của bạn</h2>
           <p className="text-lg mb-8 opacity-90">
             Tham gia cộng đồng 10,000+ học viên đang nâng cao kỹ năng của họ
