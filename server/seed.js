@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config(); // <-- Thêm dòng này
 
 // Import Models
 const User = require('./models/User');
@@ -9,18 +10,18 @@ const Lesson = require('./models/Lesson');
 const Quiz = require('./models/Quiz');
 const Testimonial = require('./models/Testimonial');
 
-// Kết nối DB
-mongoose.connect('mongodb+srv://msvAdmin:MaiSonViet2006@@learning-potal.yotzhfw.mongodb.net/?appName=Learning-Potal')
-  .then(() => console.log('Đã kết nối DB để seed dữ liệu...'))
-  .catch(err => console.log(err));
-
-// Đọc file db.json (File này nằm ở thư mục gốc dự án, nên cần ../)
 const dbPath = path.join(__dirname, '../db.json');
 const rawData = fs.readFileSync(dbPath);
 const data = JSON.parse(rawData);
 
-const importData = async () => {
+const runSeed = async () => {
   try {
+    const mongoURI = process.env.MONGODB_URI;
+    if (!mongoURI) throw new Error("Chưa có MONGODB_URI trong .env");
+
+    await mongoose.connect(mongoURI);
+    console.log('✅ Đã kết nối MongoDB Atlas để seed dữ liệu...');
+
     // Xóa dữ liệu cũ
     await User.deleteMany();
     await Course.deleteMany();
@@ -35,7 +36,7 @@ const importData = async () => {
     if(data.quizzes) await Quiz.create(data.quizzes);
     if(data.testimonials) await Testimonial.create(data.testimonials);
 
-    console.log('✅ Đã nạp dữ liệu thành công!');
+    console.log('🎉 Đã nạp dữ liệu lên Cloud thành công!');
     process.exit();
   } catch (error) {
     console.error('❌ Lỗi khi nạp dữ liệu:', error);
@@ -43,4 +44,4 @@ const importData = async () => {
   }
 };
 
-importData();
+runSeed();
