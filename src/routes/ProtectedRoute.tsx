@@ -8,4 +8,19 @@ interface ProtectedRouteProps {
 }
 
 function ProtectedRoute({ adminOnly = false }: ProtectedRouteProps) {
-// ... (phần còn lại giữ nguyên)
+  const { isAuthenticated, isAdmin } = useAuth();
+
+  if (!isAuthenticated) {
+    // Nếu chưa đăng nhập, đá về trang login
+    return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    // Nếu yêu cầu admin mà user không phải admin, đá về trang chủ
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />; // Nếu mọi thứ OK, cho phép render component con
+}
+
+export default ProtectedRoute;

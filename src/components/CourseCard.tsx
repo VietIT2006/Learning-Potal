@@ -16,5 +16,33 @@ interface CourseCardProps {
 }
 
 function CourseCard({ course }: CourseCardProps) {
-// ... (phần còn lại giữ nguyên)
+  return (
+    <Card sx={{ height: '100%' }}>
+      <CardMedia
+        component="img"
+        height="140"
+        image={course.thumbnail} // Lấy ảnh từ API
+        alt={course.title}
+      />
+      <CardContent>
+        <Typography gutterBottom variant="h5" component="div">
+          {course.title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {course.description}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button 
+          size="small" 
+          component={Link} // Biến Button thành thẻ Link
+          to={`/course/${course.id}`} // Điều hướng đến trang chi tiết
+        >
+          Xem chi tiết
+        </Button>
+      </CardActions>
+    </Card>
+  );
 }
+
+export default CourseCard;

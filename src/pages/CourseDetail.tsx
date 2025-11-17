@@ -4,21 +4,32 @@ import axios from 'axios';
 import { Container, Typography, Button, Grid, Paper, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 
+// Định nghĩa kiểu
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  thumbnail: string;
+}
+interface Lesson {
+  id: number;
+  courseId: number;
+  title: string;
+  videoUrl?: string;
+}
+
 function CourseDetailPage() {
-  const { id } = useParams(); // Lấy id từ URL
-  const [course, setCourse] = useState(null);
-  const [lessons, setLessons] = useState([]);
+  const { id } = useParams();
+  const [course, setCourse] = useState<Course | null>(null); // Sửa ở đây
+  const [lessons, setLessons] = useState<Lesson[]>([]); // Sửa ở đây
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Lấy thông tin khóa học
         const courseRes = await axios.get(`http://localhost:3001/courses/${id}`);
         setCourse(courseRes.data);
-
-        // Lấy các bài học thuộc khóa học đó
         const lessonsRes = await axios.get(`http://localhost:3001/lessons?courseId=${id}`);
         setLessons(lessonsRes.data);
       } catch (error) {
@@ -27,7 +38,6 @@ function CourseDetailPage() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [id]);
 
@@ -37,7 +47,6 @@ function CourseDetailPage() {
   return (
     <Container>
       <Grid container spacing={4}>
-        {/* Cột trái: Thông tin khóa học */}
         <Grid item xs={12} md={8}>
           <Typography variant="h3" component="h1" gutterBottom>
             {course.title}
@@ -47,8 +56,6 @@ function CourseDetailPage() {
             {course.description}
           </Typography>
         </Grid>
-
-        {/* Cột phải: Danh sách bài học */}
         <Grid item xs={12} md={4}>
           <Paper elevation={2} sx={{ p: 2 }}>
             <Typography variant="h5" gutterBottom>Nội dung khóa học</Typography>

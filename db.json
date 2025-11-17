@@ -1,4 +1,37 @@
 {
+  "users": [
+    {
+      "id": 1,
+      "username": "user",
+      "password": "123",
+      "role": "user"
+    },
+    {
+      "id": 2,
+      "username": "admin",
+      "password": "123",
+      "role": "admin"
+    }
+  ],
+  "courses": [
+    {
+      "id": 1,
+      "title": "Khóa học React cơ bản",
+      "description": "Học React từ A-Z cho người mới bắt đầu.",
+      "thumbnail": "https://via.placeholder.com/300x200?text=React"
+    },
+    {
+      "id": 2,
+      "title": "Khóa học TypeScript",
+      "description": "Làm chủ TypeScript trong 1 tuần.",
+      "thumbnail": "https://via.placeholder.com/300x200?text=TypeScript"
+    }
+  ],
+  "lessons": [
+    { "id": 1, "courseId": 1, "title": "Bài 1: Giới thiệu React", "videoUrl": "video1.mp4" },
+    { "id": 2, "courseId": 1, "title": "Bài 2: JSX là gì?", "videoUrl": "video2.mp4" },
+    { "id": 3, "courseId": 2, "title": "Bài 1: Kiểu dữ liệu", "videoUrl": "video3.mp4" }
+  ],
   "quizzes": [
     {
       "id": 1,

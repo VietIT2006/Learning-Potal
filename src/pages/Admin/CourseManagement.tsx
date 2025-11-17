@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react'; // Sửa ở đây
 import axios from 'axios';
 import {
   Container, Typography, Button, Paper, Box,
@@ -9,7 +9,6 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-// Style cho Modal (cửa sổ pop-up)
 const modalStyle = {
   position: 'absolute',
   top: '50%',
@@ -22,13 +21,21 @@ const modalStyle = {
   p: 4,
 };
 
+// Định nghĩa kiểu
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  thumbnail: string;
+}
+type CourseForm = Omit<Course, 'id'> & { id?: number };
+
 function CourseManagement() {
-  const [courses, setCourses] = useState([]);
-  const [open, setOpen] = useState(false); // Trạng thái mở/đóng Modal
-  const [currentCourse, setCurrentCourse] = useState({ title: '', description: '', thumbnail: '' });
+  const [courses, setCourses] = useState<Course[]>([]); // Sửa ở đây
+  const [open, setOpen] = useState(false);
+  const [currentCourse, setCurrentCourse] = useState<CourseForm>({ title: '', description: '', thumbnail: '' }); // Sửa ở đây
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // 1. READ: Tải danh sách khóa học
   const fetchCourses = async () => {
     const res = await axios.get('http://localhost:3001/courses');
     setCourses(res.data);
@@ -38,14 +45,12 @@ function CourseManagement() {
     fetchCourses();
   }, []);
 
-  // 2. Mở Modal
-  const handleOpen = (course = null) => {
+  // Sửa ở đây
+  const handleOpen = (course: Course | null = null) => {
     if (course) {
-      // Chế độ Edit
       setCurrentCourse(course);
       setIsEditMode(true);
     } else {
-      // Chế độ Add
       setCurrentCourse({ title: '', description: '', thumbnail: '' });
       setIsEditMode(false);
     }
@@ -54,30 +59,28 @@ function CourseManagement() {
 
   const handleClose = () => setOpen(false);
 
-  // 3. Xử lý Submit (Create & Update)
-  const handleSubmit = async (e) => {
+  // Sửa ở đây
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       if (isEditMode) {
-        // UPDATE (PUT)
         await axios.put(`http://localhost:3001/courses/${currentCourse.id}`, currentCourse);
       } else {
-        // CREATE (POST)
-        await axios.post('http://localhost:3001/courses', { ...currentCourse, id: Date.now() }); // Dùng Date.now() để tạo id giả
+        await axios.post('http://localhost:3001/courses', { ...currentCourse, id: Date.now() });
       }
-      fetchCourses(); // Tải lại dữ liệu
-      handleClose(); // Đóng modal
+      fetchCourses();
+      handleClose();
     } catch (error) {
       console.error("Lỗi khi submit:", error);
     }
   };
 
-  // 4. DELETE
-  const handleDelete = async (id) => {
+  // Sửa ở đây
+  const handleDelete = async (id: number) => {
     if (window.confirm("Bạn có chắc muốn xóa?")) {
       try {
         await axios.delete(`http://localhost:3001/courses/${id}`);
-        fetchCourses(); // Tải lại dữ liệu
+        fetchCourses();
       } catch (error) {
         console.error("Lỗi khi xóa:", error);
       }
@@ -97,7 +100,6 @@ function CourseManagement() {
         </Button>
       </Box>
 
-      {/* Bảng hiển thị dữ liệu */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -126,7 +128,6 @@ function CourseManagement() {
         </Table>
       </TableContainer>
 
-      {/* Modal cho Add/Edit */}
       <Modal open={open} onClose={handleClose}>
         <Box sx={modalStyle} component="form" onSubmit={handleSubmit}>
           <Typography variant="h6" gutterBottom>

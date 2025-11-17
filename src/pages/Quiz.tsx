@@ -3,23 +3,39 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Container, Typography, Button, Paper, Box,
-  Radio, RadioGroup, FormControlLabel, FormControl, FormLabel,
+  Radio, RadioGroup, FormControlLabel, FormControl,
   CircularProgress, Alert
 } from '@mui/material';
+
+// Định nghĩa kiểu
+interface Question {
+  id: string;
+  questionText: string;
+  options: string[];
+  correctAnswerIndex: number;
+}
+interface Quiz {
+  id: number;
+  lessonId: number;
+  title: string;
+  questions: Question[];
+}
+interface SelectedAnswers {
+  [questionId: string]: number;
+}
 
 function QuizPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const [quizData, setQuizData] = useState(null);
+  const [quizData, setQuizData] = useState<Quiz | null>(null); // Sửa ở đây
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null); // Sửa ở đây
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState({}); // Lưu { questionId: answerIndex }
+  const [selectedAnswers, setSelectedAnswers] = useState<SelectedAnswers>({}); // Sửa ở đây
   const [score, setScore] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // 1. Tải dữ liệu Quiz từ mock API
   useEffect(() => {
     const fetchQuiz = async () => {
       try {
@@ -36,21 +52,21 @@ function QuizPage() {
     fetchQuiz();
   }, [quizId]);
 
-  // 2. Xử lý khi người dùng chọn đáp án
-  const handleAnswerChange = (event) => {
+  // Sửa ở đây: Thêm kiểu cho event
+  const handleAnswerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!quizData) return;
     const currentQuestionId = quizData.questions[currentQuestionIndex].id;
     setSelectedAnswers({
       ...selectedAnswers,
-      [currentQuestionId]: parseInt(event.target.value), // Lưu index của đáp án
+      [currentQuestionId]: parseInt(event.target.value),
     });
   };
 
-  // 3. Xử lý khi nhấn nút "Tiếp theo" hoặc "Nộp bài"
   const handleNextOrSubmit = () => {
+    if (!quizData) return;
     const isLastQuestion = currentQuestionIndex === quizData.questions.length - 1;
 
     if (isLastQuestion) {
-      // Nộp bài và chấm điểm
       let finalScore = 0;
       quizData.questions.forEach(q => {
         if (selectedAnswers[q.id] === q.correctAnswerIndex) {
@@ -60,12 +76,9 @@ function QuizPage() {
       setScore(finalScore);
       setIsSubmitted(true);
     } else {
-      // Chuyển sang câu tiếp theo
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     }
   };
-
-  // --- Render Trạng thái ---
 
   if (loading) {
     return (
@@ -83,7 +96,6 @@ function QuizPage() {
     return <Alert severity="warning">Không tìm thấy dữ liệu cho bài quiz này.</Alert>;
   }
 
-  // --- Render Kết quả (Sau khi nộp bài) ---
   if (isSubmitted) {
     return (
       <Container maxWidth="sm">
@@ -96,7 +108,7 @@ function QuizPage() {
           </Typography>
           <Button
             variant="contained"
-            onClick={() => navigate(-1)} // Quay lại trang trước
+            onClick={() => navigate(-1)}
             sx={{ mt: 3 }}
           >
             Quay lại
@@ -106,7 +118,6 @@ function QuizPage() {
     );
   }
 
-  // --- Render Câu hỏi Quiz ---
   const currentQuestion = quizData.questions[currentQuestionIndex];
   const currentAnswer = selectedAnswers[currentQuestion.id];
 
@@ -121,7 +132,6 @@ function QuizPage() {
             Câu {currentQuestionIndex + 1}/{quizData.questions.length}: {currentQuestion.questionText}
           </Typography>
           
-          {/* Danh sách các lựa chọn đáp án */}
           <FormControl component="fieldset" fullWidth>
             <RadioGroup
               value={currentAnswer !== undefined ? currentAnswer.toString() : ''}
@@ -130,7 +140,7 @@ function QuizPage() {
               {currentQuestion.options.map((option, index) => (
                 <FormControlLabel
                   key={index}
-                  value={index.toString()} // Giá trị của Radio là index
+                  value={index.toString()}
                   control={<Radio />}
                   label={option}
                   sx={{ mb: 1 }}
@@ -139,12 +149,11 @@ function QuizPage() {
             </RadioGroup>
           </FormControl>
           
-          {/* Nút điều hướng */}
           <Box sx={{ mt: 3, textAlign: 'right' }}>
             <Button
               variant="contained"
               onClick={handleNextOrSubmit}
-              disabled={currentAnswer === undefined} // Vô hiệu hóa nếu chưa chọn
+              disabled={currentAnswer === undefined}
             >
               {currentQuestionIndex === quizData.questions.length - 1
                 ? 'Nộp bài'
