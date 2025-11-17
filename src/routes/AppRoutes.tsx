@@ -1,11 +1,12 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom'; // 1. Xóa BrowserRouter khỏi import
+import { Routes, Route } from 'react-router-dom';
 
 // --- Layouts ---
 import MainLayout from '../layouts/MainLayout'; 
 
 // --- Pages (Người dùng) ---
 import HomePage from '../pages/Home';
+import CoursesPage from '../pages/Courses'; // Import trang mới
 import LoginPage from '../pages/Login';
 import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
@@ -19,12 +20,11 @@ import ProtectedRoute from './ProtectedRoute';
 
 function AppRoutes() {
   return (
-    // 2. Xóa <BrowserRouter> bao bọc bên ngoài
     <Routes>
-      
       {/* === LUỒNG NGƯỜI DÙNG CHÍNH === */}
       <Route path="/" element={<MainLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="courses" element={<CoursesPage />} /> {/* Thêm Route này */}
         <Route path="login" element={<LoginPage />} />
         <Route path="course/:id" element={<CourseDetailPage />} />
 
@@ -48,9 +48,6 @@ function AppRoutes() {
           <Route path="courses" element={<CourseManagement />} />
         </Route>
       </Route>
-
-      {/* <Route path="*" element={<NotFoundPage />} /> */}
-
     </Routes>
   );
 }
