@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { BookOpen, Users, DollarSign, TrendingUp, ChevronDown, ArrowUpRight } from 'lucide-react';
+
+interface Course {
+  id: number;
+  title: string;
+  price: number;
+  students: number;
+  rating: number;
+  thumbnail: string;
+}
+
+interface Student {
+  id: number;
+  role: string;
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -9,7 +22,7 @@ export default function Dashboard() {
     totalRevenue: 0,
     avgRating: 0
   });
-  const [topCourses, setTopCourses] = useState<any[]>([]);
+  const [topCourses, setTopCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Format tiền tệ VNĐ
@@ -20,33 +33,37 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // 1. Lấy dữ liệu khóa học
-        const coursesRes = await axios.get('http://localhost:3001/courses');
-        const courses = coursesRes.data;
-
-        // 2. Lấy dữ liệu học viên
-        const usersRes = await axios.get('http://localhost:3001/users?role=user');
-        const students = usersRes.data;
-
-        // 3. Tính toán
-        const totalStudents = students.length; // Đếm số học viên thực tế
         
-        // Doanh thu = Giá * Số học viên (giả định trường students trong courses là số lượt mua)
-        const totalRevenue = courses.reduce((acc: number, cur: any) => acc + ((cur.price || 0) * (cur.students || 0)), 0);
+        // 1. Gọi API lấy danh sách khóa học từ MongoDB
+        const coursesRes = await fetch('http://localhost:3001/courses');
+        const courses: Course[] = await coursesRes.json();
+
+        // 2. Gọi API lấy danh sách học viên từ MongoDB
+        const usersRes = await fetch('http://localhost:3001/users?role=user');
+        const students: Student[] = await usersRes.json();
+
+        // 3. Tính toán số liệu
+        const totalStudents = students.length;
+        const totalCourses = courses.length;
+        
+        // Doanh thu = Giá khóa học * Số học viên tham gia
+        const totalRevenue = courses.reduce((acc, cur) => acc + ((cur.price || 0) * (cur.students || 0)), 0);
         
         // Đánh giá trung bình
         const avgRating = courses.length > 0 
-            ? courses.reduce((acc: number, cur: any) => acc + (cur.rating || 0), 0) / courses.length 
+            ? courses.reduce((acc, cur) => acc + (cur.rating || 0), 0) / courses.length 
             : 0;
 
         // Lấy top 4 khóa học đông học viên nhất
-        const sortedCourses = [...courses].sort((a: any, b: any) => b.students - a.students).slice(0, 4);
+        const sortedCourses = [...courses]
+          .sort((a, b) => (b.students || 0) - (a.students || 0))
+          .slice(0, 4);
 
         setStats({
-          totalCourses: courses.length,
-          totalStudents: totalStudents,
-          totalRevenue: totalRevenue,
-          avgRating: avgRating
+          totalCourses,
+          totalStudents,
+          totalRevenue,
+          avgRating
         });
         setTopCourses(sortedCourses);
 
@@ -59,7 +76,13 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  if (loading) return <div className="flex h-64 items-center justify-center text-gray-500">Đang tải dữ liệu thống kê...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
 
   const statCards = [
     { 
@@ -95,7 +118,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* 1. Stats Grid */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, idx) => (
           <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -119,7 +142,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* 2. Revenue Chart (Giả lập UI) */}
+        {/* Revenue Chart (Giả lập UI) */}
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -137,9 +160,6 @@ export default function Dashboard() {
                   className="w-full bg-gradient-to-t from-purple-600 to-pink-500 rounded-t-lg transition-all duration-500 hover:opacity-90" 
                   style={{height: `${h}%`}}
                 ></div>
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {h}M
-                </div>
               </div>
             ))}
           </div>
@@ -149,26 +169,31 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* 3. Top Courses List */}
+        {/* Top Courses List */}
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Khóa học tiêu biểu</h2>
           <div className="space-y-5">
             {topCourses.map((course) => (
               <div key={course.id} className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-xl transition border border-transparent hover:border-gray-100 group cursor-pointer">
                 <img 
-                  src={course.thumbnail} 
+                  src={course.thumbnail || 'https://via.placeholder.com/150'} 
                   alt={course.title} 
                   className="w-12 h-12 rounded-lg object-cover shadow-sm"
                 />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-gray-900 text-sm truncate group-hover:text-purple-700 transition">{course.title}</h4>
-                  <p className="text-xs text-gray-500">{course.students} học viên • {formatCurrency(course.price)}</p>
+                  <p className="text-xs text-gray-500">
+                    {course.students} học viên • {formatCurrency(course.price)}
+                  </p>
                 </div>
                 <div className="font-bold text-sm text-gray-900">
                   {course.rating} <span className="text-yellow-400">★</span>
                 </div>
               </div>
             ))}
+            {topCourses.length === 0 && (
+              <p className="text-center text-gray-500 text-sm py-4">Chưa có khóa học nào</p>
+            )}
           </div>
           <button className="w-full mt-6 py-2 text-sm text-purple-600 font-medium hover:bg-purple-50 rounded-lg transition">
             Xem tất cả báo cáo

@@ -34,7 +34,7 @@ function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-4">
-                <span className="text-gray-700 font-medium">Chào, {user.username}</span>
+                <span className="text-gray-700 font-medium">Chào, {user.fullname}</span>
                 <button 
                   onClick={logout}
                   className="border border-purple-600 text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50 transition"

@@ -1,100 +1,139 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-// 1. Định nghĩa kiểu dữ liệu cho User
+// Định nghĩa cấu trúc User khớp với Database
 interface User {
   id: number;
   username: string;
-  role: 'user' | 'admin';
-  // Thêm các trường khác nếu có, ví dụ: email, name...
+  fullname: string;
+  email: string;
+  role: string; // Quan trọng: 'admin' hoặc 'user'
 }
 
-// 2. Định nghĩa kiểu cho giá trị của Context
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (u: string, p: string) => Promise<boolean>;
+  register: (info: any) => Promise<boolean | string>;
   logout: () => void;
 }
 
-// 3. Tạo Context với kiểu đã định nghĩa
-// Cung cấp giá trị mặc định (hoặc undefined)
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 4. Định nghĩa kiểu cho Props của Provider
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// 5. Tạo Provider Component với Props đã định nghĩa
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
+  // 1. Khởi tạo: Lấy thông tin từ bộ nhớ & Cập nhật mới nhất từ Server
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser) as User);
-    }
-    setLoading(false);
+    const initAuth = async () => {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        try {
+          const parsedUser = JSON.parse(stored);
+          setUser(parsedUser); // Set tạm user từ bộ nhớ để hiện giao diện ngay
+
+          // GỌI API LẤY THÔNG TIN MỚI NHẤT (Để fix lỗi sửa DB mà web chưa cập nhật)
+          // Giả sử backend có API tìm user theo username (hoặc id)
+          try {
+            const res = await fetch(`http://localhost:3001/users?username=${parsedUser.username}`);
+            const data = await res.json();
+            if (data.length > 0) {
+              // Tìm chính xác user hiện tại
+              const freshUser = data[0];
+              // Nếu thông tin có thay đổi (ví dụ role từ user -> admin), cập nhật lại
+              if (JSON.stringify(freshUser) !== JSON.stringify(parsedUser)) {
+                console.log("Đã đồng bộ thông tin mới từ Server!");
+                setUser(freshUser);
+                localStorage.setItem('user', JSON.stringify(freshUser));
+              }
+            }
+          } catch (err) {
+            console.warn("Không thể đồng bộ dữ liệu mới, dùng tạm cache cũ.");
+          }
+
+        } catch (error) {
+          console.error("Lỗi parse user", error);
+          localStorage.removeItem('user');
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  // 6. Định nghĩa kiểu cho tham số của hàm login
+  // 2. Hàm Đăng nhập
   const login = async (username: string, password: string) => {
     try {
-      const response = await axios.get(
-        `http://localhost:3001/users?username=${username}&password=${password}`
-      );
-
-      if (response.data.length > 0) {
-        const loggedInUser = response.data[0] as User;
+      const res = await fetch(`http://localhost:3001/users?username=${username}&password=${password}`);
+      if (!res.ok) throw new Error('Lỗi kết nối');
+      
+      const users = await res.json();
+      if (users.length > 0) {
+        const loggedInUser = users[0];
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
-        
-        if (loggedInUser.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } else {
-        alert('Sai tên đăng nhập hoặc mật khẩu');
+        return true;
       }
+      return false;
     } catch (error) {
-      console.error('Lỗi đăng nhập:', error);
-      alert('Đã xảy ra lỗi');
+      console.error("Login error:", error);
+      return false;
     }
   };
 
+  // 3. Hàm Đăng ký
+  const register = async (info: any) => {
+    try {
+      const res = await fetch('http://localhost:3001/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(info)
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        return true;
+      } else {
+        return data.message || "Đăng ký thất bại";
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      return "Lỗi kết nối server";
+    }
+  };
+
+  // 4. Hàm Đăng xuất
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    navigate('/login');
+    window.location.href = '/login'; 
   };
 
-  // 7. Giá trị value phải khớp với kiểu AuthContextType
-  const value: AuthContextType = {
+  // Giá trị Context
+  const value = {
     user,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
     login,
+    register,
     logout,
+    isAuthenticated: !!user,
+    // Kiểm tra quyền Admin: Phải khớp chính xác chữ 'admin'
+    isAdmin: user?.role === 'admin' 
   };
 
-  if (loading) {
-    return null;
-  }
+  // Chờ load xong mới hiển thị nội dung web
+  if (loading) return null; 
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// 8. Tạo custom hook với kiểu trả về chính xác
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

@@ -18,7 +18,6 @@ app.use(express.json()); // Cho phép đọc JSON từ body request
 
 // --- KẾT NỐI MONGODB ---
 const mongoURI = process.env.MONGODB_URI;
-
 if (!mongoURI) {
   console.error("❌ Lỗi: Chưa cấu hình MONGODB_URI trong file .env");
 } else {
@@ -51,7 +50,6 @@ app.get('/courses/:id', async (req, res) => {
 // [POST] Thêm khóa học mới
 app.post('/courses', async (req, res) => {
   try {
-    // Tự động tạo ID mới: Lấy ID lớn nhất hiện có + 1
     const lastCourse = await Course.findOne().sort({ id: -1 });
     const newId = lastCourse ? lastCourse.id + 1 : 1;
 
@@ -95,39 +93,62 @@ app.delete('/courses/:id', async (req, res) => {
 // 2. API HỌC VIÊN (USERS) - FULL CRUD
 // ==========================================
 
-// [GET] Lấy danh sách users (Hỗ trợ login & lọc theo role)
+// [GET] Lấy danh sách users (ĐÃ SỬA LOGIC LỌC ĐỂ FIX LỖI F5)
 app.get('/users', async (req, res) => {
   try {
     const { username, password, role } = req.query;
     let query = {};
 
-    if (username && password) {
-      query.username = username;
-      query.password = password;
-    }
-    
-    if (role) {
-      query.role = role;
-    }
+    // Logic lọc độc lập: Có cái nào lọc theo cái đó
+    if (username) query.username = username;
+    if (password) query.password = password;
+    if (role) query.role = role;
 
     const users = await User.find(query);
     res.json(users);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// [POST] Tạo user mới
-app.post('/users', async (req, res) => {
+// [POST] Tạo user mới (Đăng ký)
+app.post('/register', async (req, res) => {
   try {
+    const { username, fullname, email, password } = req.body;
+    
+    const existingUser = await User.findOne({ username });
+    if (existingUser) return res.status(400).json({ message: "Tên đăng nhập đã tồn tại" });
+
     const lastUser = await User.findOne().sort({ id: -1 });
     const newId = lastUser ? lastUser.id + 1 : 1;
     
-    const newUser = new User({ id: newId, ...req.body });
+    const newUser = new User({
+      id: newId,
+      username,
+      password,
+      fullname,
+      email,
+      role: 'user',
+      status: 'active',
+      joinDate: new Date().toISOString().split('T')[0],
+      coursesEnrolled: 0
+    });
+
     await newUser.save();
-    res.status(201).json(newUser);
+    res.status(201).json({ message: "Đăng ký thành công", user: newUser });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// [PUT] Cập nhật user (API Mới thêm)
+// [POST] Thêm user từ Admin (có thể tái sử dụng logic trên hoặc viết riêng)
+app.post('/users', async (req, res) => {
+    try {
+      const lastUser = await User.findOne().sort({ id: -1 });
+      const newId = lastUser ? lastUser.id + 1 : 1;
+      const newUser = new User({ id: newId, ...req.body });
+      await newUser.save();
+      res.status(201).json(newUser);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [PUT] Cập nhật user
 app.put('/users/:id', async (req, res) => {
   try {
     const updatedUser = await User.findOneAndUpdate(
@@ -150,7 +171,7 @@ app.delete('/users/:id', async (req, res) => {
 
 
 // ==========================================
-// 3. API BÀI HỌC (LESSONS)
+// 3. CÁC API KHÁC
 // ==========================================
 
 app.get('/lessons', async (req, res) => {
@@ -169,11 +190,6 @@ app.get('/lessons/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-
-// ==========================================
-// 4. API TRẮC NGHIỆM (QUIZZES)
-// ==========================================
-
 app.get('/quizzes', async (req, res) => {
   try {
     const { lessonId } = req.query;
@@ -189,11 +205,6 @@ app.get('/quizzes/:id', async (req, res) => {
     res.json(quiz);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-
-// ==========================================
-// 5. API ĐÁNH GIÁ (TESTIMONIALS)
-// ==========================================
 
 app.get('/testimonials', async (req, res) => {
   try {
@@ -211,7 +222,6 @@ app.post('/testimonials', async (req, res) => {
     res.status(201).json(newItem);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
-
 
 // --- KHỞI CHẠY SERVER ---
 const PORT = process.env.PORT || 3001;
