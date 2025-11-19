@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { 
   CheckCircle, 
@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Award
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; 
 
 // Định nghĩa kiểu dữ liệu
 interface Question {
@@ -20,32 +21,55 @@ interface Question {
 }
 interface Quiz {
   id: number;
-  lessonId: number;
+  lessonId: number; 
   title: string;
   questions: Question[];
 }
 interface SelectedAnswers {
   [questionId: string]: number;
 }
+interface SubmitResult {
+    passed: boolean; // Đúng hết 100%
+    score: number;
+    message: string;
+    progressPercentage: number | null; 
+    totalLessons: number | null;
+    courseId?: number; 
+}
 
 function QuizPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth(); 
+  
   const [quizData, setQuizData] = useState<Quiz | null>(null);
+  const [courseId, setCourseId] = useState<number | null>(null); // State để lưu Course ID
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<SelectedAnswers>({});
-  const [score, setScore] = useState(0);
+  
+  const [result, setResult] = useState<SubmitResult | null>(null); 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchQuiz = async () => {
+      // Đảm bảo user đã đăng nhập trước khi fetch dữ liệu
+      if (!user) {
+          navigate('/login');
+          return;
+      }
+
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:3001/quizzes/${quizId}`);
-        setQuizData(res.data);
+        const quizRes = await axios.get(`http://localhost:3001/quizzes/${quizId}`);
+        setQuizData(quizRes.data);
+        
+        // Lấy Lesson để lấy Course ID cho việc điều hướng (SỬA LỖI ReferenceError)
+        const lessonRes = await axios.get(`http://localhost:3001/lessons/${quizRes.data.lessonId}`);
+        setCourseId(lessonRes.data.courseId); 
+        
       } catch (err) {
         setError("Không thể tải bài kiểm tra. Vui lòng thử lại sau.");
         console.error(err);
@@ -53,8 +77,11 @@ function QuizPage() {
         setLoading(false);
       }
     };
-    fetchQuiz();
-  }, [quizId]);
+    
+    if (user) {
+        fetchQuiz();
+    }
+  }, [quizId, user, navigate]); 
 
   const handleOptionSelect = (index: number) => {
     if (!quizData) return;
@@ -65,19 +92,45 @@ function QuizPage() {
     });
   };
 
+  // Logic nộp bài lên Server
+  const handleFinalSubmit = async () => {
+      if (!quizData || !user || courseId === null) return;
+      
+      try {
+          const submissionPayload = {
+              userId: user.id,
+              quizId: quizData.id,
+              lessonId: quizData.lessonId, 
+              userAnswers: Object.keys(selectedAnswers).map(questionId => ({
+                  questionId,
+                  selectedAnswerIndex: selectedAnswers[questionId]
+              }))
+          };
+          
+          // Gửi bài lên Server để chấm điểm và cập nhật Progress
+          const res = await axios.post('http://localhost:3001/quizzes/submit', submissionPayload);
+          
+          setResult({ ...res.data, courseId } as SubmitResult); 
+          setIsSubmitted(true);
+          
+      } catch (error: any) {
+          console.error("Lỗi khi nộp bài Quiz:", error);
+          alert(error.response?.data?.message || 'Lỗi kết nối hoặc xử lý server khi nộp bài.');
+      }
+  }
+
   const handleNextOrSubmit = () => {
     if (!quizData) return;
     const isLastQuestion = currentQuestionIndex === quizData.questions.length - 1;
 
+    const currentQuestionId = quizData.questions[currentQuestionIndex].id;
+    if (selectedAnswers[currentQuestionId] === undefined) {
+        alert("Vui lòng chọn một đáp án!");
+        return;
+    }
+
     if (isLastQuestion) {
-      let finalScore = 0;
-      quizData.questions.forEach(q => {
-        if (selectedAnswers[q.id] === q.correctAnswerIndex) {
-          finalScore++;
-        }
-      });
-      setScore(finalScore);
-      setIsSubmitted(true);
+      handleFinalSubmit(); // Gửi bài lên Server
     } else {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     }
@@ -114,22 +167,10 @@ function QuizPage() {
   }
 
   // --- Render Result Screen ---
-  if (isSubmitted) {
-    const percentage = Math.round((score / quizData.questions.length) * 100);
-    let message = "";
-    let iconColor = "";
+  if (isSubmitted && result && courseId !== null) { 
+    const iconColor = result.passed ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100";
+    const title = result.passed ? 'Hoàn thành Xuất sắc!' : 'Ôn tập thêm';
     
-    if (percentage >= 80) {
-      message = "Xuất sắc! Bạn đã nắm vững kiến thức.";
-      iconColor = "text-green-600 bg-green-100";
-    } else if (percentage >= 50) {
-      message = "Khá tốt! Cố gắng hơn nữa nhé.";
-      iconColor = "text-yellow-600 bg-yellow-100";
-    } else {
-      message = "Cần ôn tập thêm! Đừng nản chí.";
-      iconColor = "text-red-600 bg-red-100";
-    }
-
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center animate-fade-in-up">
@@ -137,32 +178,38 @@ function QuizPage() {
             <Award className="w-10 h-10" />
           </div>
           
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Kết quả</h2>
-          <p className="text-gray-600 mb-8">{message}</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>
+          <p className="text-gray-600 mb-8 font-medium">{result.message}</p>
 
           <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100">
-            <div className="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-1">Điểm số của bạn</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-1">Kết quả của bạn</div>
             <div className="text-5xl font-black text-purple-600 mb-2">
-              {score}<span className="text-2xl text-gray-400 font-medium">/{quizData.questions.length}</span>
+              {result.score}<span className="text-2xl text-gray-400 font-medium">/{quizData.questions.length}</span>
             </div>
-            <div className="text-sm font-medium text-gray-600 bg-white inline-block px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-              {percentage}% Chính xác
-            </div>
+            
+            {result.passed && result.totalLessons && (
+                 <div className="text-sm font-medium text-gray-600 bg-white inline-block px-3 py-1 rounded-full border border-gray-200 shadow-sm mt-3">
+                     Tiến độ khóa học: {result.progressPercentage}%
+                 </div>
+            )}
           </div>
 
           <div className="space-y-3">
-            <button
-              onClick={() => navigate(-1)} // Quay lại trang bài học
+            <Link
+              to={result.passed ? `/watch/${courseId}/lesson/${quizData.lessonId}` : `#`} 
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg hover:scale-[1.02] transition duration-200 flex items-center justify-center gap-2"
             >
-              Tiếp tục học <ArrowRight className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-50 transition duration-200 flex items-center justify-center gap-2"
-            >
-              Làm lại <RotateCcw className="w-4 h-4" />
-            </button>
+              {result.passed ? 'Tiếp tục học' : 'Thử lại ngay'} <ArrowRight className="w-5 h-5" />
+            </Link>
+            
+            {!result.passed && (
+                 <button
+                    onClick={() => window.location.reload()}
+                    className="w-full bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-50 transition duration-200 flex items-center justify-center gap-2"
+                 >
+                   Làm lại <RotateCcw className="w-4 h-4" />
+                 </button>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,3 @@
-// server/index.js (Thay thế toàn bộ nội dung)
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -11,7 +9,7 @@ const User = require('./models/User');
 const Lesson = require('./models/Lesson');
 const Quiz = require('./models/Quiz');
 const Testimonial = require('./models/Testimonial');
-const Progress = require('./models/Progress'); // [THÊM]
+const Progress = require('./models/Progress');
 
 const app = express();
 
@@ -30,7 +28,51 @@ if (!mongoURI) {
 }
 
 // ==========================================
-// 1. API KHÓA HỌC (COURSES) - FULL CRUD
+// HÀM HELPER: Cập nhật tiến độ bài học
+// ==========================================
+
+const updateLessonProgress = async (userId, courseId, lessonId) => {
+    const lessonIdNum = parseInt(lessonId);
+    const courseIdNum = parseInt(courseId);
+    const userIdNum = parseInt(userId);
+
+    try {
+        // 1. Cập nhật Progress record (Thêm lessonId vào mảng completedLessons)
+        const progress = await Progress.findOneAndUpdate(
+            { userId: userIdNum, courseId: courseIdNum, 'completedLessons': { $ne: lessonIdNum } },
+            { $push: { completedLessons: lessonIdNum } },
+            { new: true }
+        );
+        
+        let finalProgress = progress;
+
+        if (!progress || progress.completedLessons.length === 0 || !progress.completedLessons.includes(lessonIdNum)) {
+             finalProgress = await Progress.findOne({ userId: userIdNum, courseId: courseIdNum });
+             if (!finalProgress) {
+                 return null;
+             }
+        }
+        
+        // 2. Tính toán lại Percentage
+        const totalLessons = await Lesson.countDocuments({ courseId: courseIdNum });
+        
+        finalProgress.progressPercentage = totalLessons > 0 
+            ? Math.round((finalProgress.completedLessons.length / totalLessons) * 100) 
+            : 0;
+            
+        await finalProgress.save();
+        
+        return finalProgress;
+
+    } catch (err) {
+        console.error("❌ Lỗi Helper khi cập nhật tiến độ:", err);
+        throw new Error("Lỗi cập nhật tiến độ.");
+    }
+};
+
+
+// ==========================================
+// 1. API KHÓA HỌC (COURSES) - FULL CRUD 
 // ==========================================
 
 // [GET] Lấy danh sách khóa học
@@ -99,7 +141,7 @@ app.delete('/courses/:id', async (req, res) => {
 
 
 // ==========================================
-// 2. API HỌC VIÊN (USERS) - FULL CRUD
+// 2. API HỌC VIÊN (USERS) - FULL CRUD 
 // ==========================================
 
 // [GET] Lấy danh sách users
@@ -137,24 +179,13 @@ app.post('/register', async (req, res) => {
       role: 'user',
       status: 'active',
       joinDate: new Date().toISOString().split('T')[0],
-      coursesEnrolled: [], // Khởi tạo mảng rỗng
-      coursesEnrolledCount: 0 // Khởi tạo
+      coursesEnrolled: [], 
+      coursesEnrolledCount: 0 
     });
 
     await newUser.save();
     res.status(201).json({ message: "Đăng ký thành công", user: newUser });
   } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// [POST] Thêm user từ Admin
-app.post('/users', async (req, res) => {
-    try {
-      const lastUser = await User.findOne().sort({ id: -1 });
-      const newId = lastUser ? lastUser.id + 1 : 1;
-      const newUser = new User({ id: newId, ...req.body });
-      await newUser.save();
-      res.status(201).json(newUser);
-    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // [PUT] Cập nhật user
@@ -180,7 +211,7 @@ app.delete('/users/:id', async (req, res) => {
 
 
 // ==========================================
-// 3. API GHI DANH & TIẾN ĐỘ HỌC (ENROLLMENT & PROGRESS) - [PHẦN MỚI]
+// 3. API GHI DANH & TIẾN ĐỘ HỌC (ENROLLMENT & PROGRESS)
 // ==========================================
 
 // [POST] Ghi danh vào Khóa học
@@ -238,7 +269,6 @@ app.get('/progress', async (req, res) => {
     try {
         const progress = await Progress.findOne({ userId: parseInt(userId), courseId: parseInt(courseId) });
         
-        // Nếu không tìm thấy, trả về một object rỗng/mặc định (chưa hoàn thành lesson nào)
         if (!progress) {
             return res.json({ completedLessons: [], progressPercentage: 0 });
         }
@@ -272,7 +302,6 @@ app.post('/progress/complete-lesson', async (req, res) => {
         
         let finalProgress = progress;
 
-        // Nếu không tìm thấy hoặc bài học đã hoàn thành
         if (!progress || progress.completedLessons.length === 0 || !progress.completedLessons.includes(lessonIdNum)) {
              finalProgress = await Progress.findOne({ userId: userIdNum, courseId: courseIdNum });
              if (!finalProgress) {
@@ -295,6 +324,79 @@ app.post('/progress/complete-lesson', async (req, res) => {
         console.error("❌ Lỗi cập nhật tiến độ:", err);
         res.status(500).json({ error: err.message });
     }
+});
+
+// [POST] Nộp bài Quiz (Kiểm tra 100% đúng) - [API ĐÃ SỬA LỖI]
+app.post('/quizzes/submit', async (req, res) => {
+  const { quizId, userAnswers, userId, lessonId } = req.body; 
+
+  if (!userId || !quizId || !lessonId || !userAnswers || userAnswers.length === 0) {
+    return res.status(400).json({ message: "Thiếu dữ liệu cần thiết (userId, quizId, userAnswers)." });
+  }
+
+  try {
+    const quizIdNum = parseInt(quizId);
+    const userIdNum = parseInt(userId);
+    const lessonIdNum = parseInt(lessonId);
+
+    // 1. Lấy Bài Quiz Gốc
+    const quiz = await Quiz.findOne({ id: quizIdNum });
+    if (!quiz) {
+      return res.status(404).json({ message: 'Không tìm thấy Quiz.' });
+    }
+
+    let correctCount = 0;
+    const totalQuestions = quiz.questions.length;
+    
+    // 2. Kiểm Tra Đáp Án Tuyệt Đối
+    for (const userAnswer of userAnswers) {
+      // Tìm câu hỏi tương ứng
+      const question = quiz.questions.find(q => q.id === userAnswer.questionId); 
+
+      // Kiểm tra đáp án (Nếu câu hỏi tồn tại VÀ đáp án người dùng chọn khớp với đáp án đúng)
+      if (question && question.correctAnswerIndex === userAnswer.selectedAnswerIndex) {
+        correctCount++;
+      }
+    }
+    
+    // Yêu cầu: Phải đúng hết 100%
+    const allCorrect = correctCount === totalQuestions;
+
+    let completionStatus = {
+        passed: allCorrect,
+        score: correctCount,
+        message: allCorrect 
+          ? 'Chúc mừng! Bạn đã trả lời đúng hết các câu hỏi.' 
+          : `Rất tiếc, bạn chỉ đúng ${correctCount}/${totalQuestions} câu. Cần 100% để hoàn thành bài học.`,
+        progressPercentage: null, 
+        totalLessons: null
+    };
+
+    // 3. Nếu Đúng Hết - Cập Nhật Tiến Độ
+    if (allCorrect) {
+      // TÌM LESSON ĐỂ LẤY COURSE ID (Fix lỗi NaN)
+      const lesson = await Lesson.findOne({ id: lessonIdNum });
+      if (!lesson) {
+          throw new Error(`Lesson ID ${lessonIdNum} not found.`);
+      }
+      const courseIdFromLesson = lesson.courseId; 
+
+      const newProgress = await updateLessonProgress(userIdNum, courseIdFromLesson, lessonIdNum);
+      
+      if (newProgress) {
+        completionStatus.progressPercentage = newProgress.progressPercentage;
+        // Lấy tổng số lessons để hiển thị đúng tỉ lệ trên Frontend
+        const totalLessons = await Lesson.countDocuments({ courseId: courseIdFromLesson });
+        completionStatus.totalLessons = totalLessons;
+      }
+    }
+    
+    return res.status(200).json(completionStatus);
+
+  } catch (error) {
+    console.error("❌ Lỗi Server khi nộp bài Quiz:", error);
+    res.status(500).json({ message: 'Lỗi máy chủ trong quá trình nộp bài Quiz.' });
+  }
 });
 
 
