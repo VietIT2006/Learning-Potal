@@ -16,8 +16,9 @@ import QuizPage from '../pages/Quiz';
 // --- Pages (Admin) ---
 import Dashboard from '../pages/Admin/Dashboard';
 import CourseManagement from '../pages/Admin/CourseManagement';
+import CourseContent from '../pages/Admin/CourseContent'; // IMPORT TRANG MỚI
 import StudentManagement from '../pages/Admin/StudentManagement';
-import SettingsPage from '../pages/Admin/Settings'; // Import trang Cài đặt mới
+import SettingsPage from '../pages/Admin/Settings'; 
 
 // --- Logic bảo vệ Route ---
 import ProtectedRoute from './ProtectedRoute';
@@ -57,6 +58,9 @@ function AppRoutes() {
           
           {/* Quản lý Khóa học */}
           <Route path="courses" element={<CourseManagement />} />
+          
+          {/* ROUTE MỚI: Quản lý Nội dung chi tiết (Lessons & Quiz) */}
+          <Route path="courses/:id/content" element={<CourseContent />} />
           
           {/* Quản lý Học viên */}
           <Route path="students" element={<StudentManagement />} />

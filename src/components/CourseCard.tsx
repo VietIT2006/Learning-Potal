@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, ArrowRight } from 'lucide-react';
+import { Users, ArrowRight, BookOpen } from 'lucide-react'; // ĐÃ THÊM: Import BookOpen
 
 // Định nghĩa kiểu props khớp với dữ liệu từ API của bạn
 interface Course {
@@ -8,21 +8,49 @@ interface Course {
   title: string;
   description: string;
   thumbnail: string;
+  price?: number; 
 }
 
 interface CourseCardProps {
   course: Course;
 }
 
+// Hàm Định dạng tiền tệ
+const formatCurrency = (amount: number) => {
+    if (amount === 0 || !amount) return 'Free';
+    
+    // Định dạng VNĐ, làm tròn không lấy số thập phân
+    return new Intl.NumberFormat('vi-VN', { 
+        style: 'currency', 
+        currency: 'VND', 
+        minimumFractionDigits: 0
+    }).format(amount);
+};
+
 function CourseCard({ course }: CourseCardProps) {
+  const actualPrice = Number(course.price) || 0; 
+  // Kiểm tra xem URL thumbnail có tồn tại và dài hơn một chút không
+  const hasThumbnail = course.thumbnail && course.thumbnail.length > 5; 
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer h-full flex flex-col">
-      {/* Course Header - Dùng ảnh thumbnail thật thay vì gradient nếu có */}
+      {/* Course Header - HIỂN THỊ THUMBNAIL HOẶC FALLBACK */}
       <div 
-        className="h-48 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${course.thumbnail})` }}
+        // Nếu có ảnh, dùng bg-cover. Nếu không, dùng bg-purple-50 và căn giữa
+        className={`h-48 relative ${hasThumbnail ? 'bg-cover bg-center' : 'bg-purple-50 flex items-center justify-center'}`} 
+        // Chỉ áp dụng style backgroundImage nếu có URL
+        style={hasThumbnail ? { backgroundImage: `url(${course.thumbnail})` } : {}}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition"></div>
+        
+        {/* PHẦN FALLBACK (HIỂN THỊ KHI ẢNH BỊ LỖI HOẶC KHÔNG CÓ) */}
+        {!hasThumbnail && (
+            <div className="text-center text-purple-600">
+                <BookOpen className="w-8 h-8 mx-auto mb-2" />
+                <span className="text-sm font-semibold">Không có ảnh bìa</span>
+            </div>
+        )}
+
+        {/* DURATION/RATING BADGE (Giữ nguyên) */}
         <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur px-3 py-1 rounded-full text-sm font-semibold shadow">
           4.8 ⭐
         </div>
@@ -45,8 +73,9 @@ function CourseCard({ course }: CourseCardProps) {
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-auto">
+          {/* PHẦN HIỂN THỊ GIÁ THỰC TẾ (520.000 ₫) */}
           <div className="text-2xl font-bold text-purple-600">
-            Free
+            {formatCurrency(actualPrice)}
           </div>
           <Link 
             to={`/course/${course.id}`}

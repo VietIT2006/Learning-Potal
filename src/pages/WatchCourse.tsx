@@ -12,6 +12,22 @@ interface Lesson {
   duration?: string; // Thêm trường thời lượng giả lập
 }
 
+// HÀM MỚI: Chuyển đổi URL xem (watch) thành URL nhúng (embed) của YouTube
+const getEmbedUrl = (watchUrl: string) => {
+    try {
+        const url = new URL(watchUrl);
+        const v = url.searchParams.get('v'); // Lấy video ID
+        if (v) {
+            // Trả về định dạng nhúng, thêm autoplay và rel=0
+            return `https://www.youtube.com/embed/${v}?autoplay=1&rel=0`;
+        }
+    } catch (e) {
+        // Trường hợp URL không hợp lệ, trả về URL gốc
+        console.error("URL video không hợp lệ:", watchUrl);
+    }
+    return watchUrl;
+};
+
 function WatchCoursePage() {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
@@ -35,7 +51,6 @@ function WatchCoursePage() {
         setAllLessons(allLessonsRes.data);
 
         // 3. Kiểm tra xem bài học này có Quiz không
-        // Giả sử API json-server hỗ trợ filter theo lessonId
         const quizRes = await axios.get(`http://localhost:3001/quizzes?lessonId=${lessonId}`);
         if (quizRes.data.length > 0) {
           setQuizId(quizRes.data[0].id);
@@ -73,15 +88,17 @@ function WatchCoursePage() {
           
           {/* CỘT TRÁI: Video Player & Thông tin bài học */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Video Player Container */}
-            <div className="bg-black rounded-2xl overflow-hidden shadow-xl aspect-video relative group">
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 group-hover:bg-gray-900/30 transition">
-                <div className="text-center text-white">
-                  <PlayCircle className="w-20 h-20 mx-auto opacity-80 mb-4" />
-                  <p className="text-lg font-medium">Mô phỏng Video Player</p>
-                  <p className="text-sm text-gray-300 font-mono mt-2">{currentLesson.videoUrl}</p>
-                </div>
-              </div>
+            {/* THAY THẾ MÔ PHỎNG BẰNG IFRAME NHÚNG VIDEO THỰC TẾ */}
+            <div className="bg-black rounded-2xl overflow-hidden shadow-xl aspect-video relative">
+              <iframe
+                className="w-full h-full"
+                // Sử dụng hàm mới để có URL nhúng
+                src={getEmbedUrl(currentLesson.videoUrl)} 
+                title={currentLesson.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
 
             {/* Lesson Info & Quiz Button */}
@@ -91,7 +108,7 @@ function WatchCoursePage() {
                 <p className="text-gray-500 text-sm">Bài học {currentLesson.id} • Cập nhật mới nhất</p>
               </div>
 
-              {/* 👇 NÚT QUIZ HIỂN THỊ Ở ĐÂY NẾU CÓ DỮ LIỆU 👇 */}
+              {/* NÚT QUIZ */}
               {quizId ? (
                 <button
                   onClick={() => navigate(`/quiz/${quizId}`)}

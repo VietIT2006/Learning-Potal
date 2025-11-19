@@ -1,7 +1,9 @@
+// server/index.js (Thay thế toàn bộ nội dung)
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config(); // Đọc file .env
+require('dotenv').config(); 
 
 // Import Models
 const Course = require('./models/Course');
@@ -9,12 +11,13 @@ const User = require('./models/User');
 const Lesson = require('./models/Lesson');
 const Quiz = require('./models/Quiz');
 const Testimonial = require('./models/Testimonial');
+const Progress = require('./models/Progress'); // [THÊM]
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Cho phép đọc JSON từ body request
+app.use(express.json()); 
 
 // --- KẾT NỐI MONGODB ---
 const mongoURI = process.env.MONGODB_URI;
@@ -63,7 +66,13 @@ app.post('/courses', async (req, res) => {
 
     await newCourse.save();
     res.status(201).json(newCourse);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error("❌ Lỗi Mongoose khi thêm khóa học:", err.message);
+    res.status(500).json({ 
+      error: "Lỗi Server khi tạo khóa học", 
+      details: err.message 
+    }); 
+  }
 });
 
 // [PUT] Cập nhật khóa học
@@ -93,13 +102,12 @@ app.delete('/courses/:id', async (req, res) => {
 // 2. API HỌC VIÊN (USERS) - FULL CRUD
 // ==========================================
 
-// [GET] Lấy danh sách users (ĐÃ SỬA LOGIC LỌC ĐỂ FIX LỖI F5)
+// [GET] Lấy danh sách users
 app.get('/users', async (req, res) => {
   try {
     const { username, password, role } = req.query;
     let query = {};
 
-    // Logic lọc độc lập: Có cái nào lọc theo cái đó
     if (username) query.username = username;
     if (password) query.password = password;
     if (role) query.role = role;
@@ -129,7 +137,8 @@ app.post('/register', async (req, res) => {
       role: 'user',
       status: 'active',
       joinDate: new Date().toISOString().split('T')[0],
-      coursesEnrolled: 0
+      coursesEnrolled: [], // Khởi tạo mảng rỗng
+      coursesEnrolledCount: 0 // Khởi tạo
     });
 
     await newUser.save();
@@ -137,7 +146,7 @@ app.post('/register', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// [POST] Thêm user từ Admin (có thể tái sử dụng logic trên hoặc viết riêng)
+// [POST] Thêm user từ Admin
 app.post('/users', async (req, res) => {
     try {
       const lastUser = await User.findOne().sort({ id: -1 });
@@ -171,9 +180,131 @@ app.delete('/users/:id', async (req, res) => {
 
 
 // ==========================================
-// 3. CÁC API KHÁC
+// 3. API GHI DANH & TIẾN ĐỘ HỌC (ENROLLMENT & PROGRESS) - [PHẦN MỚI]
 // ==========================================
 
+// [POST] Ghi danh vào Khóa học
+app.post('/enroll', async (req, res) => {
+  const { userId, courseId } = req.body;
+
+  if (!userId || !courseId) {
+    return res.status(400).json({ message: "Thiếu userId hoặc courseId" });
+  }
+
+  try {
+    const courseIdNum = parseInt(courseId);
+    const userIdNum = parseInt(userId);
+    
+    // 1. Cập nhật User: Thêm courseId vào mảng coursesEnrolled
+    const updatedUser = await User.findOneAndUpdate(
+      { id: userIdNum, 'coursesEnrolled': { $ne: courseIdNum } }, 
+      { 
+        $push: { coursesEnrolled: courseIdNum },
+        $inc: { coursesEnrolledCount: 1 }
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+        return res.status(400).json({ message: "Bạn đã ghi danh khóa học này hoặc user không tồn tại." });
+    }
+    
+    // 2. Cập nhật Course: Tăng số lượng học viên
+    await Course.findOneAndUpdate(
+        { id: courseIdNum },
+        { $inc: { students: 1 } }
+    );
+    
+    // 3. Khởi tạo Progress record
+    const newProgress = new Progress({ userId: userIdNum, courseId: courseIdNum });
+    await newProgress.save();
+
+    res.json({ message: "Ghi danh thành công!", user: updatedUser });
+
+  } catch (err) {
+    console.error("❌ Lỗi Ghi danh:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// [GET] Lấy tiến độ học của 1 User cho 1 Course
+app.get('/progress', async (req, res) => {
+    const { userId, courseId } = req.query;
+
+    if (!userId || !courseId) {
+        return res.status(400).json({ message: "Thiếu userId hoặc courseId để lấy tiến độ." });
+    }
+
+    try {
+        const progress = await Progress.findOne({ userId: parseInt(userId), courseId: parseInt(courseId) });
+        
+        // Nếu không tìm thấy, trả về một object rỗng/mặc định (chưa hoàn thành lesson nào)
+        if (!progress) {
+            return res.json({ completedLessons: [], progressPercentage: 0 });
+        }
+        
+        res.json(progress);
+    } catch (err) {
+        console.error("❌ Lỗi lấy tiến độ:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// [POST] Đánh dấu hoàn thành bài học
+app.post('/progress/complete-lesson', async (req, res) => {
+    const { userId, courseId, lessonId } = req.body;
+
+    if (!userId || !courseId || !lessonId) {
+        return res.status(400).json({ message: "Thiếu thông tin tiến độ." });
+    }
+
+    try {
+        const lessonIdNum = parseInt(lessonId);
+        const courseIdNum = parseInt(courseId);
+        const userIdNum = parseInt(userId);
+        
+        // 1. Cập nhật Progress record
+        const progress = await Progress.findOneAndUpdate(
+            { userId: userIdNum, courseId: courseIdNum, 'completedLessons': { $ne: lessonIdNum } },
+            { $push: { completedLessons: lessonIdNum } },
+            { new: true }
+        );
+        
+        let finalProgress = progress;
+
+        // Nếu không tìm thấy hoặc bài học đã hoàn thành
+        if (!progress || progress.completedLessons.length === 0 || !progress.completedLessons.includes(lessonIdNum)) {
+             finalProgress = await Progress.findOne({ userId: userIdNum, courseId: courseIdNum });
+             if (!finalProgress) {
+                 return res.status(404).json({ message: "Không tìm thấy tiến độ để cập nhật." });
+             }
+        }
+        
+        // 2. Tính toán lại Percentage
+        const totalLessons = await Lesson.countDocuments({ courseId: courseIdNum });
+        
+        finalProgress.progressPercentage = totalLessons > 0 
+            ? Math.round((finalProgress.completedLessons.length / totalLessons) * 100) 
+            : 0;
+            
+        await finalProgress.save();
+
+        res.json({ message: "Tiến độ đã được cập nhật.", progress: finalProgress });
+        
+    } catch (err) {
+        console.error("❌ Lỗi cập nhật tiến độ:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+// ==========================================
+// 4. CÁC API KHÁC (Lessons, Quizzes, Testimonials)
+// ==========================================
+
+// --- LESSONS API ---
+
+// [GET] Lấy danh sách bài học (có thể lọc theo courseId)
 app.get('/lessons', async (req, res) => {
   try {
     const { courseId } = req.query;
@@ -183,6 +314,7 @@ app.get('/lessons', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// [GET] Lấy chi tiết 1 bài học
 app.get('/lessons/:id', async (req, res) => {
   try {
     const lesson = await Lesson.findOne({ id: parseInt(req.params.id) });
@@ -190,6 +322,50 @@ app.get('/lessons/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// [POST] Thêm bài học mới (Lesson)
+app.post('/lessons', async (req, res) => {
+  try {
+    const lastLesson = await Lesson.findOne().sort({ id: -1 });
+    const newId = lastLesson ? lastLesson.id + 1 : 1;
+
+    const newLesson = new Lesson({
+      ...req.body,
+      id: newId, 
+    });
+
+    await newLesson.save();
+    res.status(201).json(newLesson);
+  } catch (err) {
+    console.error("❌ Lỗi khi thêm bài học:", err);
+    res.status(500).json({ error: "Không thể thêm bài học. Chi tiết lỗi: " + err.message });
+  }
+});
+
+// [PUT] Cập nhật bài học (Lesson)
+app.put('/lessons/:id', async (req, res) => {
+  try {
+    const updatedLesson = await Lesson.findOneAndUpdate(
+      { id: parseInt(req.params.id) },
+      req.body,
+      { new: true }
+    );
+    if (!updatedLesson) return res.status(404).json({ message: "Không tìm thấy bài học để sửa" });
+    res.json(updatedLesson);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [DELETE] Xóa bài học (Lesson)
+app.delete('/lessons/:id', async (req, res) => {
+  try {
+    await Lesson.findOneAndDelete({ id: parseInt(req.params.id) });
+    res.json({ message: "Đã xóa bài học thành công" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
+// --- QUIZZES API ---
+
+// [GET] Lấy danh sách quiz (có thể lọc theo lessonId)
 app.get('/quizzes', async (req, res) => {
   try {
     const { lessonId } = req.query;
@@ -199,6 +375,7 @@ app.get('/quizzes', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// [GET] Lấy chi tiết 1 quiz
 app.get('/quizzes/:id', async (req, res) => {
   try {
     const quiz = await Quiz.findOne({ id: parseInt(req.params.id) });
@@ -206,6 +383,42 @@ app.get('/quizzes/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// [POST] Thêm Quiz mới
+app.post('/quizzes', async (req, res) => {
+  try {
+    const lastQuiz = await Quiz.findOne().sort({ id: -1 });
+    const newId = lastQuiz ? lastQuiz.id + 1 : 1;
+    const newQuiz = new Quiz({ id: newId, ...req.body });
+    await newQuiz.save();
+    res.status(201).json(newQuiz);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [PUT] Cập nhật Quiz
+app.put('/quizzes/:id', async (req, res) => {
+  try {
+    const updatedQuiz = await Quiz.findOneAndUpdate(
+      { id: parseInt(req.params.id) },
+      req.body,
+      { new: true }
+    );
+    if (!updatedQuiz) return res.status(404).json({ message: "Không tìm thấy quiz để sửa" });
+    res.json(updatedQuiz);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [DELETE] Xóa Quiz
+app.delete('/quizzes/:id', async (req, res) => {
+  try {
+    await Quiz.findOneAndDelete({ id: parseInt(req.params.id) });
+    res.json({ message: "Đã xóa quiz thành công" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+
+// --- TESTIMONIALS API ---
+
+// [GET] Lấy danh sách testimonial
 app.get('/testimonials', async (req, res) => {
   try {
     const testimonials = await Testimonial.find();
@@ -213,6 +426,7 @@ app.get('/testimonials', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// [POST] Thêm testimonial mới
 app.post('/testimonials', async (req, res) => {
   try {
     const lastItem = await Testimonial.findOne().sort({ id: -1 });
@@ -222,6 +436,7 @@ app.post('/testimonials', async (req, res) => {
     res.status(201).json(newItem);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 
 // --- KHỞI CHẠY SERVER ---
 const PORT = process.env.PORT || 3001;
