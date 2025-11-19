@@ -1,11 +1,8 @@
-// src/pages/CourseDetail.tsx (Thay thế toàn bộ nội dung)
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// [SỬA ĐỔI] THÊM CheckCircle
 import { ChevronRight, Clock, Users, DollarSign, CheckCircle } from 'lucide-react'; 
-import { useAuth } from '../context/AuthContext'; // [THÊM] Import Auth Context
+import { useAuth } from '../context/AuthContext'; 
 
 interface Course {
   id: number;
@@ -36,14 +33,15 @@ function CourseDetailPage() {
   const { id } = useParams();
   const courseId = Number(id);
   const navigate = useNavigate();
-  // [SỬA ĐỔI] Lấy user, isAuthenticated, refreshUser từ context
+  // Lấy user, isAuthenticated, refreshUser từ context
   const { user, isAuthenticated, refreshUser } = useAuth(); 
 
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // [THÊM] Kiểm tra trạng thái ghi danh
+  // Kiểm tra trạng thái ghi danh
+  // Sẽ tự động cập nhật khi user object thay đổi (sau khi refreshUser chạy)
   const isEnrolled = user?.coursesEnrolled?.includes(courseId) || false;
 
   useEffect(() => {
@@ -63,7 +61,7 @@ function CourseDetailPage() {
     fetchCourseData();
   }, [courseId]);
   
-  // [THÊM] Hàm xử lý Ghi danh
+  // Hàm xử lý Ghi danh
   const handleEnroll = async () => {
     if (!isAuthenticated) {
       alert("Vui lòng đăng nhập để ghi danh khóa học!");
@@ -71,7 +69,7 @@ function CourseDetailPage() {
       return;
     }
     
-    // Nếu khóa học có phí > 0, bạn có thể thêm logic thanh toán ở đây
+    // Kiểm tra phí và xác nhận
     if (course!.price > 0 && !window.confirm(`Khóa học này có phí ${formatCurrency(course!.price)}. Bạn có chắc muốn ghi danh?`)) {
         return;
     }
@@ -84,9 +82,8 @@ function CourseDetailPage() {
 
       if (res.status === 200 || res.status === 201) {
         alert("Ghi danh thành công!");
-        // Cập nhật Auth Context để làm mới dữ liệu user (rất quan trọng)
+        // Gọi hàm tải lại data user để cập nhật trạng thái isEnrolled
         refreshUser(); 
-        // Sau khi refreshUser, isEnrolled sẽ tự động cập nhật và nút sẽ chuyển trạng thái
       }
     } catch (err: any) {
       // Bắt lỗi chi tiết từ server

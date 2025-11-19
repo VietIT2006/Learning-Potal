@@ -7,6 +7,7 @@ interface User {
   fullname: string;
   email: string;
   role: string; // Quan trọng: 'admin' hoặc 'user'
+  coursesEnrolled?: number[]; // [SỬA ĐỔI] Mảng ID các khóa học đã đăng ký
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
   login: (u: string, p: string) => Promise<boolean>;
   register: (info: any) => Promise<boolean | string>;
   logout: () => void;
+  refreshUser: () => void; // [THÊM] Hàm cập nhật lại data user
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,34 +26,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // [THÊM/SỬA] Tách logic fetch user ra thành hàm riêng để tái sử dụng
+  const fetchAndUpdateUser = async (storedUser: User) => {
+    try {
+      // GỌI API LẤY THÔNG TIN MỚI NHẤT (bao gồm coursesEnrolled)
+      const res = await fetch(`http://localhost:3001/users?username=${storedUser.username}`);
+      const data = await res.json();
+      
+      if (data.length > 0) {
+        const freshUser = data[0] as User;
+        setUser(freshUser);
+        localStorage.setItem('user', JSON.stringify(freshUser));
+        return freshUser;
+      }
+    } catch (err) {
+      console.warn("Không thể đồng bộ dữ liệu mới.");
+    }
+    return storedUser;
+  };
+  
+  // [THÊM] Định nghĩa hàm refresh User
+  const refreshUser = () => {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+          try {
+              const parsedUser = JSON.parse(stored) as User;
+              // Chạy async function để cập nhật
+              fetchAndUpdateUser(parsedUser); 
+          } catch (error) {
+              console.error("Lỗi parse user", error);
+          }
+      }
+  };
+
+
   // 1. Khởi tạo: Lấy thông tin từ bộ nhớ & Cập nhật mới nhất từ Server
   useEffect(() => {
     const initAuth = async () => {
       const stored = localStorage.getItem('user');
       if (stored) {
         try {
-          const parsedUser = JSON.parse(stored);
-          setUser(parsedUser); // Set tạm user từ bộ nhớ để hiện giao diện ngay
-
-          // GỌI API LẤY THÔNG TIN MỚI NHẤT (Để fix lỗi sửa DB mà web chưa cập nhật)
-          // Giả sử backend có API tìm user theo username (hoặc id)
-          try {
-            const res = await fetch(`http://localhost:3001/users?username=${parsedUser.username}`);
-            const data = await res.json();
-            if (data.length > 0) {
-              // Tìm chính xác user hiện tại
-              const freshUser = data[0];
-              // Nếu thông tin có thay đổi (ví dụ role từ user -> admin), cập nhật lại
-              if (JSON.stringify(freshUser) !== JSON.stringify(parsedUser)) {
-                console.log("Đã đồng bộ thông tin mới từ Server!");
-                setUser(freshUser);
-                localStorage.setItem('user', JSON.stringify(freshUser));
-              }
-            }
-          } catch (err) {
-            console.warn("Không thể đồng bộ dữ liệu mới, dùng tạm cache cũ.");
-          }
-
+          const parsedUser = JSON.parse(stored) as User; 
+          setUser(parsedUser); 
+          
+          // Cập nhật dữ liệu từ Server
+          await fetchAndUpdateUser(parsedUser);
+          
         } catch (error) {
           console.error("Lỗi parse user", error);
           localStorage.removeItem('user');
@@ -71,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const users = await res.json();
       if (users.length > 0) {
-        const loggedInUser = users[0];
+        const loggedInUser = users[0] as User;
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         return true;
@@ -112,11 +132,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Giá trị Context
-  const value = {
+  const value: AuthContextType = { 
     user,
     login,
     register,
     logout,
+    refreshUser, // [THÊM] Export hàm refreshUser
     isAuthenticated: !!user,
     // Kiểm tra quyền Admin: Phải khớp chính xác chữ 'admin'
     isAdmin: user?.role === 'admin' 
