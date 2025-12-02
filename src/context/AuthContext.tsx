@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react'; // Thêm dòng này
 
 // Định nghĩa cấu trúc User khớp với Database
 interface User {
