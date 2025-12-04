@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Star, Quote, MessageSquarePlus } from 'lucide-react';
-import FeedbackModal from './FeedbackModal'; // Import modal vừa tạo
+import FeedbackModal from './FeedbackModal'; 
 import { useAuth } from '../context/AuthContext';
 
 interface Testimonial {
@@ -20,7 +20,8 @@ export default function Testimonials() {
 
   // Hàm load dữ liệu
   const fetchTestimonials = () => {
-    axios.get('http://localhost:3001/testimonials')
+    // SỬA URL THÀNH /api
+    axios.get('/api/testimonials')
       .then(res => {
         // Lấy 3 feedback mới nhất (đảo ngược mảng)
         const sortedData = res.data.reverse().slice(0, 3); 

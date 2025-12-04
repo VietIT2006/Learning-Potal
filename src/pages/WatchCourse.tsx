@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { PlayCircle, FileQuestion, ChevronRight, CheckCircle, Clock } from 'lucide-react';
-import { useAuth } from '../context/AuthContext'; // <-- Import Auth
+import { useAuth } from '../context/AuthContext'; 
 
-// Định nghĩa kiểu
 interface Lesson {
   id: number;
   courseId: number;
@@ -18,11 +17,10 @@ interface Progress {
     progressPercentage: number;
 }
 
-// HÀM: Chuyển đổi URL xem (watch) thành URL nhúng (embed)
 const getEmbedUrl = (watchUrl: string) => {
     try {
         const url = new URL(watchUrl);
-        const v = url.searchParams.get('v'); // Lấy video ID
+        const v = url.searchParams.get('v');
         if (v) {
             return `https://www.youtube.com/embed/${v}?autoplay=1&rel=0`;
         }
@@ -43,13 +41,13 @@ function WatchCoursePage() {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [quizId, setQuizId] = useState<number | null>(null);
-  const [progress, setProgress] = useState<Progress>({ completedLessons: [], progressPercentage: 0 }); // <-- Progress State
+  const [progress, setProgress] = useState<Progress>({ completedLessons: [], progressPercentage: 0 });
   const [loading, setLoading] = useState(true);
 
-  // Hàm Fetch Tiến độ
   const fetchProgress = async (userId: number) => {
     try {
-        const res = await axios.get(`http://localhost:3001/progress?userId=${userId}&courseId=${courseIdNum}`);
+        // SỬA URL THÀNH /api
+        const res = await axios.get(`/api/progress?userId=${userId}&courseId=${courseIdNum}`);
         setProgress(res.data);
     } catch(err) {
         console.error("Lỗi tải tiến độ:", err);
@@ -58,7 +56,6 @@ function WatchCoursePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Bảo vệ route, chỉ chạy khi đăng nhập
       if (!isAuthenticated || !user) {
           return;
       }
@@ -66,19 +63,18 @@ function WatchCoursePage() {
       try {
         setLoading(true);
         
-        // 1. Lấy thông tin bài học hiện tại
-        const lessonRes = await axios.get(`http://localhost:3001/lessons/${lessonId}`);
+        // SỬA URL THÀNH /api
+        const lessonRes = await axios.get(`/api/lessons/${lessonId}`);
         setCurrentLesson(lessonRes.data);
 
-        // 2. Lấy danh sách tất cả bài học của khóa này
-        const allLessonsRes = await axios.get(`http://localhost:3001/lessons?courseId=${courseId}`);
+        // SỬA URL THÀNH /api
+        const allLessonsRes = await axios.get(`/api/lessons?courseId=${courseId}`);
         setAllLessons(allLessonsRes.data);
 
-        // 3. Lấy tiến độ của người dùng
         await fetchProgress(user.id);
 
-        // 4. Kiểm tra xem bài học này có Quiz không
-        const quizRes = await axios.get(`http://localhost:3001/quizzes?lessonId=${lessonId}`);
+        // SỬA URL THÀNH /api
+        const quizRes = await axios.get(`/api/quizzes?lessonId=${lessonId}`);
         if (quizRes.data.length > 0) {
           setQuizId(quizRes.data[0].id);
         } else {
@@ -97,23 +93,20 @@ function WatchCoursePage() {
     }
   }, [courseId, lessonId, isAuthenticated, user]);
   
-  // Kiểm tra bài học hiện tại đã hoàn thành chưa
   const isLessonCompleted = progress.completedLessons.includes(lessonIdNum);
   
-  // Hàm xử lý hoàn thành bài học
   const handleCompleteLesson = async () => {
       if (isLessonCompleted) return;
 
       try {
-          await axios.post('http://localhost:3001/progress/complete-lesson', {
+          // SỬA URL THÀNH /api
+          await axios.post('/api/progress/complete-lesson', {
               userId: user!.id,
               courseId: courseIdNum,
               lessonId: lessonIdNum
           });
           
           alert('Bài học đã hoàn thành! Tiến độ đã được cập nhật.');
-          
-          // Tải lại progress để cập nhật UI
           await fetchProgress(user!.id);
           
       } catch(err) {
@@ -128,8 +121,6 @@ function WatchCoursePage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-8 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Breadcrumb đơn giản */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link to="/courses" className="hover:text-purple-600">Khóa học</Link>
           <ChevronRight className="w-4 h-4" />
@@ -139,10 +130,7 @@ function WatchCoursePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* CỘT TRÁI: Video Player & Thông tin bài học */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Video Player Container */}
             <div className="bg-black rounded-2xl overflow-hidden shadow-xl aspect-video relative">
               <iframe
                 className="w-full h-full"
@@ -154,14 +142,12 @@ function WatchCoursePage() {
               ></iframe>
             </div>
 
-            {/* Lesson Info & Complete Button */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">{currentLesson.title}</h1>
                 <p className="text-gray-500 text-sm">Bài học {currentLesson.id} • Tiến độ: {progress.progressPercentage}%</p>
               </div>
 
-              {/* NÚT QUIZ / HOÀN THÀNH */}
               {quizId ? (
                 <button
                   onClick={() => navigate(`/quiz/${quizId}`)}
@@ -196,7 +182,6 @@ function WatchCoursePage() {
             </div>
           </div>
 
-          {/* CỘT PHẢI: Danh sách bài học */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
               <div className="p-4 border-b border-gray-100 bg-gray-50">

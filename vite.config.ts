@@ -12,4 +12,13 @@ export default defineConfig({
     }),
     tailwindcss(), // 2. Thêm dòng này vào danh sách plugins
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001', // Backend chạy ở port này
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''), // Xóa chữ /api trước khi gửi sang backend
+      },
+    },
+  },
 })

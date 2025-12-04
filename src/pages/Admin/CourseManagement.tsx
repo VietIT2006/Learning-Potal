@@ -25,7 +25,6 @@ export default function CourseManagement() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
-  // SỬA: Đảm bảo 'instructor' có giá trị mặc định
   const initialForm = {
     title: '', 
     description: '', 
@@ -33,7 +32,7 @@ export default function CourseManagement() {
     category: 'Programming',
     level: 'Beginner', 
     duration: '', 
-    instructor: 'Mai Sơn Việt', // ĐÃ SỬA: Giá trị mặc định
+    instructor: '', 
     thumbnail: ''
   };
   const [formData, setFormData] = useState(initialForm);
@@ -41,7 +40,8 @@ export default function CourseManagement() {
   // 1. Lấy danh sách khóa học
   const fetchCourses = async () => {
     try {
-      const res = await fetch('http://localhost:3001/courses');
+      // SỬA URL THÀNH /api
+      const res = await fetch('/api/courses');
       const data = await res.json();
       setCourses(data);
       setLoading(false);
@@ -50,7 +50,7 @@ export default function CourseManagement() {
 
   useEffect(() => { fetchCourses(); }, []);
 
-  // 2. Mở Modal (Thêm hoặc Sửa)
+  // 2. Mở Modal
   const handleOpenModal = (course: Course | null = null) => {
     if (course) {
       setIsEditMode(true);
@@ -72,7 +72,6 @@ export default function CourseManagement() {
     setIsModalOpen(true);
   };
 
-  // 3. Xử lý thay đổi input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -82,19 +81,17 @@ export default function CourseManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // SỬA: Đảm bảo giá là Number trước khi gửi (quan trọng)
     const payload = {
         ...formData,
         price: Number(formData.price), 
-        // Đảm bảo instructor luôn có giá trị (Fix lỗi validation 500)
         instructor: formData.instructor || 'Mai Sơn Việt', 
-        // Bạn có thể thêm các trường bắt buộc khác vào đây nếu schema yêu cầu
     }
 
     try {
+      // SỬA URL THÀNH /api
       const url = isEditMode 
-        ? `http://localhost:3001/courses/${editingId}` 
-        : 'http://localhost:3001/courses';
+        ? `/api/courses/${editingId}` 
+        : '/api/courses';
       
       const method = isEditMode ? 'PUT' : 'POST';
 
@@ -109,7 +106,6 @@ export default function CourseManagement() {
         setIsModalOpen(false);
         fetchCourses();
       } else {
-         // Xử lý lỗi từ server (ví dụ: lỗi validation Mongoose)
          const errorData = await res.json();
          alert(`Lỗi khi lưu: ${errorData.details || errorData.error || 'Lỗi không xác định'}`);
       }
@@ -123,7 +119,8 @@ export default function CourseManagement() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Xóa khóa học này?')) {
       try {
-        await fetch(`http://localhost:3001/courses/${id}`, { method: 'DELETE' });
+        // SỬA URL THÀNH /api
+        await fetch(`/api/courses/${id}`, { method: 'DELETE' });
         setCourses(courses.filter(c => c.id !== id));
       } catch (err) { console.error(err); }
     }
@@ -133,7 +130,6 @@ export default function CourseManagement() {
 
   return (
     <div className="space-y-6">
-      {/* ... Phần header và search giữ nguyên ... */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Quản lý khóa học</h2>
         <button onClick={() => handleOpenModal(null)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700">
@@ -147,7 +143,6 @@ export default function CourseManagement() {
           className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" />
       </div>
 
-      {/* ... Phần Table giữ nguyên ... */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-b">
@@ -179,7 +174,6 @@ export default function CourseManagement() {
         </table>
       </div>
 
-      {/* --- Modal Thêm/Sửa Khóa học --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl m-4 overflow-hidden">
@@ -188,26 +182,14 @@ export default function CourseManagement() {
               <button onClick={() => setIsModalOpen(false)}><X size={24} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              {/* Tiêu đề */}
               <input name="title" required placeholder="Tiêu đề" value={formData.title} onChange={handleChange} className="w-full p-2 border rounded" />
-              
-              {/* Mô tả */}
               <textarea name="description" placeholder="Mô tả" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" />
-              
               <div className="grid grid-cols-2 gap-4">
-                {/* Giá (Dùng type text để tránh lỗi kiểm soát component) */}
                 <input name="price" type="text" placeholder="Giá" value={String(formData.price)} onChange={handleChange} className="w-full p-2 border rounded" />
-                
-                {/* Thời lượng */}
                 <input name="duration" placeholder="Thời lượng" value={formData.duration} onChange={handleChange} className="w-full p-2 border rounded" />
               </div>
-
-              {/* Tên Giảng viên (Đảm bảo có input hoặc giá trị mặc định) */}
               <input name="instructor" placeholder="Tên Giảng viên" value={formData.instructor} onChange={handleChange} className="w-full p-2 border rounded" />
-
-              {/* Thumbnail */}
               <input name="thumbnail" placeholder="Link ảnh thumbnail" value={formData.thumbnail} onChange={handleChange} className="w-full p-2 border rounded" />
-              
               <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Lưu</button>
             </form>
           </div>

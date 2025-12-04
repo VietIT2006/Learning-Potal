@@ -3,10 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Plus, Trash2, Save, Video, FileQuestion, 
-  ChevronDown, ChevronUp, ArrowLeft, CheckCircle 
+  ChevronDown, ChevronUp, ArrowLeft
 } from 'lucide-react';
 
-// --- Types ---
 interface Lesson {
   id: number;
   courseId: number;
@@ -30,26 +29,25 @@ interface Quiz {
 }
 
 export default function CourseContent() {
-  const { id } = useParams(); // Lấy courseId từ URL
+  const { id } = useParams(); 
   const courseId = Number(id);
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   
-  // Form states
   const [newLessonTitle, setNewLessonTitle] = useState('');
   const [newVideoUrl, setNewVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // 1. Load danh sách bài học của khóa học này
   useEffect(() => {
     fetchLessons();
   }, [courseId]);
 
   const fetchLessons = async () => {
     try {
-      const res = await axios.get(`http://localhost:3001/lessons?courseId=${courseId}`);
+      // SỬA URL THÀNH /api
+      const res = await axios.get(`/api/lessons?courseId=${courseId}`);
       setLessons(res.data);
       setLoading(false);
     } catch (error) {
@@ -57,22 +55,21 @@ export default function CourseContent() {
     }
   };
 
-  // 2. Load Quiz khi chọn một bài học
   const handleSelectLesson = async (lessonId: number) => {
     if (activeLessonId === lessonId) {
-      setActiveLessonId(null); // Toggle off
+      setActiveLessonId(null); 
       setQuiz(null);
       return;
     }
     setActiveLessonId(lessonId);
     try {
-      const res = await axios.get(`http://localhost:3001/quizzes?lessonId=${lessonId}`);
+      // SỬA URL THÀNH /api
+      const res = await axios.get(`/api/quizzes?lessonId=${lessonId}`);
       if (res.data.length > 0) {
         setQuiz(res.data[0]);
       } else {
-        // Tạo quiz rỗng tạm thời (chưa lưu DB)
         setQuiz({
-          id: Date.now(), // ID tạm
+          id: Date.now(), 
           lessonId: lessonId,
           title: 'Bài kiểm tra',
           questions: []
@@ -83,14 +80,13 @@ export default function CourseContent() {
     }
   };
 
-  // 3. Thêm bài học mới
   const handleAddLesson = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLessonTitle || !newVideoUrl) return alert("Vui lòng nhập đủ thông tin!");
 
     try {
-        // Lấy ID lớn nhất hiện tại để +1 (Logic đơn giản cho frontend)
-       const allLessons = await axios.get('http://localhost:3001/lessons');
+       // SỬA URL THÀNH /api
+       const allLessons = await axios.get('/api/lessons');
        const maxId = allLessons.data.reduce((max: number, l: any) => l.id > max ? l.id : max, 0);
 
       const newLesson = {
@@ -98,10 +94,11 @@ export default function CourseContent() {
         courseId: courseId,
         title: newLessonTitle,
         videoUrl: newVideoUrl,
-        duration: "10:00" // Mặc định hoặc thêm input nhập
+        duration: "10:00" 
       };
 
-      await axios.post('http://localhost:3001/lessons', newLesson);
+      // SỬA URL THÀNH /api
+      await axios.post('/api/lessons', newLesson);
       alert("Thêm bài học thành công!");
       setNewLessonTitle('');
       setNewVideoUrl('');
@@ -112,19 +109,16 @@ export default function CourseContent() {
     }
   };
 
-  // 4. Xóa bài học
   const handleDeleteLesson = async (lessonId: number) => {
     if (!confirm("Bạn có chắc muốn xóa bài học này?")) return;
     try {
-      await axios.delete(`http://localhost:3001/lessons/${lessonId}`);
-      // Xóa luôn quiz liên quan (nếu muốn logic chặt chẽ hơn)
+      // SỬA URL THÀNH /api
+      await axios.delete(`/api/lessons/${lessonId}`);
       fetchLessons();
     } catch (error) {
       alert("Lỗi khi xóa");
     }
   };
-
-  // --- LOGIC XỬ LÝ QUIZ (QUESTION) ---
 
   const addQuestion = () => {
     if (!quiz) return;
@@ -154,19 +148,16 @@ export default function CourseContent() {
   const saveQuiz = async () => {
     if (!quiz) return;
     try {
-      // Kiểm tra xem quiz đã tồn tại trên DB chưa
-      const checkRes = await axios.get(`http://localhost:3001/quizzes?lessonId=${quiz.lessonId}`);
+      // SỬA URL THÀNH /api
+      const checkRes = await axios.get(`/api/quizzes?lessonId=${quiz.lessonId}`);
       
       if (checkRes.data.length > 0) {
-        // Update (PUT)
         const existingId = checkRes.data[0].id;
-        await axios.put(`http://localhost:3001/quizzes/${existingId}`, { ...quiz, id: existingId });
+        await axios.put(`/api/quizzes/${existingId}`, { ...quiz, id: existingId });
       } else {
-        // Create (POST)
-        // Lấy max ID cho quiz
-        const allQuizzes = await axios.get('http://localhost:3001/quizzes');
+        const allQuizzes = await axios.get('/api/quizzes');
         const maxId = allQuizzes.data.reduce((max: number, q: any) => q.id > max ? q.id : max, 0);
-        await axios.post('http://localhost:3001/quizzes', { ...quiz, id: maxId + 1 });
+        await axios.post('/api/quizzes', { ...quiz, id: maxId + 1 });
       }
       alert("Lưu câu hỏi trắc nghiệm thành công!");
     } catch (error) {
@@ -184,7 +175,6 @@ export default function CourseContent() {
         <h2 className="text-2xl font-bold text-gray-800">Nội dung khóa học (ID: {courseId})</h2>
       </div>
 
-      {/* --- SECTION 1: THÊM BÀI HỌC --- */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Video className="w-5 h-5 text-purple-600" /> Thêm bài học mới
@@ -218,11 +208,9 @@ export default function CourseContent() {
         </form>
       </div>
 
-      {/* --- SECTION 2: DANH SÁCH BÀI HỌC --- */}
       <div className="space-y-4">
         {loading ? <p>Đang tải...</p> : lessons.map((lesson, index) => (
           <div key={lesson.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            {/* Lesson Header */}
             <div className="p-4 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
                 <span className="bg-gray-200 text-gray-600 w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm">
@@ -255,7 +243,6 @@ export default function CourseContent() {
               </div>
             </div>
 
-            {/* --- QUIZ EDITOR (Hiện ra khi bấm Soạn Quiz) --- */}
             {activeLessonId === lesson.id && quiz && (
               <div className="p-6 border-t border-gray-100 animate-fade-in bg-slate-50">
                 <div className="flex justify-between items-center mb-6">

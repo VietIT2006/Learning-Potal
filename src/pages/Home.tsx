@@ -3,15 +3,13 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Star, TrendingUp, Award, Clock } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
-import Testimonials from '../components/Testimonials'; // Đảm bảo bạn đã tạo file này ở bước trước
+import Testimonials from '../components/Testimonials';
 
-// Định nghĩa kiểu dữ liệu cho khóa học
 interface Course {
   id: number;
   title: string;
   description: string;
   thumbnail: string;
-  // Các trường tùy chọn khác nếu có trong db.json
   price?: number;
   rating?: number;
   students?: number;
@@ -21,11 +19,11 @@ function HomePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch dữ liệu khóa học từ API
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:3001/courses');
+        // SỬA URL THÀNH /api
+        const response = await axios.get('/api/courses');
         setCourses(response.data);
       } catch (error) {
         console.error("Lỗi khi tải khóa học:", error);
@@ -36,14 +34,12 @@ function HomePage() {
     fetchCourses();
   }, []);
 
-  // Dữ liệu thống kê tĩnh
   const stats = [
     { label: 'Khóa học', value: '50+', icon: BookOpen },
     { label: 'Học viên', value: '10K+', icon: Users },
     { label: 'Giáo viên', value: '100+', icon: Star }
   ];
 
-  // Màn hình loading
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-white">
@@ -54,7 +50,7 @@ function HomePage() {
 
   return (
     <div className="w-full bg-white">
-      {/* --- Hero Section --- */}
+      {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-purple-50 via-white to-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -84,7 +80,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* --- Stats Section --- */}
+      {/* Stats Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
           {stats.map((stat, idx) => (
@@ -99,7 +95,7 @@ function HomePage() {
         </div>
       </section>
 
-       {/* --- Features Section --- */}
+       {/* Features Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -123,7 +119,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* --- Courses Section (Danh sách khóa học nổi bật) --- */}
+      {/* Courses Section */}
       <section id="courses" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-purple-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -136,7 +132,6 @@ function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Chỉ hiển thị 4 khóa học đầu tiên cho trang chủ */}
             {courses.slice(0, 4).map(course => (
               <CourseCard key={course.id} course={course} />
             ))}
@@ -150,10 +145,9 @@ function HomePage() {
         </div>
       </section>
       
-      {/* --- Testimonials Section (Học viên Feedback) --- */}
       <Testimonials />
 
-      {/* --- CTA Section (Kêu gọi hành động) --- */}
+      {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-12 text-white text-center shadow-2xl">
           <h2 className="text-4xl font-bold mb-4">Bắt đầu hành trình học tập của bạn</h2>

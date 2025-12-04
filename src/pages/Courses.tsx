@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Star, Users, Clock, ArrowRight, BookOpen } from 'lucide-react';
+import { Search, Filter, Star, Users, Clock, ArrowRight, BookOpen, ImageOff } from 'lucide-react';
 
-// Định nghĩa kiểu dữ liệu
 interface Course {
   id: number;
   title: string;
   description: string;
   thumbnail: string;
-  // Các trường bổ sung giả lập cho UI
   category?: string;
   rating?: number;
   reviews?: number;
@@ -17,6 +15,7 @@ interface Course {
   level?: string;
   duration?: string;
   instructor?: string;
+  students?: number;
 }
 
 function CoursesPage() {
@@ -27,33 +26,22 @@ function CoursesPage() {
 
   const categories = [
     { id: 'all', name: 'Tất cả' },
-    { id: 'frontend', name: 'Frontend' },
-    { id: 'backend', name: 'Backend' },
-    { id: 'mobile', name: 'Mobile' },
-    { id: 'design', name: 'Design' }
+    { id: 'Programming', name: 'Lập trình' },
+    { id: 'Design', name: 'Thiết kế' },
+    { id: 'Business', name: 'Kinh doanh' },
+    { id: 'Marketing', name: 'Marketing' }
   ];
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:3001/courses');
+        // Gọi API lấy dữ liệu thật
+        const response = await axios.get('/api/courses');
         
-        // Bổ sung dữ liệu giả lập để UI đẹp hơn (vì db.json gốc thiếu trường)
-        const enhancedCourses = response.data.map((course: any) => ({
-          ...course,
-          rating: 4.8,
-          reviews: Math.floor(Math.random() * 300) + 50,
-          price: 299000,
-          level: 'Beginner',
-          duration: '4 tuần',
-          instructor: 'Giảng viên LearnHub',
-          // Giả lập category dựa trên tên khóa học để test filter
-          category: course.title.toLowerCase().includes('react') ? 'frontend' : 
-                    course.title.toLowerCase().includes('design') ? 'design' : 'backend'
-        }));
+        // --- QUAN TRỌNG: Dùng dữ liệu gốc từ DB, không chỉnh sửa/ghi đè ---
+        setCourses(response.data); 
         
-        setCourses(enhancedCourses);
       } catch (error) {
         console.error("Lỗi tải khóa học:", error);
       } finally {
@@ -64,10 +52,15 @@ function CoursesPage() {
   }, []);
 
   const filteredCourses = courses.filter(course => {
-    const matchCategory = selectedCategory === 'all' || course.category === selectedCategory;
+    const matchCategory = selectedCategory === 'all' || (course.category && course.category === selectedCategory);
     const matchSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategory && matchSearch;
   });
+
+  const formatPrice = (price?: number) => {
+    if (!price || price === 0) return 'Miễn phí';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Đang tải khóa học...</div>;
@@ -75,7 +68,6 @@ function CoursesPage() {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen">
-      {/* Page Header */}
       <section className="pt-12 pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-purple-600 to-purple-500 text-white">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Khám phá khóa học</h1>
@@ -83,10 +75,8 @@ function CoursesPage() {
         </div>
       </section>
 
-      {/* Search and Filter */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 bg-white shadow-sm sticky top-16 z-40">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -98,7 +88,6 @@ function CoursesPage() {
             />
           </div>
 
-          {/* Category Filter */}
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2 mr-2">
               <Filter className="w-5 h-5 text-gray-600" />
@@ -121,7 +110,6 @@ function CoursesPage() {
         </div>
       </section>
 
-      {/* Courses Grid */}
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 text-gray-600">
@@ -135,20 +123,27 @@ function CoursesPage() {
                   key={course.id}
                   className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group flex flex-col h-full"
                 >
-                  {/* Course Image */}
-                  <div
-                    className="h-48 bg-cover bg-center relative"
-                    style={{ backgroundImage: `url(${course.thumbnail})` }}
-                  >
-                     {/* Overlay gradient để text dễ đọc hơn nếu cần */}
-                     <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition"></div>
-                     
-                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-purple-700 shadow-sm">
-                      {course.level}
+                  <div className="h-48 relative bg-gray-200 overflow-hidden">
+                    {course.thumbnail ? (
+                        <img 
+                            src={course.thumbnail} 
+                            alt={course.title}
+                            className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                                // Xử lý khi ảnh lỗi -> đổi thành ảnh mặc định
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=No+Image';
+                            }}
+                        />
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400">
+                            <ImageOff className="w-10 h-10" />
+                        </div>
+                    )}
+                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-purple-700 shadow-sm z-10">
+                      {course.level || 'Cơ bản'}
                     </div>
                   </div>
 
-                  {/* Course Content */}
                   <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition line-clamp-2">
                       {course.title}
@@ -157,30 +152,27 @@ function CoursesPage() {
                       {course.description}
                     </p>
 
-                    {/* Instructor */}
                     <div className="text-sm text-gray-500 mb-4 pb-4 border-b border-gray-100">
-                      Giáo viên: <span className="font-semibold text-gray-900">{course.instructor}</span>
+                      Giáo viên: <span className="font-semibold text-gray-900">{course.instructor || 'Đang cập nhật'}</span>
                     </div>
 
-                    {/* Stats Row */}
                     <div className="flex justify-between items-center text-xs text-gray-500 mb-6">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="font-bold text-gray-900">{course.rating}</span>
-                        <span>({course.reviews})</span>
+                        <span className="font-bold text-gray-900">{course.rating || 0}</span>
+                        <span>({course.reviews || 0})</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>{course.duration}</span>
+                        <span>{course.duration || 'N/A'}</span>
                       </div>
                     </div>
 
-                    {/* Footer */}
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
                       <div>
                         <div className="text-xs text-gray-500 mb-1">Học phí</div>
                         <div className="text-xl font-bold text-purple-600">
-                          {(course.price! / 1000).toFixed(0)}K
+                          {formatPrice(course.price)}
                         </div>
                       </div>
                       <Link 

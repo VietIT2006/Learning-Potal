@@ -26,8 +26,8 @@ export default function FeedbackModal({ isOpen, onClose, onSuccess }: FeedbackMo
 
     setIsSubmitting(true);
     try {
-      // Gửi dữ liệu lên server
-      await axios.post('http://localhost:3001/testimonials', {
+      // Gửi dữ liệu lên server (SỬA URL THÀNH /api)
+      await axios.post('/api/testimonials', {
         name: user.username, // Hoặc user.fullname nếu có
         role: "Học viên",     // Mặc định vai trò
         avatar: "https://i.pravatar.cc/150?u=" + user.id, // Avatar giả lập theo ID

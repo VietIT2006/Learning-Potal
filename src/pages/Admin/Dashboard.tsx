@@ -34,12 +34,12 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // 1. Gọi API lấy danh sách khóa học từ MongoDB
-        const coursesRes = await fetch('http://localhost:3001/courses');
+        // SỬA URL THÀNH /api
+        const coursesRes = await fetch('/api/courses');
         const courses: Course[] = await coursesRes.json();
 
-        // 2. Gọi API lấy danh sách học viên từ MongoDB
-        const usersRes = await fetch('http://localhost:3001/users?role=user');
+        // SỬA URL THÀNH /api
+        const usersRes = await fetch('/api/users?role=user');
         const students: Student[] = await usersRes.json();
 
         // 3. Tính toán số liệu

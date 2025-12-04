@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react'; // Thêm dòng này
+import type { ReactNode } from 'react';
 
 // Định nghĩa cấu trúc User khớp với Database
 interface User {
@@ -8,7 +8,7 @@ interface User {
   fullname: string;
   email: string;
   role: string; // Quan trọng: 'admin' hoặc 'user'
-  coursesEnrolled?: number[]; // [SỬA ĐỔI] Mảng ID các khóa học đã đăng ký
+  coursesEnrolled?: number[]; // Mảng ID các khóa học đã đăng ký
 }
 
 interface AuthContextType {
@@ -18,7 +18,7 @@ interface AuthContextType {
   login: (u: string, p: string) => Promise<boolean>;
   register: (info: any) => Promise<boolean | string>;
   logout: () => void;
-  refreshUser: () => void; // [THÊM] Hàm cập nhật lại data user
+  refreshUser: () => void; // Hàm cập nhật lại data user
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,11 +27,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // [THÊM/SỬA] Tách logic fetch user ra thành hàm riêng để tái sử dụng
+  // Tách logic fetch user ra thành hàm riêng để tái sử dụng
   const fetchAndUpdateUser = async (storedUser: User) => {
     try {
-      // GỌI API LẤY THÔNG TIN MỚI NHẤT (bao gồm coursesEnrolled)
-      const res = await fetch(`http://localhost:3001/users?username=${storedUser.username}`);
+      // GỌI API QUA PROXY /api
+      const res = await fetch(`/api/users?username=${storedUser.username}`);
       const data = await res.json();
       
       if (data.length > 0) {
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return storedUser;
   };
   
-  // [THÊM] Định nghĩa hàm refresh User
+  // Định nghĩa hàm refresh User
   const refreshUser = () => {
       const stored = localStorage.getItem('user');
       if (stored) {
@@ -59,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
       }
   };
-
 
   // 1. Khởi tạo: Lấy thông tin từ bộ nhớ & Cập nhật mới nhất từ Server
   useEffect(() => {
@@ -87,7 +86,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 2. Hàm Đăng nhập
   const login = async (username: string, password: string) => {
     try {
-      const res = await fetch(`http://localhost:3001/users?username=${username}&password=${password}`);
+      // SỬA URL THÀNH /api
+      const res = await fetch(`/api/users?username=${username}&password=${password}`);
       if (!res.ok) throw new Error('Lỗi kết nối');
       
       const users = await res.json();
@@ -107,7 +107,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 3. Hàm Đăng ký
   const register = async (info: any) => {
     try {
-      const res = await fetch('http://localhost:3001/register', {
+      // SỬA URL THÀNH /api
+      const res = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(info)
@@ -138,13 +139,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     register,
     logout,
-    refreshUser, // [THÊM] Export hàm refreshUser
+    refreshUser,
     isAuthenticated: !!user,
-    // Kiểm tra quyền Admin: Phải khớp chính xác chữ 'admin'
     isAdmin: user?.role === 'admin' 
   };
 
-  // Chờ load xong mới hiển thị nội dung web
   if (loading) return null; 
 
   return (

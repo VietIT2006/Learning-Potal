@@ -1,0 +1,89 @@
+{
+  "users": [
+    {
+      "_id": "691b5848f15a3a37e2b261e8",
+      "id": 1,
+      "username": "hocvien01",
+      "password": "123",
+      "role": "user",
+      "fullname": "Nguyễn Văn An",
+      "email": "an.nguyen@example.com",
+      "phone": "0901234567",
+      "joinDate": "2023-10-15",
+      "status": "active",
+      "coursesEnrolled": [1, 2],
+      "coursesEnrolledCount": 2,
+      "__v": 0
+    }
+  ],
+  "courses": [
+    {
+      "_id": "6930e45540a2f71878cf5c7e",
+      "id": 1,
+      "title": "Nhập môn Lập trình Web",
+      "description": "Khóa học nền tảng cho người mới bắt đầu, bao gồm HTML, CSS và JavaScript cơ bản.",
+      "thumbnail": "https://i.pinimg.com/1200x/72/7c/db/727cdb1f97b0fca6a114c11f9a288fdd.jpg",
+      "category": "Programming",
+      "level": "Beginner",
+      "price": 800000,
+      "rating": 4.5,
+      "reviews": 12,
+      "students": 150,
+      "duration": "8h",
+      "instructor": "Xuân Quang Thái",
+      "__v": 0
+    }
+  ],
+  "lessons": [
+    {
+      "_id": "6930e68c40a2f71878cf5ca7",
+      "id": 1,
+      "courseId": 1,
+      "title": "Bài 1: Giới thiệu khóa học",
+      "videoUrl": "https://youtu.be/pbYpyChicAA",
+      "duration": "10:00",
+      "__v": 0
+    }
+  ],
+  "quizzes": [
+    {
+      "_id": "691b5850f15a3a37e2b26247",
+      "id": 3,
+      "lessonId": 1,
+      "title": "Kiểm tra kiến thức Bài 1",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Node.js chạy trên engine nào?",
+          "options": ["SpiderMonkey", "V8", "Chakra", "JavaScriptCore"],
+          "correctAnswerIndex": 1,
+          "_id": "691b5850f15a3a37e2b26248"
+        }
+      ],
+      "__v": 0
+    }
+  ],
+  "testimonials": [
+    {
+      "_id": "691b5851f15a3a37e2b26252",
+      "id": 1,
+      "name": "Trần Minh Tuấn",
+      "role": "Frontend Developer @ VNG",
+      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa học thực sự chất lượng. Lộ trình bài bản giúp mình tự tin làm dự án.",
+      "rating": 5,
+      "__v": 0
+    }
+  ],
+  "progresses": [
+    {
+      "_id": "691d613071044d7b0a7c5a28",
+      "userId": 1,
+      "courseId": 1,
+      "completedLessons": [1],
+      "progressPercentage": 100,
+      "uniqueId": "1-1",
+      "__v": 0
+    }
+  ]
+}

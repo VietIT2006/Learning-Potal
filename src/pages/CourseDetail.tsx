@@ -25,7 +25,7 @@ interface Lesson {
 }
 
 const formatCurrency = (amount: number) => {
-    if (amount === 0 || !amount) return 'Free';
+    if (amount === 0 || !amount) return 'Miễn phí';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(amount);
 };
 
@@ -41,16 +41,17 @@ function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
 
   // Kiểm tra trạng thái ghi danh
-  // Sẽ tự động cập nhật khi user object thay đổi (sau khi refreshUser chạy)
   const isEnrolled = user?.coursesEnrolled?.includes(courseId) || false;
 
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const courseRes = await axios.get(`http://localhost:3001/courses/${courseId}`);
+        // SỬA: Thay localhost bằng /api
+        const courseRes = await axios.get(`/api/courses/${courseId}`);
         setCourse(courseRes.data);
 
-        const lessonsRes = await axios.get(`http://localhost:3001/lessons?courseId=${courseId}`);
+        // SỬA: Thay localhost bằng /api
+        const lessonsRes = await axios.get(`/api/lessons?courseId=${courseId}`);
         setLessons(lessonsRes.data);
       } catch (err) {
         console.error("Lỗi tải dữ liệu khóa học:", err);
@@ -75,8 +76,9 @@ function CourseDetailPage() {
     }
 
     try {
-      const res = await axios.post('http://localhost:3001/enroll', { 
-        userId: user!.id, // Đảm bảo user có ID khi isAuthenticated là true
+      // SỬA: Thay localhost bằng /api
+      const res = await axios.post('/api/enroll', { 
+        userId: user!.id, 
         courseId: courseId 
       });
 

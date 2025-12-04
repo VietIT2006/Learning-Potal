@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Plus, Mail, Phone, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Search, Mail, Phone, Calendar, Trash2 } from 'lucide-react';
 
 interface Student {
   id: number;
@@ -22,10 +22,10 @@ export default function StudentManagement() {
     fetchStudents();
   }, []);
 
-  // 1. Lấy danh sách học viên
   const fetchStudents = async () => {
     try {
-      const res = await fetch('http://localhost:3001/users?role=user');
+      // SỬA URL THÀNH /api
+      const res = await fetch('/api/users?role=user');
       const data = await res.json();
       setStudents(data);
       setLoading(false);
@@ -35,11 +35,11 @@ export default function StudentManagement() {
     }
   };
 
-  // 2. Xóa học viên
   const handleDelete = async (id: number) => {
     if (window.confirm('Bạn có chắc muốn xóa học viên này?')) {
       try {
-        await fetch(`http://localhost:3001/users/${id}`, { method: 'DELETE' });
+        // SỬA URL THÀNH /api
+        await fetch(`/api/users/${id}`, { method: 'DELETE' });
         setStudents(students.filter(s => s.id !== id));
       } catch (error) {
         alert('Có lỗi xảy ra khi xóa!');

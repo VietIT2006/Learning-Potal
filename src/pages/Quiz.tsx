@@ -2,17 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  CheckCircle, 
-  AlertCircle, 
-  ArrowRight, 
-  RotateCcw, 
-  HelpCircle, 
-  ChevronRight,
-  Award
+  CheckCircle, AlertCircle, ArrowRight, RotateCcw, 
+  HelpCircle, ChevronRight, Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; 
 
-// Định nghĩa kiểu dữ liệu
 interface Question {
   id: string;
   questionText: string;
@@ -29,7 +23,7 @@ interface SelectedAnswers {
   [questionId: string]: number;
 }
 interface SubmitResult {
-    passed: boolean; // Đúng hết 100%
+    passed: boolean;
     score: number;
     message: string;
     progressPercentage: number | null; 
@@ -43,7 +37,7 @@ function QuizPage() {
   const { user } = useAuth(); 
   
   const [quizData, setQuizData] = useState<Quiz | null>(null);
-  const [courseId, setCourseId] = useState<number | null>(null); // State để lưu Course ID
+  const [courseId, setCourseId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +49,6 @@ function QuizPage() {
 
   useEffect(() => {
     const fetchQuiz = async () => {
-      // Đảm bảo user đã đăng nhập trước khi fetch dữ liệu
       if (!user) {
           navigate('/login');
           return;
@@ -63,11 +56,12 @@ function QuizPage() {
 
       try {
         setLoading(true);
-        const quizRes = await axios.get(`http://localhost:3001/quizzes/${quizId}`);
+        // SỬA URL THÀNH /api
+        const quizRes = await axios.get(`/api/quizzes/${quizId}`);
         setQuizData(quizRes.data);
         
-        // Lấy Lesson để lấy Course ID cho việc điều hướng (SỬA LỖI ReferenceError)
-        const lessonRes = await axios.get(`http://localhost:3001/lessons/${quizRes.data.lessonId}`);
+        // SỬA URL THÀNH /api
+        const lessonRes = await axios.get(`/api/lessons/${quizRes.data.lessonId}`);
         setCourseId(lessonRes.data.courseId); 
         
       } catch (err) {
@@ -92,7 +86,6 @@ function QuizPage() {
     });
   };
 
-  // Logic nộp bài lên Server
   const handleFinalSubmit = async () => {
       if (!quizData || !user || courseId === null) return;
       
@@ -107,8 +100,8 @@ function QuizPage() {
               }))
           };
           
-          // Gửi bài lên Server để chấm điểm và cập nhật Progress
-          const res = await axios.post('http://localhost:3001/quizzes/submit', submissionPayload);
+          // SỬA URL THÀNH /api
+          const res = await axios.post('/api/quizzes/submit', submissionPayload);
           
           setResult({ ...res.data, courseId } as SubmitResult); 
           setIsSubmitted(true);
@@ -130,13 +123,12 @@ function QuizPage() {
     }
 
     if (isLastQuestion) {
-      handleFinalSubmit(); // Gửi bài lên Server
+      handleFinalSubmit(); 
     } else {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     }
   };
 
-  // --- Render Loading State ---
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -145,7 +137,6 @@ function QuizPage() {
     );
   }
 
-  // --- Render Error State ---
   if (error || !quizData || !quizData.questions) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -166,7 +157,6 @@ function QuizPage() {
     );
   }
 
-  // --- Render Result Screen ---
   if (isSubmitted && result && courseId !== null) { 
     const iconColor = result.passed ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100";
     const title = result.passed ? 'Hoàn thành Xuất sắc!' : 'Ôn tập thêm';
@@ -216,14 +206,12 @@ function QuizPage() {
     );
   }
 
-  // --- Render Quiz Question ---
   const currentQuestion = quizData.questions[currentQuestionIndex];
   const currentAnswer = selectedAnswers[currentQuestion.id];
   const progress = ((currentQuestionIndex + 1) / quizData.questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      {/* Header Info */}
       <div className="w-full max-w-3xl mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{quizData.title}</h1>
@@ -232,31 +220,19 @@ function QuizPage() {
             Câu hỏi {currentQuestionIndex + 1} trên {quizData.questions.length}
           </p>
         </div>
-        <button 
-          onClick={() => navigate(-1)}
-          className="text-gray-500 hover:text-gray-900 font-medium text-sm"
-        >
-          Thoát
-        </button>
+        <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 font-medium text-sm">Thoát</button>
       </div>
 
-      {/* Main Quiz Card */}
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden">
-        {/* Progress Bar */}
         <div className="w-full h-2 bg-gray-100">
-          <div 
-            className="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          ></div>
+          <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
         </div>
 
         <div className="p-8 md:p-10">
-          {/* Question Text */}
           <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-8 leading-relaxed">
             {currentQuestion.questionText}
           </h3>
 
-          {/* Options */}
           <div className="space-y-4">
             {currentQuestion.options.map((option, index) => {
               const isSelected = currentAnswer === index;
@@ -265,36 +241,26 @@ function QuizPage() {
                   key={index}
                   onClick={() => handleOptionSelect(index)}
                   className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-4 group ${
-                    isSelected 
-                      ? 'border-purple-600 bg-purple-50 shadow-md' 
-                      : 'border-gray-100 bg-white hover:border-purple-200 hover:bg-gray-50'
+                    isSelected ? 'border-purple-600 bg-purple-50 shadow-md' : 'border-gray-100 bg-white hover:border-purple-200 hover:bg-gray-50'
                   }`}
                 >
-                  {/* Radio Circle */}
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                     isSelected ? 'border-purple-600' : 'border-gray-300 group-hover:border-purple-400'
                   }`}>
                     {isSelected && <div className="w-3 h-3 rounded-full bg-purple-600 animate-bounce-small" />}
                   </div>
-
-                  <span className={`font-medium text-lg ${isSelected ? 'text-purple-900' : 'text-gray-700'}`}>
-                    {option}
-                  </span>
+                  <span className={`font-medium text-lg ${isSelected ? 'text-purple-900' : 'text-gray-700'}`}>{option}</span>
                 </div>
               );
             })}
           </div>
 
-          {/* Footer Actions */}
           <div className="mt-10 flex justify-end">
             <button
               onClick={handleNextOrSubmit}
               disabled={currentAnswer === undefined}
-              className={`
-                flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all duration-300
-                ${currentAnswer === undefined 
-                  ? 'bg-gray-300 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:scale-105 shadow-md'}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all duration-300
+                ${currentAnswer === undefined ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:scale-105 shadow-md'}
               `}
             >
               {currentQuestionIndex === quizData.questions.length - 1 ? 'Nộp bài' : 'Câu tiếp theo'}
