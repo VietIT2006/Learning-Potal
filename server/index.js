@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config(); 
+require('dotenv').config(); // Load biến môi trường từ file .env
+const PayOS = require('@payos/node');
 
 // Import Models
 const Course = require('./models/Course');
@@ -10,12 +11,13 @@ const Lesson = require('./models/Lesson');
 const Quiz = require('./models/Quiz');
 const Testimonial = require('./models/Testimonial');
 const Progress = require('./models/Progress');
+const Order = require('./models/Order');
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 
 // --- KẾT NỐI MONGODB ---
 const mongoURI = process.env.MONGODB_URI;
@@ -27,12 +29,28 @@ if (!mongoURI) {
     .catch(err => console.error("❌ Lỗi kết nối MongoDB:", err));
 }
 
+// --- CẤU HÌNH PAYOS TỪ BIẾN MÔI TRƯỜNG ---
+const PAYOS_CLIENT_ID = process.env.PAYOS_CLIENT_ID;
+const PAYOS_API_KEY = process.env.PAYOS_API_KEY;
+const PAYOS_CHECKSUM_KEY = process.env.PAYOS_CHECKSUM_KEY;
+
+// Kiểm tra xem đã cấu hình đủ chưa
+if (!PAYOS_CLIENT_ID || !PAYOS_API_KEY || !PAYOS_CHECKSUM_KEY) {
+    console.error("⚠️ CẢNH BÁO: Chưa cấu hình đầy đủ PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY trong file .env");
+}
+
+const payos = new PayOS(
+    PAYOS_CLIENT_ID,
+    PAYOS_API_KEY,
+    PAYOS_CHECKSUM_KEY
+);
+
 // ==========================================
-// ROUTER CHÍNH (Thêm tiền tố /api)
+// ROUTER CHÍNH
 // ==========================================
 const router = express.Router();
 
-// --- Helper: Cập nhật tiến độ ---
+// --- Helper: Cập nhật tiến độ học tập ---
 const updateLessonProgress = async (userId, courseId, lessonId) => {
     const lessonIdNum = parseInt(lessonId);
     const courseIdNum = parseInt(courseId);
@@ -64,7 +82,102 @@ const updateLessonProgress = async (userId, courseId, lessonId) => {
     }
 };
 
-// --- 1. API COURSES ---
+// ==========================================
+// 1. API PAYOS (THANH TOÁN)
+// ==========================================
+
+// Tạo link thanh toán
+router.post('/payment/create-link', async (req, res) => {
+    const { userId, courseId } = req.body;
+  
+    try {
+      const course = await Course.findOne({ id: parseInt(courseId) });
+      if (!course) return res.status(404).json({ message: "Không tìm thấy khóa học" });
+  
+      if (!course.price || course.price === 0) {
+          return res.status(400).json({ message: "Khóa học miễn phí không cần thanh toán qua cổng." });
+      }
+  
+      // Tạo mã đơn hàng ngẫu nhiên (Số nguyên dương, < 9007199254740991)
+      const orderCode = Number(String(Date.now()).slice(-6) + Math.floor(Math.random() * 1000));
+  
+      // Lưu đơn hàng vào DB (trạng thái pending)
+      await Order.create({
+          orderCode,
+          userId,
+          courseId,
+          amount: course.price,
+          status: 'pending'
+      });
+  
+      // Tạo link thanh toán PayOS
+      // Lưu ý: returnUrl và cancelUrl là địa chỉ Frontend
+      const paymentLinkData = {
+        orderCode: orderCode,
+        amount: course.price,
+        description: `Thanh toan khoa hoc ${course.id}`,
+        items: [
+            {
+                name: course.title,
+                quantity: 1,
+                price: course.price
+            }
+        ],
+        returnUrl: `http://localhost:5173/payment-result`, 
+        cancelUrl: `http://localhost:5173/course/${courseId}`
+      };
+  
+      const paymentLink = await payos.createPaymentLink(paymentLinkData);
+      res.json({ checkoutUrl: paymentLink.checkoutUrl });
+  
+    } catch (error) {
+      console.error("Lỗi tạo link thanh toán:", error);
+      res.status(500).json({ message: "Lỗi tạo giao dịch" });
+    }
+});
+  
+// Webhook nhận kết quả thanh toán từ PayOS
+router.post('/payment/webhook', async (req, res) => {
+    try {
+      // Xác thực dữ liệu webhook để đảm bảo an toàn
+      const webhookData = payos.verifyPaymentWebhookData(req.body);
+  
+      // Nếu thanh toán thành công (code '00')
+      if (webhookData.code === '00') {
+          const orderCode = webhookData.orderCode;
+          const order = await Order.findOne({ orderCode });
+          
+          // Chỉ xử lý nếu đơn hàng đang ở trạng thái 'pending'
+          if (order && order.status === 'pending') {
+              
+              // 1. Cập nhật trạng thái đơn hàng
+              order.status = 'paid';
+              await order.save();
+  
+              // 2. Kích hoạt khóa học cho User
+              await User.findOneAndUpdate(
+                  { id: order.userId, 'coursesEnrolled': { $ne: order.courseId } }, 
+                  { $push: { coursesEnrolled: order.courseId }, $inc: { coursesEnrolledCount: 1 } }
+              );
+              
+              // 3. Tạo bản ghi tiến độ học tập ban đầu
+              await new Progress({ userId: order.userId, courseId: order.courseId }).save();
+              
+              console.log(`✅ Thanh toán thành công đơn ${orderCode}. Đã kích hoạt khóa học ${order.courseId} cho User ${order.userId}.`);
+          }
+      }
+  
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Lỗi xử lý Webhook:", error);
+      // Trả về 200 để PayOS không gửi lại webhook liên tục dù lỗi logic
+      res.status(200).json({ message: "Webhook processed with error" });
+    }
+});
+
+// ==========================================
+// 2. API COURSES
+// ==========================================
 router.get('/courses', async (req, res) => {
   try {
     const courses = await Course.find();
@@ -105,7 +218,9 @@ router.delete('/courses/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 2. API USERS ---
+// ==========================================
+// 3. API USERS
+// ==========================================
 router.get('/users', async (req, res) => {
   try {
     const { username, password, role } = req.query;
@@ -155,7 +270,9 @@ router.delete('/users/:id', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 3. ENROLL & PROGRESS ---
+// ==========================================
+// 4. ENROLL & PROGRESS (Cũ - Dùng cho khóa học miễn phí)
+// ==========================================
 router.post('/enroll', async (req, res) => {
   const { userId, courseId } = req.body;
   try {
@@ -190,7 +307,9 @@ router.post('/progress/complete-lesson', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 4. QUIZ & SUBMIT ---
+// ==========================================
+// 5. QUIZ & SUBMIT
+// ==========================================
 router.post('/quizzes/submit', async (req, res) => {
   const { quizId, userAnswers, userId, lessonId } = req.body;
   try {
@@ -225,7 +344,9 @@ router.post('/quizzes/submit', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- 5. LESSONS, QUIZZES, TESTIMONIALS ---
+// ==========================================
+// 6. LESSONS, QUIZZES, TESTIMONIALS
+// ==========================================
 router.get('/lessons', async (req, res) => {
   try {
     const { courseId } = req.query;
@@ -308,7 +429,7 @@ router.post('/testimonials', async (req, res) => {
 });
 
 // Áp dụng Router vào đường dẫn /api
-app.use('/api', router); // <--- QUAN TRỌNG: Tất cả API sẽ bắt đầu bằng /api
+app.use('/api', router);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
