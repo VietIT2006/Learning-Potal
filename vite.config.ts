@@ -1,8 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite' // 1. Thêm dòng này
+import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react({
@@ -10,14 +9,13 @@ export default defineConfig({
         plugins: [['babel-plugin-react-compiler']],
       },
     }),
-    tailwindcss(), // 2. Thêm dòng này vào danh sách plugins
+    tailwindcss(),
   ],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001', // Backend chạy ở port này
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''), // Xóa chữ /api trước khi gửi sang backend
       },
     },
   },
