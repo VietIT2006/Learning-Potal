@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChevronRight, Clock, Users, DollarSign, CheckCircle } from 'lucide-react'; 
 import { useAuth } from '../context/AuthContext'; 
+import PaymentConfirmModal from '../components/PaymentConfirmModal'; // IMPORT MODAL MỚI
 
 interface Course {
   id: number;
@@ -33,24 +34,24 @@ function CourseDetailPage() {
   const { id } = useParams();
   const courseId = Number(id);
   const navigate = useNavigate();
-  // Lấy user, isAuthenticated, refreshUser từ context
   const { user, isAuthenticated, refreshUser } = useAuth(); 
 
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // State cho Modal Thanh toán
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  // Kiểm tra trạng thái ghi danh
   const isEnrolled = user?.coursesEnrolled?.includes(courseId) || false;
 
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        // SỬA: Thay localhost bằng /api
         const courseRes = await axios.get(`/api/courses/${courseId}`);
         setCourse(courseRes.data);
 
-        // SỬA: Thay localhost bằng /api
         const lessonsRes = await axios.get(`/api/lessons?courseId=${courseId}`);
         setLessons(lessonsRes.data);
       } catch (err) {
@@ -62,37 +63,64 @@ function CourseDetailPage() {
     fetchCourseData();
   }, [courseId]);
   
-  // Hàm xử lý Ghi danh
-  const handleEnroll = async () => {
+  // Xử lý khi bấm nút "Ghi danh ngay"
+  const handleEnrollClick = () => {
     if (!isAuthenticated) {
       alert("Vui lòng đăng nhập để ghi danh khóa học!");
       navigate('/login');
       return;
     }
-    
-    // Kiểm tra phí và xác nhận
-    if (course!.price > 0 && !window.confirm(`Khóa học này có phí ${formatCurrency(course!.price)}. Bạn có chắc muốn ghi danh?`)) {
-        return;
-    }
 
-    try {
-      // SỬA: Thay localhost bằng /api
-      const res = await axios.post('/api/enroll', { 
-        userId: user!.id, 
-        courseId: courseId 
-      });
-
-      if (res.status === 200 || res.status === 201) {
-        alert("Ghi danh thành công!");
-        // Gọi hàm tải lại data user để cập nhật trạng thái isEnrolled
-        refreshUser(); 
-      }
-    } catch (err: any) {
-      // Bắt lỗi chi tiết từ server
-      alert(`Ghi danh thất bại: ${err.response?.data?.message || err.response?.data?.details || 'Lỗi kết nối'}`);
+    if (!course?.price || course.price === 0) {
+        // Nếu miễn phí -> Gọi API đăng ký luôn
+        enrollFreeCourse();
+    } else {
+        // Nếu có phí -> Mở Modal xác nhận
+        setIsPaymentModalOpen(true);
     }
   };
 
+  // Logic đăng ký khóa học miễn phí
+  const enrollFreeCourse = async () => {
+      try {
+          const res = await axios.post('/api/enroll', { 
+            userId: user!.id, 
+            courseId: courseId 
+          });
+          if (res.status === 200 || res.status === 201) {
+            alert("Ghi danh thành công!");
+            refreshUser(); 
+          }
+      } catch (err: any) {
+          alert(`Lỗi: ${err.response?.data?.message || 'Không thể ghi danh'}`);
+      }
+  };
+
+  // Logic gọi API tạo link thanh toán (Được gọi từ Modal)
+  const handleConfirmPayment = async () => {
+      if (!user || !course) return;
+      
+      setIsProcessingPayment(true);
+      try {
+          // Gọi API Backend để tạo link PayOS
+          const res = await axios.post('/api/payment/create-link', {
+              userId: user.id,
+              courseId: course.id
+          });
+
+          if (res.data && res.data.checkoutUrl) {
+              // Chuyển hướng sang trang thanh toán PayOS
+              window.location.href = res.data.checkoutUrl;
+          } else {
+              alert("Lỗi: Server không trả về link thanh toán.");
+              setIsProcessingPayment(false);
+          }
+      } catch (err: any) {
+          console.error(err);
+          alert("Lỗi kết nối đến cổng thanh toán.");
+          setIsProcessingPayment(false);
+      }
+  };
 
   if (loading) return <div className="flex justify-center items-center min-h-screen">Đang tải...</div>;
   if (!course) return <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy khóa học.</div>;
@@ -129,71 +157,45 @@ function CourseDetailPage() {
           </div>
         </div>
 
-        {/* ẢNH BÌA KHÓA HỌC */}
+        {/* Thumbnail */}
         <div className="flex justify-center mb-10">
             <img 
                 src={course.thumbnail} 
                 alt={course.title} 
-                className="rounded-xl shadow-xl border border-gray-100 
-                           max-w-3xl w-full h-96 object-cover" 
+                className="rounded-xl shadow-xl border border-gray-100 max-w-3xl w-full h-96 object-cover" 
             />
         </div>
 
-        {/* Course Content Sections */}
+        {/* Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cột trái: Mô tả chi tiết */}
             <div className="lg:col-span-2 space-y-8">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">Giới thiệu khóa học</h3>
-                    <p className="text-gray-700 leading-relaxed">
-                        {course.description}
-                        <br/><br/>
-                        Trong khóa học này, bạn sẽ được trang bị kiến thức từ cơ bản đến nâng cao, 
-                        thực hành qua các dự án thực tế và nhận được sự hỗ trợ tận tình từ giảng viên.
-                        Hãy sẵn sàng để nâng tầm kỹ năng của bạn!
-                    </p>
+                    <p className="text-gray-700 leading-relaxed">{course.description}</p>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Nội dung chi tiết ({lessons.length} bài học)</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Nội dung ({lessons.length} bài học)</h3>
                     <ul className="space-y-3">
                         {lessons.length > 0 ? (
                             lessons.map((lesson, index) => (
                                 <li key={lesson.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <span className="bg-purple-100 text-purple-700 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">
-                                        {index + 1}
-                                    </span>
+                                    <span className="bg-purple-100 text-purple-700 w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold">{index + 1}</span>
                                     <span className="text-gray-800 font-medium">{lesson.title}</span>
                                 </li>
                             ))
-                        ) : (
-                            <li className="text-gray-500 italic">Chưa có bài học nào cho khóa học này.</li>
-                        )}
+                        ) : (<li className="text-gray-500 italic">Chưa có bài học nào.</li>)}
                     </ul>
                 </div>
             </div>
 
-            {/* Cột phải: Thông tin tóm tắt và nút Đăng ký */}
             <div className="lg:col-span-1 sticky top-24 h-fit">
                 <div className="bg-white rounded-xl p-6 shadow-xl border border-gray-100">
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Thông tin khóa học</h3>
                     <ul className="space-y-3 text-gray-700">
-                        <li className="flex justify-between items-center">
-                            <span className="font-medium">Giảng viên:</span>
-                            <span>{course.instructor || 'N/A'}</span>
-                        </li>
-                        <li className="flex justify-between items-center">
-                            <span className="font-medium">Cấp độ:</span>
-                            <span>{course.level || 'N/A'}</span>
-                        </li>
-                        <li className="flex justify-between items-center">
-                            <span className="font-medium">Danh mục:</span>
-                            <span>{course.category || 'N/A'}</span>
-                        </li>
-                        <li className="flex justify-between items-center">
-                            <span className="font-medium">Đánh giá:</span>
-                            <span>{course.rating || 0} / 5 ({course.reviews || 0} đánh giá)</span>
-                        </li>
+                        <li className="flex justify-between"><span>Giảng viên:</span><span>{course.instructor || 'N/A'}</span></li>
+                        <li className="flex justify-between"><span>Cấp độ:</span><span>{course.level || 'N/A'}</span></li>
+                        <li className="flex justify-between"><span>Đánh giá:</span><span>{course.rating || 0} / 5</span></li>
                     </ul>
                     
                     <div className="mt-6 pt-6 border-t border-gray-100">
@@ -201,31 +203,37 @@ function CourseDetailPage() {
                             Giá: <span className="text-purple-600">{formatCurrency(course.price)}</span>
                         </h4>
                         
-                        {/* LOGIC HIỂN THỊ NÚT GHI DANH / BẮT ĐẦU HỌC */}
                         {isEnrolled ? (
-                          // Trạng thái đã ghi danh
                           <Link 
-                            to={`/watch/${courseId}/lesson/${lessons[0]?.id || 1}`} // Link đến bài học đầu tiên
-                            className="w-full bg-green-600 text-white font-bold py-3 rounded-xl block text-center hover:bg-green-700 transition transform hover:scale-105 flex items-center justify-center gap-2"
+                            to={`/watch/${courseId}/lesson/${lessons[0]?.id || 1}`}
+                            className="w-full bg-green-600 text-white font-bold py-3 rounded-xl block text-center hover:bg-green-700 transition flex items-center justify-center gap-2"
                           >
-                            <CheckCircle className="w-5 h-5"/> Đã ghi danh, BẮT ĐẦU HỌC
+                            <CheckCircle className="w-5 h-5"/> Vào học ngay
                           </Link>
                         ) : (
-                          // Trạng thái chưa ghi danh
                           <button
-                            onClick={handleEnroll}
+                            onClick={handleEnrollClick}
                             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 rounded-xl block text-center hover:shadow-lg transition transform hover:scale-105"
                           >
                             Ghi danh ngay
                           </button>
                         )}
-
                     </div>
                 </div>
             </div>
         </div>
-
       </div>
+
+      {/* --- MODAL THANH TOÁN --- */}
+      {course && (
+          <PaymentConfirmModal 
+            isOpen={isPaymentModalOpen}
+            onClose={() => setIsPaymentModalOpen(false)}
+            course={course}
+            onConfirm={handleConfirmPayment}
+            isProcessing={isProcessingPayment}
+          />
+      )}
     </div>
   );
 }
