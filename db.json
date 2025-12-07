@@ -1,7 +1,6 @@
 {
   "users": [
     {
-      "_id": "691b5848f15a3a37e2b261e8",
       "id": 1,
       "username": "hocvien01",
       "password": "123",
@@ -11,79 +10,647 @@
       "phone": "0901234567",
       "joinDate": "2023-10-15",
       "status": "active",
-      "coursesEnrolled": [1, 2],
-      "coursesEnrolledCount": 2,
-      "__v": 0
+      "coursesEnrolled": [1, 2, 5],
+      "coursesEnrolledCount": 3
+    },
+    {
+      "id": 2,
+      "username": "hocvien02",
+      "password": "123",
+      "role": "user",
+      "fullname": "Trần Thị Bích",
+      "email": "bich.tran@example.com",
+      "phone": "0909888777",
+      "joinDate": "2024-01-10",
+      "status": "active",
+      "coursesEnrolled": [3, 4],
+      "coursesEnrolledCount": 2
+    },
+    {
+      "id": 3,
+      "username": "dev_pro",
+      "password": "123",
+      "role": "user",
+      "fullname": "Lê Hoàng Nam",
+      "email": "nam.dev@example.com",
+      "status": "active",
+      "coursesEnrolled": [1, 2, 6, 7],
+      "coursesEnrolledCount": 4
+    },
+    {
+      "id": 4,
+      "username": "designer_cool",
+      "password": "123",
+      "role": "user",
+      "fullname": "Phạm Thanh Hằng",
+      "email": "hang.design@example.com",
+      "status": "active",
+      "coursesEnrolled": [3, 8],
+      "coursesEnrolledCount": 2
+    },
+    {
+      "id": 5,
+      "username": "marketer_top",
+      "password": "123",
+      "role": "user",
+      "fullname": "Đỗ Quang Minh",
+      "email": "minh.marketing@example.com",
+      "status": "active",
+      "coursesEnrolled": [6, 9],
+      "coursesEnrolledCount": 2
+    },
+    {
+      "id": 6,
+      "username": "english_master",
+      "password": "123",
+      "role": "user",
+      "fullname": "Ngô Bảo Ngọc",
+      "email": "ngoc.ngo@example.com",
+      "status": "active",
+      "coursesEnrolled": [4, 10],
+      "coursesEnrolledCount": 2
+    },
+    {
+      "id": 7,
+      "username": "newbie_coder",
+      "password": "123",
+      "role": "user",
+      "fullname": "Vũ Tiến Đạt",
+      "email": "dat.vu@example.com",
+      "status": "active",
+      "coursesEnrolled": [1],
+      "coursesEnrolledCount": 1
+    },
+    {
+      "id": 8,
+      "username": "business_man",
+      "password": "123",
+      "role": "user",
+      "fullname": "Hoàng Quốc Việt",
+      "email": "viet.hoang@example.com",
+      "status": "active",
+      "coursesEnrolled": [8, 9],
+      "coursesEnrolledCount": 2
+    },
+    {
+      "id": 9,
+      "username": "data_science",
+      "password": "123",
+      "role": "user",
+      "fullname": "Trương Mỹ Lan",
+      "email": "lan.truong@example.com",
+      "status": "active",
+      "coursesEnrolled": [7],
+      "coursesEnrolledCount": 1
+    },
+    {
+      "id": 10,
+      "username": "fullstack_dev",
+      "password": "123",
+      "role": "user",
+      "fullname": "Lý Hải",
+      "email": "hai.ly@example.com",
+      "status": "active",
+      "coursesEnrolled": [1, 2, 5],
+      "coursesEnrolledCount": 3
+    },
+    {
+      "id": 99,
+      "username": "admin",
+      "password": "123",
+      "role": "admin",
+      "fullname": "Super Admin",
+      "email": "admin@learnhub.com",
+      "status": "active",
+      "coursesEnrolled": [],
+      "coursesEnrolledCount": 0
     }
   ],
   "courses": [
     {
-      "_id": "6930e45540a2f71878cf5c7e",
       "id": 1,
-      "title": "Nhập môn Lập trình Web",
-      "description": "Khóa học nền tảng cho người mới bắt đầu, bao gồm HTML, CSS và JavaScript cơ bản.",
-      "thumbnail": "https://i.pinimg.com/1200x/72/7c/db/727cdb1f97b0fca6a114c11f9a288fdd.jpg",
+      "title": "Nhập môn Lập trình Web (HTML/CSS)",
+      "description": "Xây dựng nền tảng vững chắc với HTML5 và CSS3. Khóa học dành cho người mới bắt đầu hoàn toàn, giúp bạn tự tay code giao diện website chuẩn SEO.",
+      "thumbnail": "https://images.unsplash.com/photo-1547658719-da2b51169166?q=80&w=800&auto=format&fit=crop",
       "category": "Programming",
+      "level": "Beginner",
+      "price": 500000,
+      "rating": 4.6,
+      "reviews": 120,
+      "students": 1500,
+      "duration": "10h",
+      "instructor": "Xuân Quang Thái"
+    },
+    {
+      "id": 2,
+      "title": "ReactJS Masterclass 2024",
+      "description": "Khóa học ReactJS chuyên sâu: Hooks, Context API, Redux Toolkit và React Query. Xây dựng dự án E-commerce thực tế.",
+      "thumbnail": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop",
+      "category": "Programming",
+      "level": "Advanced",
+      "price": 1500000,
+      "rating": 4.9,
+      "reviews": 85,
+      "students": 600,
+      "duration": "25h",
+      "instructor": "Nguyễn Minh Khôi"
+    },
+    {
+      "id": 3,
+      "title": "UI/UX Design với Figma",
+      "description": "Từ ý tưởng đến bản thiết kế hoàn chỉnh. Học cách tư duy sản phẩm, wireframe, prototype và design system chuyên nghiệp.",
+      "thumbnail": "https://images.unsplash.com/photo-1586717791821-3f44a5638d48?q=80&w=800&auto=format&fit=crop",
+      "category": "Design",
+      "level": "Intermediate",
+      "price": 1200000,
+      "rating": 4.7,
+      "reviews": 42,
+      "students": 350,
+      "duration": "18h",
+      "instructor": "Lê Thu Hà"
+    },
+    {
+      "id": 4,
+      "title": "Tiếng Anh Giao Tiếp Công Sở",
+      "description": "Tự tin giao tiếp trong môi trường quốc tế. Các mẫu câu thông dụng, kỹ năng thuyết trình và viết email chuyên nghiệp.",
+      "thumbnail": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop",
+      "category": "Language",
       "level": "Beginner",
       "price": 800000,
       "rating": 4.5,
-      "reviews": 12,
-      "students": 150,
-      "duration": "8h",
-      "instructor": "Xuân Quang Thái",
-      "__v": 0
+      "reviews": 60,
+      "students": 900,
+      "duration": "12h",
+      "instructor": "David Wilson"
+    },
+    {
+      "id": 5,
+      "title": "Node.js & Express API",
+      "description": "Học Backend với JavaScript. Xây dựng RESTful API, kết nối MongoDB, xác thực JWT và deploy server lên cloud.",
+      "thumbnail": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=800&auto=format&fit=crop",
+      "category": "Programming",
+      "level": "Intermediate",
+      "price": 1100000,
+      "rating": 4.8,
+      "reviews": 35,
+      "students": 420,
+      "duration": "20h",
+      "instructor": "Trần Văn Hậu"
+    },
+    {
+      "id": 6,
+      "title": "Digital Marketing Thực Chiến",
+      "description": "Thành thạo Facebook Ads, Google Ads và SEO. Chiến lược content marketing để bùng nổ doanh số bán hàng.",
+      "thumbnail": "https://images.unsplash.com/photo-1533750516457-a7f992034fec?q=80&w=800&auto=format&fit=crop",
+      "category": "Marketing",
+      "level": "All Levels",
+      "price": 2000000,
+      "rating": 4.4,
+      "reviews": 150,
+      "students": 2100,
+      "duration": "30h",
+      "instructor": "Phạm Văn Dũng"
+    },
+    {
+      "id": 7,
+      "title": "Python cho Phân tích Dữ liệu",
+      "description": "Nhập môn Data Science với Python. Sử dụng Pandas, NumPy, Matplotlib để xử lý và trực quan hóa dữ liệu.",
+      "thumbnail": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop",
+      "category": "Data Science",
+      "level": "Beginner",
+      "price": 900000,
+      "rating": 4.6,
+      "reviews": 20,
+      "students": 180,
+      "duration": "15h",
+      "instructor": "Ngô Bảo Châu"
+    },
+    {
+      "id": 8,
+      "title": "Kỹ năng Quản lý Thời gian",
+      "description": "Phương pháp Pomodoro, Ma trận Eisenhower và các công cụ giúp bạn làm việc hiệu quả hơn gấp 2 lần.",
+      "thumbnail": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=800&auto=format&fit=crop",
+      "category": "Business",
+      "level": "Beginner",
+      "price": 0,
+      "rating": 4.9,
+      "reviews": 300,
+      "students": 5000,
+      "duration": "4h",
+      "instructor": "Nguyễn Hữu Trí"
+    },
+    {
+      "id": 9,
+      "title": "Khởi nghiệp Tinh gọn (Lean Startup)",
+      "description": "Học cách xây dựng mô hình kinh doanh, validate ý tưởng và gọi vốn đầu tư cho Startup của bạn.",
+      "thumbnail": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=800&auto=format&fit=crop",
+      "category": "Business",
+      "level": "Intermediate",
+      "price": 2500000,
+      "rating": 4.7,
+      "reviews": 50,
+      "students": 300,
+      "duration": "22h",
+      "instructor": "Shark Hưng"
+    },
+    {
+      "id": 10,
+      "title": "Luyện thi IELTS 7.0+",
+      "description": "Chiến thuật làm bài 4 kỹ năng Nghe, Nói, Đọc, Viết. Tài liệu độc quyền và bài sửa chi tiết từ giám khảo.",
+      "thumbnail": "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=800&auto=format&fit=crop",
+      "category": "Language",
+      "level": "Advanced",
+      "price": 3000000,
+      "rating": 4.8,
+      "reviews": 200,
+      "students": 850,
+      "duration": "40h",
+      "instructor": "Ms. Jenny Nguyen"
     }
   ],
   "lessons": [
     {
-      "_id": "6930e68c40a2f71878cf5ca7",
       "id": 1,
       "courseId": 1,
-      "title": "Bài 1: Giới thiệu khóa học",
-      "videoUrl": "https://youtu.be/pbYpyChicAA",
-      "duration": "10:00",
-      "__v": 0
+      "title": "Bài 1: Giới thiệu khóa học & Cài đặt VS Code",
+      "videoUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE",
+      "duration": "10:00"
+    },
+    {
+      "id": 2,
+      "courseId": 1,
+      "title": "Bài 2: Các thẻ HTML thông dụng",
+      "videoUrl": "https://www.youtube.com/watch?v=qz0aGYrrlhU",
+      "duration": "15:30"
+    },
+    {
+      "id": 3,
+      "courseId": 1,
+      "title": "Bài 3: CSS Selectors cơ bản",
+      "videoUrl": "https://www.youtube.com/watch?v=1PnVor36_40",
+      "duration": "20:00"
+    },
+    {
+      "id": 4,
+      "courseId": 2,
+      "title": "Bài 1: React là gì? Virtual DOM",
+      "videoUrl": "https://www.youtube.com/watch?v=SqcY0GlETPk",
+      "duration": "12:00"
+    },
+    {
+      "id": 5,
+      "courseId": 2,
+      "title": "Bài 2: State và Props trong React",
+      "videoUrl": "https://www.youtube.com/watch?v=4ORZ1GmjaMc",
+      "duration": "25:00"
+    },
+    {
+      "id": 6,
+      "courseId": 3,
+      "title": "Bài 1: Làm quen giao diện Figma",
+      "videoUrl": "https://www.youtube.com/watch?v=4W4LvQNkTQM",
+      "duration": "15:00"
+    },
+    {
+      "id": 7,
+      "courseId": 5,
+      "title": "Bài 1: Khởi tạo Server ExpressJS",
+      "videoUrl": "https://www.youtube.com/watch?v=L72fhGm1tfE",
+      "duration": "18:00"
+    },
+    {
+      "id": 8,
+      "courseId": 4,
+      "title": "Bài 1: Giới thiệu bản thân bằng tiếng Anh",
+      "videoUrl": "https://www.youtube.com/watch?v=EqJgZ6i7a_0",
+      "duration": "10:00"
+    },
+    {
+      "id": 9,
+      "courseId": 6,
+      "title": "Bài 1: Tư duy Marketing tổng thể",
+      "videoUrl": "https://www.youtube.com/watch?v=nU-IIXBWlS4",
+      "duration": "22:00"
+    },
+    {
+      "id": 10,
+      "courseId": 7,
+      "title": "Bài 1: Cài đặt Python và Anaconda",
+      "videoUrl": "https://www.youtube.com/watch?v=Y8Tko2YC5hA",
+      "duration": "14:00"
+    },
+    {
+      "id": 11,
+      "courseId": 8,
+      "title": "Bài 1: Ma trận Eisenhower là gì?",
+      "videoUrl": "https://www.youtube.com/watch?v=tT89OZ7TNwc",
+      "duration": "08:00"
+    },
+    {
+      "id": 12,
+      "courseId": 9,
+      "title": "Bài 1: Tìm kiếm ý tưởng khởi nghiệp",
+      "videoUrl": "https://www.youtube.com/watch?v=Jj7pDNDuoWA",
+      "duration": "30:00"
+    },
+    {
+      "id": 13,
+      "courseId": 10,
+      "title": "Bài 1: Tổng quan bài thi IELTS",
+      "videoUrl": "https://www.youtube.com/watch?v=x5K2pD8_8co",
+      "duration": "16:00"
     }
   ],
   "quizzes": [
     {
-      "_id": "691b5850f15a3a37e2b26247",
-      "id": 3,
+      "id": 101,
       "lessonId": 1,
-      "title": "Kiểm tra kiến thức Bài 1",
+      "title": "Kiểm tra Bài 1: Môi trường",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Node.js chạy trên engine nào?",
-          "options": ["SpiderMonkey", "V8", "Chakra", "JavaScriptCore"],
-          "correctAnswerIndex": 1,
-          "_id": "691b5850f15a3a37e2b26248"
+          "questionText": "VS Code là sản phẩm của công ty nào?",
+          "options": ["Google", "Facebook", "Microsoft", "JetBrains"],
+          "correctAnswerIndex": 2
         }
-      ],
-      "__v": 0
+      ]
+    },
+    {
+      "id": 102,
+      "lessonId": 2,
+      "title": "Kiểm tra Bài 2: Thẻ HTML",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Thẻ nào dùng để xuống dòng?",
+          "options": ["<lb>", "<br>", "<break>", "<newline>"],
+          "correctAnswerIndex": 1
+        },
+        {
+          "id": "q2",
+          "questionText": "Thẻ <a> dùng để làm gì?",
+          "options": ["Tạo ảnh", "Tạo liên kết (Link)", "Tạo đoạn văn", "Tạo bảng"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    },
+    {
+      "id": 201,
+      "lessonId": 4,
+      "title": "Quiz: React Concept",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "React sử dụng cơ chế nào để tối ưu hiệu năng?",
+          "options": ["Real DOM", "Shadow DOM", "Virtual DOM", "No DOM"],
+          "correctAnswerIndex": 2
+        }
+      ]
+    },
+    {
+      "id": 202,
+      "lessonId": 5,
+      "title": "Quiz: State & Props",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Props trong React có thể thay đổi được không?",
+          "options": ["Có", "Không (Read-only)", "Tùy trường hợp", "Chỉ trong Class Component"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    },
+    {
+      "id": 301,
+      "lessonId": 6,
+      "title": "Quiz: Figma Basics",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Phím tắt để tạo Frame trong Figma là gì?",
+          "options": ["R", "T", "F", "A"],
+          "correctAnswerIndex": 2
+        }
+      ]
+    },
+    {
+      "id": 501,
+      "lessonId": 7,
+      "title": "Quiz: Node.js Basic",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "File chính để chạy server Node.js thường đặt tên là gì?",
+          "options": ["server.js", "app.js", "index.js", "Tất cả đều được"],
+          "correctAnswerIndex": 3
+        }
+      ]
+    },
+    {
+      "id": 601,
+      "lessonId": 9,
+      "title": "Quiz: Marketing Mindset",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "4P trong Marketing bao gồm?",
+          "options": ["Product, Price, Place, Promotion", "People, Process, Product, Price", "Plan, Place, Promotion, People", "Tất cả đều sai"],
+          "correctAnswerIndex": 0
+        }
+      ]
+    },
+    {
+      "id": 701,
+      "lessonId": 10,
+      "title": "Quiz: Python Setup",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Lệnh in ra màn hình trong Python là?",
+          "options": ["console.log()", "echo", "print()", "System.out.println()"],
+          "correctAnswerIndex": 2
+        }
+      ]
+    },
+    {
+      "id": 801,
+      "lessonId": 11,
+      "title": "Quiz: Time Management",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Một Pomodoro tiêu chuẩn kéo dài bao lâu?",
+          "options": ["15 phút", "25 phút", "45 phút", "60 phút"],
+          "correctAnswerIndex": 1
+        }
+      ]
+    },
+    {
+      "id": 1001,
+      "lessonId": 13,
+      "title": "Quiz: IELTS Overview",
+      "questions": [
+        {
+          "id": "q1",
+          "questionText": "Bài thi IELTS có bao nhiêu kỹ năng?",
+          "options": ["2", "3", "4", "5"],
+          "correctAnswerIndex": 2
+        }
+      ]
     }
   ],
   "testimonials": [
     {
-      "_id": "691b5851f15a3a37e2b26252",
       "id": 1,
       "name": "Trần Minh Tuấn",
       "role": "Frontend Developer @ VNG",
-      "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop",
-      "content": "Khóa học thực sự chất lượng. Lộ trình bài bản giúp mình tự tin làm dự án.",
-      "rating": 5,
-      "__v": 0
+      "avatar": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa học ReactJS rất chuyên sâu. Nhờ nó mà mình đã pass phỏng vấn vào công ty hiện tại.",
+      "rating": 5
+    },
+    {
+      "id": 2,
+      "name": "Lê Thị Mai",
+      "role": "Designer Freelancer",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa học UI/UX rất thực tế, giảng viên nhiệt tình hỗ trợ sửa bài tập.",
+      "rating": 5
+    },
+    {
+      "id": 3,
+      "name": "Hoàng Văn Nam",
+      "role": "Sinh viên Bách Khoa",
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+      "content": "Giá khóa học sinh viên nhưng chất lượng quốc tế. Rất đáng tiền!",
+      "rating": 4
+    },
+    {
+      "id": 4,
+      "name": "Phạm Hương",
+      "role": "Marketing Executive",
+      "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa Digital Marketing giúp mình hiểu rõ bức tranh tổng quan và chạy ads hiệu quả hơn hẳn.",
+      "rating": 5
+    },
+    {
+      "id": 5,
+      "name": "Nguyễn Quốc Bảo",
+      "role": "Data Analyst",
+      "avatar": "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=100&auto=format&fit=crop",
+      "content": "Giảng viên dạy Python rất dễ hiểu, phù hợp cho người mới bắt đầu lập trình.",
+      "rating": 4
+    },
+    {
+      "id": 6,
+      "name": "Vũ Thu Trang",
+      "role": "HR Manager",
+      "avatar": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa Tiếng Anh giao tiếp giúp mình tự tin hơn hẳn khi phỏng vấn ứng viên nước ngoài.",
+      "rating": 5
+    },
+    {
+      "id": 7,
+      "name": "Trịnh Văn Quyết",
+      "role": "Entrepreneur",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
+      "content": "Kiến thức về khởi nghiệp rất thực tế, không lý thuyết suông. Cảm ơn thầy Shark Hưng.",
+      "rating": 5
+    },
+    {
+      "id": 8,
+      "name": "Đặng Tiểu Bình",
+      "role": "Sale Manager",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
+      "content": "Khóa quản lý thời gian đã thay đổi hoàn toàn cách tôi làm việc. Năng suất tăng gấp đôi.",
+      "rating": 5
+    },
+    {
+      "id": 9,
+      "name": "Hồ Ngọc Hà",
+      "role": "Singer",
+      "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop",
+      "content": "Web học rất đẹp, dễ sử dụng. Nội dung phong phú.",
+      "rating": 4
+    },
+    {
+      "id": 10,
+      "name": "Bùi Tiến Dũng",
+      "role": "Football Player",
+      "avatar": "https://images.unsplash.com/photo-1521119989659-a83eee488058?q=80&w=100&auto=format&fit=crop",
+      "content": "Tranh thủ lúc rảnh rỗi học thêm kỹ năng mới rất tiện lợi trên điện thoại.",
+      "rating": 5
     }
   ],
   "progresses": [
     {
-      "_id": "691d613071044d7b0a7c5a28",
       "userId": 1,
       "courseId": 1,
-      "completedLessons": [1],
+      "completedLessons": [1, 2],
+      "progressPercentage": 66,
+      "uniqueId": "1-1"
+    },
+    {
+      "userId": 1,
+      "courseId": 5,
+      "completedLessons": [7],
       "progressPercentage": 100,
-      "uniqueId": "1-1",
-      "__v": 0
+      "uniqueId": "1-5"
+    },
+    {
+      "userId": 2,
+      "courseId": 3,
+      "completedLessons": [6],
+      "progressPercentage": 20,
+      "uniqueId": "2-3"
+    },
+    {
+      "userId": 3,
+      "courseId": 2,
+      "completedLessons": [4, 5],
+      "progressPercentage": 50,
+      "uniqueId": "3-2"
+    },
+    {
+      "userId": 4,
+      "courseId": 8,
+      "completedLessons": [11],
+      "progressPercentage": 100,
+      "uniqueId": "4-8"
+    },
+    {
+      "userId": 5,
+      "courseId": 6,
+      "completedLessons": [9],
+      "progressPercentage": 30,
+      "uniqueId": "5-6"
+    },
+    {
+      "userId": 6,
+      "courseId": 10,
+      "completedLessons": [13],
+      "progressPercentage": 10,
+      "uniqueId": "6-10"
+    },
+    {
+      "userId": 7,
+      "courseId": 1,
+      "completedLessons": [1],
+      "progressPercentage": 33,
+      "uniqueId": "7-1"
+    },
+    {
+      "userId": 8,
+      "courseId": 9,
+      "completedLessons": [12],
+      "progressPercentage": 25,
+      "uniqueId": "8-9"
+    },
+    {
+      "userId": 10,
+      "courseId": 5,
+      "completedLessons": [],
+      "progressPercentage": 0,
+      "uniqueId": "10-5"
     }
   ]
 }

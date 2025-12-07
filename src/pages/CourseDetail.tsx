@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChevronRight, Clock, Users, DollarSign, CheckCircle } from 'lucide-react'; 
 import { useAuth } from '../context/AuthContext'; 
-import PaymentConfirmModal from '../components/PaymentConfirmModal'; // IMPORT MODAL MỚI
+// import PaymentConfirmModal from '../components/PaymentConfirmModal'; // ĐÃ BỎ MODAL
 
 interface Course {
   id: number;
@@ -40,9 +40,7 @@ function CourseDetailPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // State cho Modal Thanh toán
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  // Đã bỏ các State cho Modal Thanh toán
 
   const isEnrolled = user?.coursesEnrolled?.includes(courseId) || false;
 
@@ -71,54 +69,23 @@ function CourseDetailPage() {
       return;
     }
 
-    if (!course?.price || course.price === 0) {
-        // Nếu miễn phí -> Gọi API đăng ký luôn
-        enrollFreeCourse();
-    } else {
-        // Nếu có phí -> Mở Modal xác nhận
-        setIsPaymentModalOpen(true);
-    }
+    // Luôn cho phép đăng ký trực tiếp (Bỏ qua kiểm tra giá và thanh toán)
+    enrollDirectly();
   };
 
-  // Logic đăng ký khóa học miễn phí
-  const enrollFreeCourse = async () => {
+  // Logic đăng ký khóa học trực tiếp
+  const enrollDirectly = async () => {
       try {
           const res = await axios.post('/api/enroll', { 
             userId: user!.id, 
             courseId: courseId 
           });
           if (res.status === 200 || res.status === 201) {
-            alert("Ghi danh thành công!");
-            refreshUser(); 
+            alert("Ghi danh thành công! Bạn có thể vào học ngay.");
+            refreshUser(); // Làm mới thông tin user để cập nhật trạng thái đã học
           }
       } catch (err: any) {
           alert(`Lỗi: ${err.response?.data?.message || 'Không thể ghi danh'}`);
-      }
-  };
-
-  // Logic gọi API tạo link thanh toán (Được gọi từ Modal)
-  const handleConfirmPayment = async () => {
-      if (!user || !course) return;
-      
-      setIsProcessingPayment(true);
-      try {
-          // Gọi API Backend để tạo link PayOS
-          const res = await axios.post('/api/payment/create-link', {
-              userId: user.id,
-              courseId: course.id
-          });
-
-          if (res.data && res.data.checkoutUrl) {
-              // Chuyển hướng sang trang thanh toán PayOS
-              window.location.href = res.data.checkoutUrl;
-          } else {
-              alert("Lỗi: Server không trả về link thanh toán.");
-              setIsProcessingPayment(false);
-          }
-      } catch (err: any) {
-          console.error(err);
-          alert("Lỗi kết nối đến cổng thanh toán.");
-          setIsProcessingPayment(false);
       }
   };
 
@@ -223,17 +190,6 @@ function CourseDetailPage() {
             </div>
         </div>
       </div>
-
-      {/* --- MODAL THANH TOÁN --- */}
-      {course && (
-          <PaymentConfirmModal 
-            isOpen={isPaymentModalOpen}
-            onClose={() => setIsPaymentModalOpen(false)}
-            course={course}
-            onConfirm={handleConfirmPayment}
-            isProcessing={isProcessingPayment}
-          />
-      )}
     </div>
   );
 }

@@ -54,8 +54,8 @@ export default function PaymentConfirmModal({ isOpen, onClose, course, onConfirm
              <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5" />
                 <div className="text-sm text-purple-800">
-                    <p className="font-semibold">Thanh toán an toàn qua PayOS</p>
-                    <p className="opacity-90 mt-1">Hỗ trợ QR Code tất cả ngân hàng Việt Nam.</p>
+                    <p className="font-semibold">Nền tảng LearnHub from MSV thanh toántoán</p>
+                    <p className="opacity-90 mt-1">Chữ tín đặt lên hàng đầuđầu</p>
                 </div>
              </div>
           </div>
