@@ -1,7 +1,7 @@
+import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, ArrowRight, BookOpen } from 'lucide-react'; // ĐÃ THÊM: Import BookOpen
+import { Users, ArrowRight, BookOpen } from 'lucide-react';
 
-// Định nghĩa kiểu props khớp với dữ liệu từ API của bạn
 interface Course {
   id: number;
   title: string;
@@ -14,71 +14,86 @@ interface CourseCardProps {
   course: Course;
 }
 
-// Hàm Định dạng tiền tệ
 const formatCurrency = (amount: number) => {
-    if (amount === 0 || !amount) return 'Free';
-    
-    // Định dạng VNĐ, làm tròn không lấy số thập phân
-    return new Intl.NumberFormat('vi-VN', { 
-        style: 'currency', 
-        currency: 'VND', 
-        minimumFractionDigits: 0
-    }).format(amount);
+    if (amount === 0 || !amount) return 'Miễn phí'; // Đổi Free thành Miễn phí
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', minimumFractionDigits: 0 }).format(amount);
 };
 
 function CourseCard({ course }: CourseCardProps) {
   const actualPrice = Number(course.price) || 0; 
-  // Kiểm tra xem URL thumbnail có tồn tại và dài hơn một chút không
-  const hasThumbnail = course.thumbnail && course.thumbnail.length > 5; 
+  const hasThumbnail = course.thumbnail && course.thumbnail.length > 5;
+  
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [transformStyle, setTransformStyle] = useState('');
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!cardRef.current) return;
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (y - centerY) / 15; 
+    const rotateY = (centerX - x) / 15;
+
+    setTransformStyle(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`);
+  };
+
+  const handleMouseLeave = () => {
+    setTransformStyle('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
+  };
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer h-full flex flex-col">
-      {/* Course Header - HIỂN THỊ THUMBNAIL HOẶC FALLBACK */}
+    <div 
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group relative flex flex-col h-full rounded-2xl transition-all duration-200 ease-out"
+      style={{
+        transform: transformStyle,
+        background: 'rgba(255, 255, 255, 0.05)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+      }}
+    >
+      {/* Header Image */}
       <div 
-        // Nếu có ảnh, dùng bg-cover. Nếu không, dùng bg-purple-50 và căn giữa
-        className={`h-48 relative ${hasThumbnail ? 'bg-cover bg-center' : 'bg-purple-50 flex items-center justify-center'}`} 
-        // Chỉ áp dụng style backgroundImage nếu có URL
+        className={`h-48 relative rounded-t-2xl overflow-hidden ${hasThumbnail ? 'bg-cover bg-center' : 'bg-gray-800 flex items-center justify-center'}`} 
         style={hasThumbnail ? { backgroundImage: `url(${course.thumbnail})` } : {}}
       >
-        
-        {/* PHẦN FALLBACK (HIỂN THỊ KHI ẢNH BỊ LỖI HOẶC KHÔNG CÓ) */}
         {!hasThumbnail && (
-            <div className="text-center text-purple-600">
-                <BookOpen className="w-8 h-8 mx-auto mb-2" />
-                <span className="text-sm font-semibold">Không có ảnh bìa</span>
+            <div className="text-center text-gray-500">
+                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Đang cập nhật ảnh</span>
             </div>
         )}
-
-        {/* DURATION/RATING BADGE (Giữ nguyên) */}
-        <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur px-3 py-1 rounded-full text-sm font-semibold shadow">
-          4.8 ⭐
-        </div>
+        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
       </div>
 
-      {/* Course Content */}
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition">
-          {course.title}
+      {/* Content */}
+      <div className="p-6 flex flex-col flex-grow text-white">
+        <h3 className="text-xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 group-hover:from-blue-300 group-hover:to-purple-400 transition cursor-pointer">
+          <Link to={`/course/${course.id}`}>{course.title}</Link>
         </h3>
-        <p className="text-gray-600 text-sm mb-4 flex-grow line-clamp-2">
+        <p className="text-gray-400 text-sm mb-4 flex-grow line-clamp-2">
           {course.description}
         </p>
 
-        {/* Stats giả lập (vì db.json chưa có) */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
           <Users className="w-4 h-4" />
-          <span>1,234 học viên</span>
+          <span>1,234 học viên</span> {/* Bạn có thể thay số này bằng data thật nếu có */}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-auto">
-          {/* PHẦN HIỂN THỊ GIÁ THỰC TẾ (520.000 ₫) */}
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-700 mt-auto">
+          <div className="text-xl font-bold text-white">
             {formatCurrency(actualPrice)}
           </div>
           <Link 
             to={`/course/${course.id}`}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-lg hover:shadow-lg transition"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-lg hover:shadow-[0_0_15px_rgba(102,126,234,0.5)] transition"
+            title="Xem chi tiết"
           >
             <ArrowRight className="w-5 h-5" />
           </Link>

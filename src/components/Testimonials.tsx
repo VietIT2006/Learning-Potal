@@ -18,12 +18,9 @@ export default function Testimonials() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
-  // Hàm load dữ liệu
   const fetchTestimonials = () => {
-    // SỬA URL THÀNH /api
     axios.get('/api/testimonials')
       .then(res => {
-        // Lấy 3 feedback mới nhất (đảo ngược mảng)
         const sortedData = res.data.reverse().slice(0, 3); 
         setTestimonials(sortedData);
       })
@@ -35,23 +32,23 @@ export default function Testimonials() {
   }, []);
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    // THAY ĐỔI: Bỏ bg-white, dùng nền trong suốt để lộ Particle Background
+    <section className="py-24 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 relative">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Học viên nói gì về chúng tôi?
           </h2>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-400 mb-8">
             Hơn 10,000 học viên đã thay đổi sự nghiệp nhờ LearnHub
           </p>
 
-          {/* Nút mở Modal Gửi đánh giá */}
           <button
             onClick={() => {
               if (user) setIsModalOpen(true);
               else alert("Vui lòng đăng nhập để viết đánh giá!");
             }}
-            className="inline-flex items-center gap-2 px-6 py-2 bg-purple-100 text-purple-700 rounded-full font-semibold hover:bg-purple-200 transition"
+            className="inline-flex items-center gap-2 px-6 py-2 bg-white/10 text-white border border-white/20 rounded-full font-semibold hover:bg-white/20 transition backdrop-blur-sm"
           >
             <MessageSquarePlus className="w-5 h-5" />
             Viết đánh giá của bạn
@@ -62,19 +59,20 @@ export default function Testimonials() {
           {testimonials.map((item) => (
             <div 
               key={item.id} 
-              className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl shadow-sm hover:shadow-md transition duration-300 relative flex flex-col"
+              // THAY ĐỔI: Style thẻ kính mờ (Glassmorphism)
+              className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-2xl relative flex flex-col hover:-translate-y-2 transition duration-300 hover:bg-white/10"
             >
-              <Quote className="absolute top-6 right-6 w-10 h-10 text-purple-200 rotate-180" />
+              <Quote className="absolute top-6 right-6 w-10 h-10 text-white/10 rotate-180" />
 
               <div className="flex items-center gap-4 mb-6">
                 <img 
                   src={item.avatar || "https://via.placeholder.com/150"} 
                   alt={item.name} 
-                  className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
+                  className="w-14 h-14 rounded-full object-cover border-2 border-purple-500 shadow-lg"
                 />
                 <div>
-                  <div className="font-bold text-gray-900">{item.name}</div>
-                  <div className="text-sm text-purple-600 font-medium">{item.role}</div>
+                  <div className="font-bold text-white">{item.name}</div>
+                  <div className="text-sm text-purple-400 font-medium">{item.role}</div>
                 </div>
               </div>
 
@@ -82,12 +80,12 @@ export default function Testimonials() {
                 {[...Array(5)].map((_, i) => (
                   <Star 
                     key={i} 
-                    className={`w-4 h-4 ${i < item.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                    className={`w-4 h-4 ${i < item.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'}`} 
                   />
                 ))}
               </div>
               
-              <p className="text-gray-700 italic leading-relaxed flex-grow">
+              <p className="text-gray-300 italic leading-relaxed flex-grow">
                 "{item.content}"
               </p>
             </div>
@@ -95,11 +93,10 @@ export default function Testimonials() {
         </div>
       </div>
 
-      {/* Render Modal */}
       <FeedbackModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSuccess={fetchTestimonials} // Reload dữ liệu sau khi gửi thành công
+        onSuccess={fetchTestimonials} 
       />
     </section>
   );
