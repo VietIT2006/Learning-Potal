@@ -1,17 +1,18 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer'; // Import Footer
+import Footer from '../components/Footer';
 
 function MainLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    // THAY ĐỔI: Sử dụng bg-transparent để hiện lớp gradient-bg phía sau
+    <div className="min-h-screen flex flex-col bg-transparent text-slate-200">
       <Navbar />
-      {/* Thêm padding top để nội dung không bị Navbar che mất */}
+      {/* Nội dung chính */}
       <main className="flex-grow pt-16"> 
         <Outlet />
       </main>
-      <Footer /> {/* Sử dụng Footer Component */}
+      <Footer />
     </div>
   );
 }
