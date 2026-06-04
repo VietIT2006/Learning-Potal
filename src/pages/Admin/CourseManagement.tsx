@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getCourses, createCourse, updateCourse, deleteCourse } from '../../lib/supabaseService';
 import { Plus, Edit, Trash2, X, Search, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,9 +41,7 @@ export default function CourseManagement() {
   // 1. Lấy danh sách khóa học
   const fetchCourses = async () => {
     try {
-      // SỬA URL THÀNH /api
-      const res = await fetch('/api/courses');
-      const data = await res.json();
+      const data = await getCourses();
       setCourses(data);
       setLoading(false);
     } catch (err) { console.error(err); setLoading(false); }
@@ -88,27 +87,14 @@ export default function CourseManagement() {
     }
 
     try {
-      // SỬA URL THÀNH /api
-      const url = isEditMode 
-        ? `/api/courses/${editingId}` 
-        : '/api/courses';
-      
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        alert(isEditMode ? 'Cập nhật thành công!' : 'Thêm khóa học thành công!');
-        setIsModalOpen(false);
-        fetchCourses();
+      if (isEditMode) {
+        await updateCourse(editingId!, payload);
       } else {
-         const errorData = await res.json();
-         alert(`Lỗi khi lưu: ${errorData.details || errorData.error || 'Lỗi không xác định'}`);
+        await createCourse(payload);
       }
+      alert(isEditMode ? 'Cập nhật thành công!' : 'Thêm khóa học thành công!');
+      setIsModalOpen(false);
+      fetchCourses();
     } catch (err) { 
         console.error(err); 
         alert('Lỗi mạng hoặc kết nối server.');
@@ -119,8 +105,7 @@ export default function CourseManagement() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Xóa khóa học này?')) {
       try {
-        // SỬA URL THÀNH /api
-        await fetch(`/api/courses/${id}`, { method: 'DELETE' });
+        await deleteCourse(id);
         setCourses(courses.filter(c => c.id !== id));
       } catch (err) { console.error(err); }
     }

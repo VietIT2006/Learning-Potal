@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { getQuizById, getLessonById, submitQuiz } from '../lib/supabaseService';
 import { 
   CheckCircle, AlertCircle, ArrowRight, RotateCcw, 
   HelpCircle, ChevronRight, Award
@@ -57,12 +57,12 @@ function QuizPage() {
       try {
         setLoading(true);
         // SỬA URL THÀNH /api
-        const quizRes = await axios.get(`/api/quizzes/${quizId}`);
-        setQuizData(quizRes.data);
+        const quizData = await getQuizById(Number(quizId));
+        setQuizData(quizData);
         
         // SỬA URL THÀNH /api
-        const lessonRes = await axios.get(`/api/lessons/${quizRes.data.lessonId}`);
-        setCourseId(lessonRes.data.courseId); 
+        const lessonData = await getLessonById(quizData!.lessonId);
+        setCourseId(lessonData!.courseId); 
         
       } catch (err) {
         setError("Không thể tải bài kiểm tra. Vui lòng thử lại sau.");
@@ -101,14 +101,14 @@ function QuizPage() {
           };
           
           // SỬA URL THÀNH /api
-          const res = await axios.post('/api/quizzes/submit', submissionPayload);
+          const resultData = await submitQuiz(submissionPayload);
           
-          setResult({ ...res.data, courseId } as SubmitResult); 
+          setResult({ ...resultData, courseId } as SubmitResult); 
           setIsSubmitted(true);
           
       } catch (error: any) {
           console.error("Lỗi khi nộp bài Quiz:", error);
-          alert(error.response?.data?.message || 'Lỗi kết nối hoặc xử lý server khi nộp bài.');
+          alert(error?.message || 'Lỗi kết nối hoặc xử lý server khi nộp bài.');
       }
   }
 

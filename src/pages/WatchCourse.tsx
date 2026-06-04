@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { getLessonById, getLessons, getProgress, getQuizzes, completeLesson } from '../lib/supabaseService';
 import { PlayCircle, FileQuestion, ChevronRight, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; 
 
@@ -47,8 +47,8 @@ function WatchCoursePage() {
   const fetchProgress = async (userId: number) => {
     try {
         // SỬA URL THÀNH /api
-        const res = await axios.get(`/api/progress?userId=${userId}&courseId=${courseIdNum}`);
-        setProgress(res.data);
+        const progressData = await getProgress(userId, courseIdNum);
+        setProgress(progressData);
     } catch(err) {
         console.error("Lỗi tải tiến độ:", err);
     }
@@ -64,19 +64,19 @@ function WatchCoursePage() {
         setLoading(true);
         
         // SỬA URL THÀNH /api
-        const lessonRes = await axios.get(`/api/lessons/${lessonId}`);
-        setCurrentLesson(lessonRes.data);
+        const lessonData = await getLessonById(lessonIdNum);
+        setCurrentLesson(lessonData);
 
         // SỬA URL THÀNH /api
-        const allLessonsRes = await axios.get(`/api/lessons?courseId=${courseId}`);
-        setAllLessons(allLessonsRes.data);
+        const allLessonsData = await getLessons(courseIdNum);
+        setAllLessons(allLessonsData);
 
         await fetchProgress(user.id);
 
         // SỬA URL THÀNH /api
-        const quizRes = await axios.get(`/api/quizzes?lessonId=${lessonId}`);
-        if (quizRes.data.length > 0) {
-          setQuizId(quizRes.data[0].id);
+        const quizzesData = await getQuizzes(lessonIdNum);
+        if (quizzesData.length > 0) {
+          setQuizId(quizzesData[0].id);
         } else {
           setQuizId(null);
         }
@@ -100,11 +100,7 @@ function WatchCoursePage() {
 
       try {
           // SỬA URL THÀNH /api
-          await axios.post('/api/progress/complete-lesson', {
-              userId: user!.id,
-              courseId: courseIdNum,
-              lessonId: lessonIdNum
-          });
+          await completeLesson(user!.id, courseIdNum, lessonIdNum);
           
           alert('Bài học đã hoàn thành! Tiến độ đã được cập nhật.');
           await fetchProgress(user!.id);

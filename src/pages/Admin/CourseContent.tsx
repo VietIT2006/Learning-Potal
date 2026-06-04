@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import { getLessons, createLesson, deleteLesson, getQuizzes, createQuiz, updateQuiz } from '../../lib/supabaseService';
 import { 
   Plus, Trash2, Save, Video, FileQuestion, 
   ChevronDown, ChevronUp, ArrowLeft
@@ -46,9 +46,8 @@ export default function CourseContent() {
 
   const fetchLessons = async () => {
     try {
-      // SỬA URL THÀNH /api
-      const res = await axios.get(`/api/lessons?courseId=${courseId}`);
-      setLessons(res.data);
+      const data = await getLessons(courseId);
+      setLessons(data);
       setLoading(false);
     } catch (error) {
       console.error("Lỗi tải bài học:", error);
@@ -63,10 +62,9 @@ export default function CourseContent() {
     }
     setActiveLessonId(lessonId);
     try {
-      // SỬA URL THÀNH /api
-      const res = await axios.get(`/api/quizzes?lessonId=${lessonId}`);
-      if (res.data.length > 0) {
-        setQuiz(res.data[0]);
+      const quizzes = await getQuizzes(lessonId);
+      if (quizzes.length > 0) {
+        setQuiz(quizzes[0]);
       } else {
         setQuiz({
           id: Date.now(), 
@@ -85,20 +83,12 @@ export default function CourseContent() {
     if (!newLessonTitle || !newVideoUrl) return alert("Vui lòng nhập đủ thông tin!");
 
     try {
-       // SỬA URL THÀNH /api
-       const allLessons = await axios.get('/api/lessons');
-       const maxId = allLessons.data.reduce((max: number, l: any) => l.id > max ? l.id : max, 0);
-
-      const newLesson = {
-        id: maxId + 1,
+      await createLesson({
         courseId: courseId,
         title: newLessonTitle,
         videoUrl: newVideoUrl,
         duration: "10:00" 
-      };
-
-      // SỬA URL THÀNH /api
-      await axios.post('/api/lessons', newLesson);
+      });
       alert("Thêm bài học thành công!");
       setNewLessonTitle('');
       setNewVideoUrl('');
@@ -112,8 +102,7 @@ export default function CourseContent() {
   const handleDeleteLesson = async (lessonId: number) => {
     if (!confirm("Bạn có chắc muốn xóa bài học này?")) return;
     try {
-      // SỬA URL THÀNH /api
-      await axios.delete(`/api/lessons/${lessonId}`);
+      await deleteLesson(lessonId);
       fetchLessons();
     } catch (error) {
       alert("Lỗi khi xóa");
@@ -148,16 +137,13 @@ export default function CourseContent() {
   const saveQuiz = async () => {
     if (!quiz) return;
     try {
-      // SỬA URL THÀNH /api
-      const checkRes = await axios.get(`/api/quizzes?lessonId=${quiz.lessonId}`);
+      const existingQuizzes = await getQuizzes(quiz.lessonId);
       
-      if (checkRes.data.length > 0) {
-        const existingId = checkRes.data[0].id;
-        await axios.put(`/api/quizzes/${existingId}`, { ...quiz, id: existingId });
+      if (existingQuizzes.length > 0) {
+        const existingId = existingQuizzes[0].id;
+        await updateQuiz(existingId, { ...quiz, id: existingId });
       } else {
-        const allQuizzes = await axios.get('/api/quizzes');
-        const maxId = allQuizzes.data.reduce((max: number, q: any) => q.id > max ? q.id : max, 0);
-        await axios.post('/api/quizzes', { ...quiz, id: maxId + 1 });
+        await createQuiz(quiz);
       }
       alert("Lưu câu hỏi trắc nghiệm thành công!");
     } catch (error) {

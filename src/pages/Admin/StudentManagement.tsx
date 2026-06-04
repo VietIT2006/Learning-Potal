@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getUsers, deleteUser } from '../../lib/supabaseService';
 import { Search, Mail, Phone, Calendar, Trash2 } from 'lucide-react';
 
 interface Student {
@@ -24,9 +25,7 @@ export default function StudentManagement() {
 
   const fetchStudents = async () => {
     try {
-      // SỬA URL THÀNH /api
-      const res = await fetch('/api/users?role=user');
-      const data = await res.json();
+      const data = await getUsers({ role: 'user' });
       setStudents(data);
       setLoading(false);
     } catch (error) {
@@ -38,8 +37,7 @@ export default function StudentManagement() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Bạn có chắc muốn xóa học viên này?')) {
       try {
-        // SỬA URL THÀNH /api
-        await fetch(`/api/users/${id}`, { method: 'DELETE' });
+        await deleteUser(id);
         setStudents(students.filter(s => s.id !== id));
       } catch (error) {
         alert('Có lỗi xảy ra khi xóa!');

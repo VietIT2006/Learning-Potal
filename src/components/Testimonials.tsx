@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { getTestimonials } from '../lib/supabaseService';
 import { Star, Quote, MessageSquarePlus } from 'lucide-react';
 import FeedbackModal from './FeedbackModal'; 
 import { useAuth } from '../context/AuthContext';
@@ -18,13 +18,14 @@ export default function Testimonials() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
-  const fetchTestimonials = () => {
-    axios.get('/api/testimonials')
-      .then(res => {
-        const sortedData = res.data.reverse().slice(0, 3); 
-        setTestimonials(sortedData);
-      })
-      .catch(err => console.error("Lỗi tải feedback:", err));
+  const fetchTestimonials = async () => {
+    try {
+      const data = await getTestimonials();
+      const sortedData = data.reverse().slice(0, 3); 
+      setTestimonials(sortedData);
+    } catch (err) {
+      console.error("Lỗi tải feedback:", err);
+    }
   };
 
   useEffect(() => {

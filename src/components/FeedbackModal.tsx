@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { createTestimonial } from '../lib/supabaseService';
 import { X, Star, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 

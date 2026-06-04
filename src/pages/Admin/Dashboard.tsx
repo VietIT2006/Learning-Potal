@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getCourses, getUsers } from '../../lib/supabaseService';
 import { BookOpen, Users, DollarSign, TrendingUp, ChevronDown, ArrowUpRight } from 'lucide-react';
 
 interface Course {
@@ -34,13 +35,8 @@ export default function Dashboard() {
       try {
         setLoading(true);
         
-        // SỬA URL THÀNH /api
-        const coursesRes = await fetch('/api/courses');
-        const courses: Course[] = await coursesRes.json();
-
-        // SỬA URL THÀNH /api
-        const usersRes = await fetch('/api/users?role=user');
-        const students: Student[] = await usersRes.json();
+        const courses: Course[] = await getCourses();
+        const students: Student[] = await getUsers({ role: 'user' });
 
         // 3. Tính toán số liệu
         const totalStudents = students.length;

@@ -14,7 +14,7 @@ interface CourseProps {
 
 const CourseCard: React.FC<CourseProps> = ({ course }) => {
   return (
-    <Link to={`/courses/${course.id}`} className="group block">
+    <Link to={`/course/${course.id}`} className="group block">
       <div className="bg-[#0f172a]/60 backdrop-blur-md border border-white/5 rounded-3xl overflow-hidden transition-all duration-300 hover:border-sky-500/30 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(2,6,23,0.8)]">
         {/* Thumbnail */}
         <div className="relative aspect-video overflow-hidden">

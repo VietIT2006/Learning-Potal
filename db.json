@@ -5,126 +5,168 @@
       "username": "hocvien01",
       "password": "123",
       "role": "user",
-      "fullname": "Nguyễn Văn An",
+      "full_name": "Nguyễn Văn An",
       "email": "an.nguyen@example.com",
       "phone": "0901234567",
-      "joinDate": "2023-10-15",
+      "join_date": "2023-10-15",
       "status": "active",
-      "coursesEnrolled": [1, 2, 5],
-      "coursesEnrolledCount": 3
+      "created_at": "2023-10-15T00:00:00Z",
+      "updated_at": "2023-10-15T00:00:00Z"
     },
     {
       "id": 2,
       "username": "hocvien02",
       "password": "123",
       "role": "user",
-      "fullname": "Trần Thị Bích",
+      "full_name": "Trần Thị Bích",
       "email": "bich.tran@example.com",
       "phone": "0909888777",
-      "joinDate": "2024-01-10",
+      "join_date": "2024-01-10",
       "status": "active",
-      "coursesEnrolled": [3, 4],
-      "coursesEnrolledCount": 2
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z"
     },
     {
       "id": 3,
       "username": "dev_pro",
       "password": "123",
       "role": "user",
-      "fullname": "Lê Hoàng Nam",
+      "full_name": "Lê Hoàng Nam",
       "email": "nam.dev@example.com",
+      "phone": "0912345678",
+      "join_date": "2024-02-20",
       "status": "active",
-      "coursesEnrolled": [1, 2, 6, 7],
-      "coursesEnrolledCount": 4
+      "created_at": "2024-02-20T00:00:00Z",
+      "updated_at": "2024-02-20T00:00:00Z"
     },
     {
       "id": 4,
       "username": "designer_cool",
       "password": "123",
       "role": "user",
-      "fullname": "Phạm Thanh Hằng",
+      "full_name": "Phạm Thanh Hằng",
       "email": "hang.design@example.com",
+      "phone": "0923456789",
+      "join_date": "2024-03-05",
       "status": "active",
-      "coursesEnrolled": [3, 8],
-      "coursesEnrolledCount": 2
+      "created_at": "2024-03-05T00:00:00Z",
+      "updated_at": "2024-03-05T00:00:00Z"
     },
     {
       "id": 5,
       "username": "marketer_top",
       "password": "123",
       "role": "user",
-      "fullname": "Đỗ Quang Minh",
+      "full_name": "Đỗ Quang Minh",
       "email": "minh.marketing@example.com",
+      "phone": "0934567890",
+      "join_date": "2024-03-18",
       "status": "active",
-      "coursesEnrolled": [6, 9],
-      "coursesEnrolledCount": 2
+      "created_at": "2024-03-18T00:00:00Z",
+      "updated_at": "2024-03-18T00:00:00Z"
     },
     {
       "id": 6,
       "username": "english_master",
       "password": "123",
       "role": "user",
-      "fullname": "Ngô Bảo Ngọc",
+      "full_name": "Ngô Bảo Ngọc",
       "email": "ngoc.ngo@example.com",
+      "phone": "0945678901",
+      "join_date": "2024-04-01",
       "status": "active",
-      "coursesEnrolled": [4, 10],
-      "coursesEnrolledCount": 2
+      "created_at": "2024-04-01T00:00:00Z",
+      "updated_at": "2024-04-01T00:00:00Z"
     },
     {
       "id": 7,
       "username": "newbie_coder",
       "password": "123",
       "role": "user",
-      "fullname": "Vũ Tiến Đạt",
+      "full_name": "Vũ Tiến Đạt",
       "email": "dat.vu@example.com",
+      "phone": "0956789012",
+      "join_date": "2024-04-22",
       "status": "active",
-      "coursesEnrolled": [1],
-      "coursesEnrolledCount": 1
+      "created_at": "2024-04-22T00:00:00Z",
+      "updated_at": "2024-04-22T00:00:00Z"
     },
     {
       "id": 8,
       "username": "business_man",
       "password": "123",
       "role": "user",
-      "fullname": "Hoàng Quốc Việt",
+      "full_name": "Hoàng Quốc Việt",
       "email": "viet.hoang@example.com",
+      "phone": "0967890123",
+      "join_date": "2024-05-10",
       "status": "active",
-      "coursesEnrolled": [8, 9],
-      "coursesEnrolledCount": 2
+      "created_at": "2024-05-10T00:00:00Z",
+      "updated_at": "2024-05-10T00:00:00Z"
     },
     {
       "id": 9,
       "username": "data_science",
       "password": "123",
       "role": "user",
-      "fullname": "Trương Mỹ Lan",
+      "full_name": "Trương Mỹ Lan",
       "email": "lan.truong@example.com",
+      "phone": "0978901234",
+      "join_date": "2024-06-01",
       "status": "active",
-      "coursesEnrolled": [7],
-      "coursesEnrolledCount": 1
+      "created_at": "2024-06-01T00:00:00Z",
+      "updated_at": "2024-06-01T00:00:00Z"
     },
     {
       "id": 10,
       "username": "fullstack_dev",
       "password": "123",
       "role": "user",
-      "fullname": "Lý Hải",
+      "full_name": "Lý Hải",
       "email": "hai.ly@example.com",
+      "phone": "0989012345",
+      "join_date": "2024-06-15",
       "status": "active",
-      "coursesEnrolled": [1, 2, 5],
-      "coursesEnrolledCount": 3
+      "created_at": "2024-06-15T00:00:00Z",
+      "updated_at": "2024-06-15T00:00:00Z"
     },
     {
       "id": 99,
       "username": "admin",
       "password": "123",
       "role": "admin",
-      "fullname": "Super Admin",
+      "full_name": "Super Admin",
       "email": "admin@learnhub.com",
+      "phone": "0900000000",
+      "join_date": "2023-01-01",
       "status": "active",
-      "coursesEnrolled": [],
-      "coursesEnrolledCount": 0
+      "created_at": "2023-01-01T00:00:00Z",
+      "updated_at": "2023-01-01T00:00:00Z"
     }
+  ],
+  "user_courses": [
+    {"user_id": 1, "course_id": 1, "created_at": "2023-10-15T00:00:00Z"},
+    {"user_id": 1, "course_id": 2, "created_at": "2023-10-15T00:00:00Z"},
+    {"user_id": 1, "course_id": 5, "created_at": "2023-10-15T00:00:00Z"},
+    {"user_id": 2, "course_id": 3, "created_at": "2024-01-10T00:00:00Z"},
+    {"user_id": 2, "course_id": 4, "created_at": "2024-01-10T00:00:00Z"},
+    {"user_id": 3, "course_id": 1, "created_at": "2024-02-20T00:00:00Z"},
+    {"user_id": 3, "course_id": 2, "created_at": "2024-02-20T00:00:00Z"},
+    {"user_id": 3, "course_id": 6, "created_at": "2024-02-20T00:00:00Z"},
+    {"user_id": 3, "course_id": 7, "created_at": "2024-02-20T00:00:00Z"},
+    {"user_id": 4, "course_id": 3, "created_at": "2024-03-05T00:00:00Z"},
+    {"user_id": 4, "course_id": 8, "created_at": "2024-03-05T00:00:00Z"},
+    {"user_id": 5, "course_id": 6, "created_at": "2024-03-18T00:00:00Z"},
+    {"user_id": 5, "course_id": 9, "created_at": "2024-03-18T00:00:00Z"},
+    {"user_id": 6, "course_id": 4, "created_at": "2024-04-01T00:00:00Z"},
+    {"user_id": 6, "course_id": 10, "created_at": "2024-04-01T00:00:00Z"},
+    {"user_id": 7, "course_id": 1, "created_at": "2024-04-22T00:00:00Z"},
+    {"user_id": 8, "course_id": 8, "created_at": "2024-05-10T00:00:00Z"},
+    {"user_id": 8, "course_id": 9, "created_at": "2024-05-10T00:00:00Z"},
+    {"user_id": 9, "course_id": 7, "created_at": "2024-06-01T00:00:00Z"},
+    {"user_id": 10, "course_id": 1, "created_at": "2024-06-15T00:00:00Z"},
+    {"user_id": 10, "course_id": 2, "created_at": "2024-06-15T00:00:00Z"},
+    {"user_id": 10, "course_id": 5, "created_at": "2024-06-15T00:00:00Z"}
   ],
   "courses": [
     {
@@ -139,7 +181,9 @@
       "reviews": 120,
       "students": 1500,
       "duration": "10h",
-      "instructor": "Xuân Quang Thái"
+      "instructor": "Xuân Quang Thái",
+      "created_at": "2023-09-01T00:00:00Z",
+      "updated_at": "2023-09-01T00:00:00Z"
     },
     {
       "id": 2,
@@ -153,7 +197,9 @@
       "reviews": 85,
       "students": 600,
       "duration": "25h",
-      "instructor": "Nguyễn Minh Khôi"
+      "instructor": "Nguyễn Minh Khôi",
+      "created_at": "2023-11-15T00:00:00Z",
+      "updated_at": "2023-11-15T00:00:00Z"
     },
     {
       "id": 3,
@@ -167,7 +213,9 @@
       "reviews": 42,
       "students": 350,
       "duration": "18h",
-      "instructor": "Lê Thu Hà"
+      "instructor": "Lê Thu Hà",
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z"
     },
     {
       "id": 4,
@@ -181,7 +229,9 @@
       "reviews": 60,
       "students": 900,
       "duration": "12h",
-      "instructor": "David Wilson"
+      "instructor": "David Wilson",
+      "created_at": "2024-02-01T00:00:00Z",
+      "updated_at": "2024-02-01T00:00:00Z"
     },
     {
       "id": 5,
@@ -195,7 +245,9 @@
       "reviews": 35,
       "students": 420,
       "duration": "20h",
-      "instructor": "Trần Văn Hậu"
+      "instructor": "Trần Văn Hậu",
+      "created_at": "2024-02-20T00:00:00Z",
+      "updated_at": "2024-02-20T00:00:00Z"
     },
     {
       "id": 6,
@@ -209,7 +261,9 @@
       "reviews": 150,
       "students": 2100,
       "duration": "30h",
-      "instructor": "Phạm Văn Dũng"
+      "instructor": "Phạm Văn Dũng",
+      "created_at": "2024-03-01T00:00:00Z",
+      "updated_at": "2024-03-01T00:00:00Z"
     },
     {
       "id": 7,
@@ -223,7 +277,9 @@
       "reviews": 20,
       "students": 180,
       "duration": "15h",
-      "instructor": "Ngô Bảo Châu"
+      "instructor": "Ngô Bảo Châu",
+      "created_at": "2024-03-15T00:00:00Z",
+      "updated_at": "2024-03-15T00:00:00Z"
     },
     {
       "id": 8,
@@ -237,7 +293,9 @@
       "reviews": 300,
       "students": 5000,
       "duration": "4h",
-      "instructor": "Nguyễn Hữu Trí"
+      "instructor": "Nguyễn Hữu Trí",
+      "created_at": "2024-04-01T00:00:00Z",
+      "updated_at": "2024-04-01T00:00:00Z"
     },
     {
       "id": 9,
@@ -251,7 +309,9 @@
       "reviews": 50,
       "students": 300,
       "duration": "22h",
-      "instructor": "Shark Hưng"
+      "instructor": "Shark Hưng",
+      "created_at": "2024-04-20T00:00:00Z",
+      "updated_at": "2024-04-20T00:00:00Z"
     },
     {
       "id": 10,
@@ -265,236 +325,277 @@
       "reviews": 200,
       "students": 850,
       "duration": "40h",
-      "instructor": "Ms. Jenny Nguyen"
+      "instructor": "Ms. Jenny Nguyen",
+      "created_at": "2024-05-01T00:00:00Z",
+      "updated_at": "2024-05-01T00:00:00Z"
     }
   ],
   "lessons": [
     {
       "id": 1,
-      "courseId": 1,
+      "course_id": 1,
       "title": "Bài 1: Giới thiệu khóa học & Cài đặt VS Code",
-      "videoUrl": "https://www.youtube.com/watch?v=kUMe1FH4CHE",
-      "duration": "10:00"
+      "video_url": "https://www.youtube.com/watch?v=kUMe1FH4CHE",
+      "duration": "10:00",
+      "order": 1,
+      "created_at": "2023-09-01T00:00:00Z",
+      "updated_at": "2023-09-01T00:00:00Z"
     },
     {
       "id": 2,
-      "courseId": 1,
+      "course_id": 1,
       "title": "Bài 2: Các thẻ HTML thông dụng",
-      "videoUrl": "https://www.youtube.com/watch?v=qz0aGYrrlhU",
-      "duration": "15:30"
+      "video_url": "https://www.youtube.com/watch?v=qz0aGYrrlhU",
+      "duration": "15:30",
+      "order": 2,
+      "created_at": "2023-09-01T00:00:00Z",
+      "updated_at": "2023-09-01T00:00:00Z"
     },
     {
       "id": 3,
-      "courseId": 1,
+      "course_id": 1,
       "title": "Bài 3: CSS Selectors cơ bản",
-      "videoUrl": "https://www.youtube.com/watch?v=1PnVor36_40",
-      "duration": "20:00"
+      "video_url": "https://www.youtube.com/watch?v=1PnVor36_40",
+      "duration": "20:00",
+      "order": 3,
+      "created_at": "2023-09-01T00:00:00Z",
+      "updated_at": "2023-09-01T00:00:00Z"
     },
     {
       "id": 4,
-      "courseId": 2,
+      "course_id": 2,
       "title": "Bài 1: React là gì? Virtual DOM",
-      "videoUrl": "https://www.youtube.com/watch?v=SqcY0GlETPk",
-      "duration": "12:00"
+      "video_url": "https://www.youtube.com/watch?v=SqcY0GlETPk",
+      "duration": "12:00",
+      "order": 1,
+      "created_at": "2023-11-15T00:00:00Z",
+      "updated_at": "2023-11-15T00:00:00Z"
     },
     {
       "id": 5,
-      "courseId": 2,
+      "course_id": 2,
       "title": "Bài 2: State và Props trong React",
-      "videoUrl": "https://www.youtube.com/watch?v=4ORZ1GmjaMc",
-      "duration": "25:00"
+      "video_url": "https://www.youtube.com/watch?v=4ORZ1GmjaMc",
+      "duration": "25:00",
+      "order": 2,
+      "created_at": "2023-11-15T00:00:00Z",
+      "updated_at": "2023-11-15T00:00:00Z"
     },
     {
       "id": 6,
-      "courseId": 3,
+      "course_id": 3,
       "title": "Bài 1: Làm quen giao diện Figma",
-      "videoUrl": "https://www.youtube.com/watch?v=4W4LvQNkTQM",
-      "duration": "15:00"
+      "video_url": "https://www.youtube.com/watch?v=4W4LvQNkTQM",
+      "duration": "15:00",
+      "order": 1,
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z"
     },
     {
       "id": 7,
-      "courseId": 5,
+      "course_id": 5,
       "title": "Bài 1: Khởi tạo Server ExpressJS",
-      "videoUrl": "https://www.youtube.com/watch?v=L72fhGm1tfE",
-      "duration": "18:00"
+      "video_url": "https://www.youtube.com/watch?v=L72fhGm1tfE",
+      "duration": "18:00",
+      "order": 1,
+      "created_at": "2024-02-20T00:00:00Z",
+      "updated_at": "2024-02-20T00:00:00Z"
     },
     {
       "id": 8,
-      "courseId": 4,
+      "course_id": 4,
       "title": "Bài 1: Giới thiệu bản thân bằng tiếng Anh",
-      "videoUrl": "https://www.youtube.com/watch?v=EqJgZ6i7a_0",
-      "duration": "10:00"
+      "video_url": "https://www.youtube.com/watch?v=EqJgZ6i7a_0",
+      "duration": "10:00",
+      "order": 1,
+      "created_at": "2024-02-01T00:00:00Z",
+      "updated_at": "2024-02-01T00:00:00Z"
     },
     {
       "id": 9,
-      "courseId": 6,
+      "course_id": 6,
       "title": "Bài 1: Tư duy Marketing tổng thể",
-      "videoUrl": "https://www.youtube.com/watch?v=nU-IIXBWlS4",
-      "duration": "22:00"
+      "video_url": "https://www.youtube.com/watch?v=nU-IIXBWlS4",
+      "duration": "22:00",
+      "order": 1,
+      "created_at": "2024-03-01T00:00:00Z",
+      "updated_at": "2024-03-01T00:00:00Z"
     },
     {
       "id": 10,
-      "courseId": 7,
+      "course_id": 7,
       "title": "Bài 1: Cài đặt Python và Anaconda",
-      "videoUrl": "https://www.youtube.com/watch?v=Y8Tko2YC5hA",
-      "duration": "14:00"
+      "video_url": "https://www.youtube.com/watch?v=Y8Tko2YC5hA",
+      "duration": "14:00",
+      "order": 1,
+      "created_at": "2024-03-15T00:00:00Z",
+      "updated_at": "2024-03-15T00:00:00Z"
     },
     {
       "id": 11,
-      "courseId": 8,
+      "course_id": 8,
       "title": "Bài 1: Ma trận Eisenhower là gì?",
-      "videoUrl": "https://www.youtube.com/watch?v=tT89OZ7TNwc",
-      "duration": "08:00"
+      "video_url": "https://www.youtube.com/watch?v=tT89OZ7TNwc",
+      "duration": "08:00",
+      "order": 1,
+      "created_at": "2024-04-01T00:00:00Z",
+      "updated_at": "2024-04-01T00:00:00Z"
     },
     {
       "id": 12,
-      "courseId": 9,
+      "course_id": 9,
       "title": "Bài 1: Tìm kiếm ý tưởng khởi nghiệp",
-      "videoUrl": "https://www.youtube.com/watch?v=Jj7pDNDuoWA",
-      "duration": "30:00"
+      "video_url": "https://www.youtube.com/watch?v=Jj7pDNDuoWA",
+      "duration": "30:00",
+      "order": 1,
+      "created_at": "2024-04-20T00:00:00Z",
+      "updated_at": "2024-04-20T00:00:00Z"
     },
     {
       "id": 13,
-      "courseId": 10,
+      "course_id": 10,
       "title": "Bài 1: Tổng quan bài thi IELTS",
-      "videoUrl": "https://www.youtube.com/watch?v=x5K2pD8_8co",
-      "duration": "16:00"
+      "video_url": "https://www.youtube.com/watch?v=x5K2pD8_8co",
+      "duration": "16:00",
+      "order": 1,
+      "created_at": "2024-05-01T00:00:00Z",
+      "updated_at": "2024-05-01T00:00:00Z"
     }
   ],
   "quizzes": [
     {
       "id": 101,
-      "lessonId": 1,
+      "lesson_id": 1,
       "title": "Kiểm tra Bài 1: Môi trường",
       "questions": [
         {
           "id": "q1",
-          "questionText": "VS Code là sản phẩm của công ty nào?",
+          "question_text": "VS Code là sản phẩm của công ty nào?",
           "options": ["Google", "Facebook", "Microsoft", "JetBrains"],
-          "correctAnswerIndex": 2
+          "correct_answer_index": 2
         }
       ]
     },
     {
       "id": 102,
-      "lessonId": 2,
+      "lesson_id": 2,
       "title": "Kiểm tra Bài 2: Thẻ HTML",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Thẻ nào dùng để xuống dòng?",
+          "question_text": "Thẻ nào dùng để xuống dòng?",
           "options": ["<lb>", "<br>", "<break>", "<newline>"],
-          "correctAnswerIndex": 1
+          "correct_answer_index": 1
         },
         {
           "id": "q2",
-          "questionText": "Thẻ <a> dùng để làm gì?",
+          "question_text": "Thẻ <a> dùng để làm gì?",
           "options": ["Tạo ảnh", "Tạo liên kết (Link)", "Tạo đoạn văn", "Tạo bảng"],
-          "correctAnswerIndex": 1
+          "correct_answer_index": 1
         }
       ]
     },
     {
       "id": 201,
-      "lessonId": 4,
+      "lesson_id": 4,
       "title": "Quiz: React Concept",
       "questions": [
         {
           "id": "q1",
-          "questionText": "React sử dụng cơ chế nào để tối ưu hiệu năng?",
+          "question_text": "React sử dụng cơ chế nào để tối ưu hiệu năng?",
           "options": ["Real DOM", "Shadow DOM", "Virtual DOM", "No DOM"],
-          "correctAnswerIndex": 2
+          "correct_answer_index": 2
         }
       ]
     },
     {
       "id": 202,
-      "lessonId": 5,
+      "lesson_id": 5,
       "title": "Quiz: State & Props",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Props trong React có thể thay đổi được không?",
+          "question_text": "Props trong React có thể thay đổi được không?",
           "options": ["Có", "Không (Read-only)", "Tùy trường hợp", "Chỉ trong Class Component"],
-          "correctAnswerIndex": 1
+          "correct_answer_index": 1
         }
       ]
     },
     {
       "id": 301,
-      "lessonId": 6,
+      "lesson_id": 6,
       "title": "Quiz: Figma Basics",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Phím tắt để tạo Frame trong Figma là gì?",
+          "question_text": "Phím tắt để tạo Frame trong Figma là gì?",
           "options": ["R", "T", "F", "A"],
-          "correctAnswerIndex": 2
+          "correct_answer_index": 2
         }
       ]
     },
     {
       "id": 501,
-      "lessonId": 7,
+      "lesson_id": 7,
       "title": "Quiz: Node.js Basic",
       "questions": [
         {
           "id": "q1",
-          "questionText": "File chính để chạy server Node.js thường đặt tên là gì?",
+          "question_text": "File chính để chạy server Node.js thường đặt tên là gì?",
           "options": ["server.js", "app.js", "index.js", "Tất cả đều được"],
-          "correctAnswerIndex": 3
+          "correct_answer_index": 3
         }
       ]
     },
     {
       "id": 601,
-      "lessonId": 9,
+      "lesson_id": 9,
       "title": "Quiz: Marketing Mindset",
       "questions": [
         {
           "id": "q1",
-          "questionText": "4P trong Marketing bao gồm?",
+          "question_text": "4P trong Marketing bao gồm?",
           "options": ["Product, Price, Place, Promotion", "People, Process, Product, Price", "Plan, Place, Promotion, People", "Tất cả đều sai"],
-          "correctAnswerIndex": 0
+          "correct_answer_index": 0
         }
       ]
     },
     {
       "id": 701,
-      "lessonId": 10,
+      "lesson_id": 10,
       "title": "Quiz: Python Setup",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Lệnh in ra màn hình trong Python là?",
+          "question_text": "Lệnh in ra màn hình trong Python là?",
           "options": ["console.log()", "echo", "print()", "System.out.println()"],
-          "correctAnswerIndex": 2
+          "correct_answer_index": 2
         }
       ]
     },
     {
       "id": 801,
-      "lessonId": 11,
+      "lesson_id": 11,
       "title": "Quiz: Time Management",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Một Pomodoro tiêu chuẩn kéo dài bao lâu?",
+          "question_text": "Một Pomodoro tiêu chuẩn kéo dài bao lâu?",
           "options": ["15 phút", "25 phút", "45 phút", "60 phút"],
-          "correctAnswerIndex": 1
+          "correct_answer_index": 1
         }
       ]
     },
     {
       "id": 1001,
-      "lessonId": 13,
+      "lesson_id": 13,
       "title": "Quiz: IELTS Overview",
       "questions": [
         {
           "id": "q1",
-          "questionText": "Bài thi IELTS có bao nhiêu kỹ năng?",
+          "question_text": "Bài thi IELTS có bao nhiêu kỹ năng?",
           "options": ["2", "3", "4", "5"],
-          "correctAnswerIndex": 2
+          "correct_answer_index": 2
         }
       ]
     }
@@ -506,7 +607,8 @@
       "role": "Frontend Developer @ VNG",
       "avatar": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
       "content": "Khóa học ReactJS rất chuyên sâu. Nhờ nó mà mình đã pass phỏng vấn vào công ty hiện tại.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-01-01T00:00:00Z"
     },
     {
       "id": 2,
@@ -514,7 +616,8 @@
       "role": "Designer Freelancer",
       "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
       "content": "Khóa học UI/UX rất thực tế, giảng viên nhiệt tình hỗ trợ sửa bài tập.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-01-05T00:00:00Z"
     },
     {
       "id": 3,
@@ -522,7 +625,8 @@
       "role": "Sinh viên Bách Khoa",
       "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
       "content": "Giá khóa học sinh viên nhưng chất lượng quốc tế. Rất đáng tiền!",
-      "rating": 4
+      "rating": 4,
+      "created_at": "2024-01-10T00:00:00Z"
     },
     {
       "id": 4,
@@ -530,7 +634,8 @@
       "role": "Marketing Executive",
       "avatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100&auto=format&fit=crop",
       "content": "Khóa Digital Marketing giúp mình hiểu rõ bức tranh tổng quan và chạy ads hiệu quả hơn hẳn.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-01-15T00:00:00Z"
     },
     {
       "id": 5,
@@ -538,7 +643,8 @@
       "role": "Data Analyst",
       "avatar": "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=100&auto=format&fit=crop",
       "content": "Giảng viên dạy Python rất dễ hiểu, phù hợp cho người mới bắt đầu lập trình.",
-      "rating": 4
+      "rating": 4,
+      "created_at": "2024-01-20T00:00:00Z"
     },
     {
       "id": 6,
@@ -546,7 +652,8 @@
       "role": "HR Manager",
       "avatar": "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=100&auto=format&fit=crop",
       "content": "Khóa Tiếng Anh giao tiếp giúp mình tự tin hơn hẳn khi phỏng vấn ứng viên nước ngoài.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-01-25T00:00:00Z"
     },
     {
       "id": 7,
@@ -554,7 +661,8 @@
       "role": "Entrepreneur",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
       "content": "Kiến thức về khởi nghiệp rất thực tế, không lý thuyết suông. Cảm ơn thầy Shark Hưng.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-02-01T00:00:00Z"
     },
     {
       "id": 8,
@@ -562,7 +670,8 @@
       "role": "Sale Manager",
       "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
       "content": "Khóa quản lý thời gian đã thay đổi hoàn toàn cách tôi làm việc. Năng suất tăng gấp đôi.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-02-05T00:00:00Z"
     },
     {
       "id": 9,
@@ -570,7 +679,8 @@
       "role": "Singer",
       "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=100&auto=format&fit=crop",
       "content": "Web học rất đẹp, dễ sử dụng. Nội dung phong phú.",
-      "rating": 4
+      "rating": 4,
+      "created_at": "2024-02-10T00:00:00Z"
     },
     {
       "id": 10,
@@ -578,79 +688,545 @@
       "role": "Football Player",
       "avatar": "https://images.unsplash.com/photo-1521119989659-a83eee488058?q=80&w=100&auto=format&fit=crop",
       "content": "Tranh thủ lúc rảnh rỗi học thêm kỹ năng mới rất tiện lợi trên điện thoại.",
-      "rating": 5
+      "rating": 5,
+      "created_at": "2024-02-15T00:00:00Z"
     }
   ],
   "progresses": [
     {
-      "userId": 1,
-      "courseId": 1,
-      "completedLessons": [1, 2],
-      "progressPercentage": 66,
-      "uniqueId": "1-1"
+      "id": 1,
+      "user_id": 1,
+      "course_id": 1,
+      "completed_lessons": [1, 2],
+      "progress_percentage": 66,
+      "unique_id": "1-1",
+      "created_at": "2023-10-15T00:00:00Z",
+      "updated_at": "2023-10-20T00:00:00Z"
     },
     {
-      "userId": 1,
-      "courseId": 5,
-      "completedLessons": [7],
-      "progressPercentage": 100,
-      "uniqueId": "1-5"
+      "id": 2,
+      "user_id": 1,
+      "course_id": 2,
+      "completed_lessons": [4],
+      "progress_percentage": 50,
+      "unique_id": "1-2",
+      "created_at": "2023-10-15T00:00:00Z",
+      "updated_at": "2023-11-20T00:00:00Z"
     },
     {
-      "userId": 2,
-      "courseId": 3,
-      "completedLessons": [6],
-      "progressPercentage": 20,
-      "uniqueId": "2-3"
+      "id": 3,
+      "user_id": 1,
+      "course_id": 5,
+      "completed_lessons": [7],
+      "progress_percentage": 100,
+      "unique_id": "1-5",
+      "created_at": "2024-01-05T00:00:00Z",
+      "updated_at": "2024-01-05T00:00:00Z"
     },
     {
-      "userId": 3,
-      "courseId": 2,
-      "completedLessons": [4, 5],
-      "progressPercentage": 50,
-      "uniqueId": "3-2"
+      "id": 4,
+      "user_id": 2,
+      "course_id": 3,
+      "completed_lessons": [6],
+      "progress_percentage": 20,
+      "unique_id": "2-3",
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2024-01-10T00:00:00Z"
     },
     {
-      "userId": 4,
-      "courseId": 8,
-      "completedLessons": [11],
-      "progressPercentage": 100,
-      "uniqueId": "4-8"
+      "id": 5,
+      "user_id": 2,
+      "course_id": 4,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "2-4",
+      "created_at": "2024-01-15T00:00:00Z",
+      "updated_at": "2024-01-15T00:00:00Z"
     },
     {
-      "userId": 5,
-      "courseId": 6,
-      "completedLessons": [9],
-      "progressPercentage": 30,
-      "uniqueId": "5-6"
+      "id": 6,
+      "user_id": 3,
+      "course_id": 1,
+      "completed_lessons": [1, 2, 3],
+      "progress_percentage": 100,
+      "unique_id": "3-1",
+      "created_at": "2024-02-20T00:00:00Z",
+      "updated_at": "2024-02-20T00:00:00Z"
     },
     {
-      "userId": 6,
-      "courseId": 10,
-      "completedLessons": [13],
-      "progressPercentage": 10,
-      "uniqueId": "6-10"
+      "id": 7,
+      "user_id": 3,
+      "course_id": 2,
+      "completed_lessons": [4, 5],
+      "progress_percentage": 100,
+      "unique_id": "3-2",
+      "created_at": "2024-02-25T00:00:00Z",
+      "updated_at": "2024-02-25T00:00:00Z"
     },
     {
-      "userId": 7,
-      "courseId": 1,
-      "completedLessons": [1],
-      "progressPercentage": 33,
-      "uniqueId": "7-1"
+      "id": 8,
+      "user_id": 3,
+      "course_id": 6,
+      "completed_lessons": [9],
+      "progress_percentage": 100,
+      "unique_id": "3-6",
+      "created_at": "2024-03-10T00:00:00Z",
+      "updated_at": "2024-03-10T00:00:00Z"
     },
     {
-      "userId": 8,
-      "courseId": 9,
-      "completedLessons": [12],
-      "progressPercentage": 25,
-      "uniqueId": "8-9"
+      "id": 9,
+      "user_id": 3,
+      "course_id": 7,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "3-7",
+      "created_at": "2024-03-20T00:00:00Z",
+      "updated_at": "2024-03-20T00:00:00Z"
     },
     {
-      "userId": 10,
-      "courseId": 5,
-      "completedLessons": [],
-      "progressPercentage": 0,
-      "uniqueId": "10-5"
+      "id": 10,
+      "user_id": 4,
+      "course_id": 3,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "4-3",
+      "created_at": "2024-03-05T00:00:00Z",
+      "updated_at": "2024-03-05T00:00:00Z"
+    },
+    {
+      "id": 11,
+      "user_id": 4,
+      "course_id": 8,
+      "completed_lessons": [11],
+      "progress_percentage": 100,
+      "unique_id": "4-8",
+      "created_at": "2024-03-10T00:00:00Z",
+      "updated_at": "2024-03-10T00:00:00Z"
+    },
+    {
+      "id": 12,
+      "user_id": 5,
+      "course_id": 6,
+      "completed_lessons": [9],
+      "progress_percentage": 30,
+      "unique_id": "5-6",
+      "created_at": "2024-03-18T00:00:00Z",
+      "updated_at": "2024-03-18T00:00:00Z"
+    },
+    {
+      "id": 13,
+      "user_id": 5,
+      "course_id": 9,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "5-9",
+      "created_at": "2024-04-01T00:00:00Z",
+      "updated_at": "2024-04-01T00:00:00Z"
+    },
+    {
+      "id": 14,
+      "user_id": 6,
+      "course_id": 4,
+      "completed_lessons": [8],
+      "progress_percentage": 100,
+      "unique_id": "6-4",
+      "created_at": "2024-04-01T00:00:00Z",
+      "updated_at": "2024-04-01T00:00:00Z"
+    },
+    {
+      "id": 15,
+      "user_id": 6,
+      "course_id": 10,
+      "completed_lessons": [13],
+      "progress_percentage": 10,
+      "unique_id": "6-10",
+      "created_at": "2024-04-10T00:00:00Z",
+      "updated_at": "2024-04-10T00:00:00Z"
+    },
+    {
+      "id": 16,
+      "user_id": 7,
+      "course_id": 1,
+      "completed_lessons": [1],
+      "progress_percentage": 33,
+      "unique_id": "7-1",
+      "created_at": "2024-04-22T00:00:00Z",
+      "updated_at": "2024-04-22T00:00:00Z"
+    },
+    {
+      "id": 17,
+      "user_id": 8,
+      "course_id": 8,
+      "completed_lessons": [11],
+      "progress_percentage": 100,
+      "unique_id": "8-8",
+      "created_at": "2024-05-10T00:00:00Z",
+      "updated_at": "2024-05-10T00:00:00Z"
+    },
+    {
+      "id": 18,
+      "user_id": 8,
+      "course_id": 9,
+      "completed_lessons": [12],
+      "progress_percentage": 25,
+      "unique_id": "8-9",
+      "created_at": "2024-05-15T00:00:00Z",
+      "updated_at": "2024-05-15T00:00:00Z"
+    },
+    {
+      "id": 19,
+      "user_id": 9,
+      "course_id": 7,
+      "completed_lessons": [10],
+      "progress_percentage": 100,
+      "unique_id": "9-7",
+      "created_at": "2024-06-01T00:00:00Z",
+      "updated_at": "2024-06-01T00:00:00Z"
+    },
+    {
+      "id": 20,
+      "user_id": 10,
+      "course_id": 1,
+      "completed_lessons": [1, 2],
+      "progress_percentage": 66,
+      "unique_id": "10-1",
+      "created_at": "2024-06-15T00:00:00Z",
+      "updated_at": "2024-06-15T00:00:00Z"
+    },
+    {
+      "id": 21,
+      "user_id": 10,
+      "course_id": 2,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "10-2",
+      "created_at": "2024-06-15T00:00:00Z",
+      "updated_at": "2024-06-15T00:00:00Z"
+    },
+    {
+      "id": 22,
+      "user_id": 10,
+      "course_id": 5,
+      "completed_lessons": [],
+      "progress_percentage": 0,
+      "unique_id": "10-5",
+      "created_at": "2024-06-15T00:00:00Z",
+      "updated_at": "2024-06-15T00:00:00Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "order_code": 1001,
+      "user_id": 1,
+      "course_id": 1,
+      "amount": 500000,
+      "status": "paid",
+      "created_at": "2023-10-15T08:30:00Z",
+      "updated_at": "2023-10-15T08:30:00Z"
+    },
+    {
+      "id": 2,
+      "order_code": 1002,
+      "user_id": 1,
+      "course_id": 2,
+      "amount": 1500000,
+      "status": "paid",
+      "created_at": "2023-11-20T14:00:00Z",
+      "updated_at": "2023-11-20T14:00:00Z"
+    },
+    {
+      "id": 3,
+      "order_code": 1003,
+      "user_id": 1,
+      "course_id": 5,
+      "amount": 1100000,
+      "status": "paid",
+      "created_at": "2024-01-05T09:15:00Z",
+      "updated_at": "2024-01-05T09:15:00Z"
+    },
+    {
+      "id": 4,
+      "order_code": 1004,
+      "user_id": 2,
+      "course_id": 3,
+      "amount": 1200000,
+      "status": "paid",
+      "created_at": "2024-01-10T10:00:00Z",
+      "updated_at": "2024-01-10T10:00:00Z"
+    },
+    {
+      "id": 5,
+      "order_code": 1005,
+      "user_id": 2,
+      "course_id": 4,
+      "amount": 800000,
+      "status": "paid",
+      "created_at": "2024-01-15T11:30:00Z",
+      "updated_at": "2024-01-15T11:30:00Z"
+    },
+    {
+      "id": 6,
+      "order_code": 1006,
+      "user_id": 3,
+      "course_id": 1,
+      "amount": 500000,
+      "status": "paid",
+      "created_at": "2024-02-20T07:45:00Z",
+      "updated_at": "2024-02-20T07:45:00Z"
+    },
+    {
+      "id": 7,
+      "order_code": 1007,
+      "user_id": 3,
+      "course_id": 2,
+      "amount": 1500000,
+      "status": "paid",
+      "created_at": "2024-02-25T16:20:00Z",
+      "updated_at": "2024-02-25T16:20:00Z"
+    },
+    {
+      "id": 8,
+      "order_code": 1008,
+      "user_id": 3,
+      "course_id": 6,
+      "amount": 2000000,
+      "status": "paid",
+      "created_at": "2024-03-10T13:00:00Z",
+      "updated_at": "2024-03-10T13:00:00Z"
+    },
+    {
+      "id": 9,
+      "order_code": 1009,
+      "user_id": 3,
+      "course_id": 7,
+      "amount": 900000,
+      "status": "paid",
+      "created_at": "2024-03-20T08:00:00Z",
+      "updated_at": "2024-03-20T08:00:00Z"
+    },
+    {
+      "id": 10,
+      "order_code": 1010,
+      "user_id": 4,
+      "course_id": 3,
+      "amount": 1200000,
+      "status": "paid",
+      "created_at": "2024-03-05T12:00:00Z",
+      "updated_at": "2024-03-05T12:00:00Z"
+    },
+    {
+      "id": 11,
+      "order_code": 1011,
+      "user_id": 4,
+      "course_id": 8,
+      "amount": 0,
+      "status": "paid",
+      "created_at": "2024-03-10T09:00:00Z",
+      "updated_at": "2024-03-10T09:00:00Z"
+    },
+    {
+      "id": 12,
+      "order_code": 1012,
+      "user_id": 5,
+      "course_id": 6,
+      "amount": 2000000,
+      "status": "paid",
+      "created_at": "2024-03-18T15:30:00Z",
+      "updated_at": "2024-03-18T15:30:00Z"
+    },
+    {
+      "id": 13,
+      "order_code": 1013,
+      "user_id": 5,
+      "course_id": 9,
+      "amount": 2500000,
+      "status": "paid",
+      "created_at": "2024-04-01T10:45:00Z",
+      "updated_at": "2024-04-01T10:45:00Z"
+    },
+    {
+      "id": 14,
+      "order_code": 1014,
+      "user_id": 6,
+      "course_id": 4,
+      "amount": 800000,
+      "status": "paid",
+      "created_at": "2024-04-01T14:20:00Z",
+      "updated_at": "2024-04-01T14:20:00Z"
+    },
+    {
+      "id": 15,
+      "order_code": 1015,
+      "user_id": 6,
+      "course_id": 10,
+      "amount": 3000000,
+      "status": "paid",
+      "created_at": "2024-04-10T08:30:00Z",
+      "updated_at": "2024-04-10T08:30:00Z"
+    },
+    {
+      "id": 16,
+      "order_code": 1016,
+      "user_id": 7,
+      "course_id": 1,
+      "amount": 500000,
+      "status": "paid",
+      "created_at": "2024-04-22T11:00:00Z",
+      "updated_at": "2024-04-22T11:00:00Z"
+    },
+    {
+      "id": 17,
+      "order_code": 1017,
+      "user_id": 8,
+      "course_id": 8,
+      "amount": 0,
+      "status": "paid",
+      "created_at": "2024-05-10T07:00:00Z",
+      "updated_at": "2024-05-10T07:00:00Z"
+    },
+    {
+      "id": 18,
+      "order_code": 1018,
+      "user_id": 8,
+      "course_id": 9,
+      "amount": 2500000,
+      "status": "paid",
+      "created_at": "2024-05-15T16:00:00Z",
+      "updated_at": "2024-05-15T16:00:00Z"
+    },
+    {
+      "id": 19,
+      "order_code": 1019,
+      "user_id": 9,
+      "course_id": 7,
+      "amount": 900000,
+      "status": "paid",
+      "created_at": "2024-06-01T09:30:00Z",
+      "updated_at": "2024-06-01T09:30:00Z"
+    },
+    {
+      "id": 20,
+      "order_code": 1020,
+      "user_id": 10,
+      "course_id": 1,
+      "amount": 500000,
+      "status": "paid",
+      "created_at": "2024-06-15T10:15:00Z",
+      "updated_at": "2024-06-15T10:15:00Z"
+    },
+    {
+      "id": 21,
+      "order_code": 1021,
+      "user_id": 10,
+      "course_id": 2,
+      "amount": 1500000,
+      "status": "paid",
+      "created_at": "2024-06-20T13:45:00Z",
+      "updated_at": "2024-06-20T13:45:00Z"
+    },
+    {
+      "id": 22,
+      "order_code": 1022,
+      "user_id": 10,
+      "course_id": 5,
+      "amount": 1100000,
+      "status": "paid",
+      "created_at": "2024-07-01T08:00:00Z",
+      "updated_at": "2024-07-01T08:00:00Z"
+    }
+  ],
+  "quiz_results": [
+    {
+      "id": 1,
+      "unique_id": "1-1",
+      "lesson_id": 1,
+      "user_id": 1,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 2 }],
+      "completed_at": "2023-10-20T10:00:00Z",
+      "created_at": "2023-10-20T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "unique_id": "2-1",
+      "lesson_id": 2,
+      "user_id": 1,
+      "score": 2,
+      "total_questions": 2,
+      "answers": [
+        { "question_index": 0, "selected_option_index": 1 },
+        { "question_index": 1, "selected_option_index": 1 }
+      ],
+      "completed_at": "2023-10-25T14:30:00Z",
+      "created_at": "2023-10-25T14:30:00Z"
+    },
+    {
+      "id": 3,
+      "unique_id": "4-3",
+      "lesson_id": 4,
+      "user_id": 3,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 2 }],
+      "completed_at": "2024-03-01T09:00:00Z",
+      "created_at": "2024-03-01T09:00:00Z"
+    },
+    {
+      "id": 4,
+      "unique_id": "5-3",
+      "lesson_id": 5,
+      "user_id": 3,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 1 }],
+      "completed_at": "2024-03-05T11:00:00Z",
+      "created_at": "2024-03-05T11:00:00Z"
+    },
+    {
+      "id": 5,
+      "unique_id": "6-4",
+      "lesson_id": 6,
+      "user_id": 4,
+      "score": 0,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 0 }],
+      "completed_at": "2024-03-12T15:00:00Z",
+      "created_at": "2024-03-12T15:00:00Z"
+    },
+    {
+      "id": 6,
+      "unique_id": "11-4",
+      "lesson_id": 11,
+      "user_id": 4,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 1 }],
+      "completed_at": "2024-03-15T10:30:00Z",
+      "created_at": "2024-03-15T10:30:00Z"
+    },
+    {
+      "id": 7,
+      "unique_id": "10-9",
+      "lesson_id": 10,
+      "user_id": 9,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 2 }],
+      "completed_at": "2024-06-05T08:45:00Z",
+      "created_at": "2024-06-05T08:45:00Z"
+    },
+    {
+      "id": 8,
+      "unique_id": "1-7",
+      "lesson_id": 1,
+      "user_id": 7,
+      "score": 1,
+      "total_questions": 1,
+      "answers": [{ "question_index": 0, "selected_option_index": 2 }],
+      "completed_at": "2024-04-25T16:00:00Z",
+      "created_at": "2024-04-25T16:00:00Z"
     }
   ]
 }

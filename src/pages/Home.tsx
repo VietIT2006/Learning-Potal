@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { getCourses } from '../lib/supabaseService';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Star, Trophy, Target } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
@@ -21,8 +21,8 @@ function HomePage() {
   useEffect(() => {
     const fetchCourses = async () => {
         try {
-          const response = await axios.get('/api/courses');
-          setCourses(response.data);
+          const data = await getCourses();
+           setCourses(data);
         } catch (error) {
           console.error("Lỗi:", error);
         } finally {

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { loginUser, getUsers, registerUser } from '../lib/supabaseService';
 
 // Định nghĩa cấu trúc User khớp với Database
 interface User {
@@ -30,9 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Tách logic fetch user ra thành hàm riêng để tái sử dụng
   const fetchAndUpdateUser = async (storedUser: User) => {
     try {
-      // GỌI API QUA PROXY /api
-      const res = await fetch(`/api/users?username=${storedUser.username}`);
-      const data = await res.json();
+      const data = await getUsers({ username: storedUser.username });
       
       if (data.length > 0) {
         const freshUser = data[0] as User;
@@ -86,14 +85,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 2. Hàm Đăng nhập
   const login = async (username: string, password: string) => {
     try {
-      // SỬA URL THÀNH /api
-      const res = await fetch(`/api/users?username=${username}&password=${password}`);
-      if (!res.ok) throw new Error('Lỗi kết nối');
-      
-      const users = await res.json();
-      if (users.length > 0) {
-        const loggedInUser = users[0] as User;
-        setUser(loggedInUser);
+      const loggedInUser = await loginUser(username, password);
+      if (loggedInUser) {
+        setUser(loggedInUser as User);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         return true;
       }
@@ -107,22 +101,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 3. Hàm Đăng ký
   const register = async (info: any) => {
     try {
-      // SỬA URL THÀNH /api
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(info)
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
+      const data = await registerUser(info);
+      if (data && data.user) {
         return true;
       } else {
         return data.message || "Đăng ký thất bại";
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Register error:", error);
-      return "Lỗi kết nối server";
+      return error.message || "Lỗi kết nối server";
     }
   };
 
