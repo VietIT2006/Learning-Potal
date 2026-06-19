@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getLessonById, getLessons, getProgress, getQuizzes, completeLesson } from '../lib/supabaseService';
 import { PlayCircle, FileQuestion, ChevronRight, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; 
+import toast from 'react-hot-toast';
 
 interface Lesson {
   id: number;
@@ -102,12 +103,12 @@ function WatchCoursePage() {
           // SỬA URL THÀNH /api
           await completeLesson(user!.id, courseIdNum, lessonIdNum);
           
-          alert('Bài học đã hoàn thành! Tiến độ đã được cập nhật.');
+          toast.success('Bài học đã hoàn thành! Tiến độ đã được cập nhật.');
           await fetchProgress(user!.id);
           
       } catch(err) {
           console.error('Lỗi đánh dấu hoàn thành:', err);
-          alert('Lỗi cập nhật tiến độ.');
+          toast.error('Lỗi cập nhật tiến độ.');
       }
   }
 

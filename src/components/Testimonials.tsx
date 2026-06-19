@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getTestimonials } from '../lib/supabaseService';
+import toast from 'react-hot-toast';
 import { Star, Quote, MessageSquarePlus } from 'lucide-react';
 import FeedbackModal from './FeedbackModal'; 
 import { useAuth } from '../context/AuthContext';
@@ -47,7 +48,7 @@ export default function Testimonials() {
           <button
             onClick={() => {
               if (user) setIsModalOpen(true);
-              else alert("Vui lòng đăng nhập để viết đánh giá!");
+              else toast.error("Vui lòng đăng nhập để viết đánh giá!");
             }}
             className="inline-flex items-center gap-2 px-6 py-2 bg-white/10 text-white border border-white/20 rounded-full font-semibold hover:bg-white/20 transition backdrop-blur-sm"
           >

@@ -6,6 +6,7 @@ import {
   HelpCircle, ChevronRight, Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; 
+import toast from 'react-hot-toast';
 
 interface Question {
   id: string;
@@ -108,7 +109,7 @@ function QuizPage() {
           
       } catch (error: any) {
           console.error("Lỗi khi nộp bài Quiz:", error);
-          alert(error?.message || 'Lỗi kết nối hoặc xử lý server khi nộp bài.');
+          toast.error(error?.message || 'Lỗi kết nối hoặc xử lý server khi nộp bài.');
       }
   }
 
@@ -118,7 +119,7 @@ function QuizPage() {
 
     const currentQuestionId = quizData.questions[currentQuestionIndex].id;
     if (selectedAnswers[currentQuestionId] === undefined) {
-        alert("Vui lòng chọn một đáp án!");
+        toast.error("Vui lòng chọn một đáp án!");
         return;
     }
 

@@ -4,6 +4,7 @@ import { getCourseById, getLessons, enrollUser } from '../lib/supabaseService';
 import { ChevronRight, Clock, Users, DollarSign, CheckCircle, Star, BookOpen } from 'lucide-react'; 
 import { useAuth } from '../context/AuthContext'; 
 import ParticleBackground from '../components/ParticleBackground';
+import toast from 'react-hot-toast';
 
 interface Course {
   id: number;
@@ -61,7 +62,7 @@ function CourseDetailPage() {
   
   const handleEnrollClick = () => {
     if (!isAuthenticated) {
-      alert("Vui lòng đăng nhập để ghi danh khóa học!");
+      toast.error("Vui lòng đăng nhập để ghi danh khóa học!");
       navigate('/login');
       return;
     }
@@ -71,10 +72,10 @@ function CourseDetailPage() {
   const enrollDirectly = async () => {
       try {
           await enrollUser(user!.id, courseId);
-          alert("Ghi danh thành công! Bạn có thể vào học ngay.");
+          toast.success("Ghi danh thành công! Bạn có thể vào học ngay.");
           refreshUser(); 
       } catch (err: any) {
-          alert(`Lỗi: ${err.message || 'Không thể ghi danh'}`);
+          toast.error(`Lỗi: ${err.message || 'Không thể ghi danh'}`);
       }
   };
 

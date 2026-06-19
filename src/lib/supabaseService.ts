@@ -43,11 +43,11 @@ export interface User {
   role: string
   fullname: string
   email: string
-  phone?: string
-  joinDate?: string
-  status?: string
-  coursesEnrolledCount?: number
-  coursesEnrolled?: number[]
+  phone: string
+  joinDate: string
+  status: 'active' | 'inactive' | string
+  coursesEnrolledCount: number
+  coursesEnrolled: number[]
 }
 
 export async function getUsers(filters?: { username?: string; password?: string; role?: string }): Promise<User[]> {
@@ -124,23 +124,28 @@ export async function deleteUser(id: number): Promise<void> {
   if (error) throw error
 }
 
+export async function updateUserProfile(id: number, updates: { full_name?: string, phone?: string }): Promise<void> {
+  const { error } = await supabase.from('users').update(updates).eq('id', id);
+  if (error) throw error;
+}
+
 // ============================================================
 // COURSES
 // ============================================================
 export interface Course {
   id: number
   title: string
-  description?: string
-  thumbnail?: string
-  category?: string
-  level?: string
-  price?: number
-  rating?: number
-  reviews?: number
-  students?: number
-  duration?: string
-  instructor?: string
-  createdAt?: string
+  description: string
+  thumbnail: string
+  category: string
+  level: string
+  price: number
+  rating: number
+  reviews: number
+  students: number
+  duration: string
+  instructor: string
+  createdAt: string
 }
 
 export async function getCourses(): Promise<Course[]> {
@@ -188,9 +193,9 @@ export interface Lesson {
   id: number
   courseId: number
   title: string
-  videoUrl?: string
-  duration?: string
-  lessonOrder?: number
+  videoUrl: string
+  duration: string
+  lessonOrder: number
 }
 
 export async function getLessons(courseId?: number): Promise<Lesson[]> {
@@ -505,18 +510,18 @@ export async function enrollUser(userId: number, courseId: number): Promise<void
   if (error) throw error
 
   // Update courses_enrolled_count
-  await supabase.rpc('increment_enrolled_count', { user_id_param: userId }).catch(() => {
+  try {
+    await supabase.rpc('increment_enrolled_count', { user_id_param: userId });
+  } catch (err) {
     // Fallback: manual update if RPC doesn't exist
-    supabase
+    const { data } = await supabase
       .from('users')
       .select('courses_enrolled_count')
       .eq('id', userId)
-      .single()
-      .then(({ data }) => {
-        const newCount = (data?.courses_enrolled_count || 0) + 1
-        supabase.from('users').update({ courses_enrolled_count: newCount }).eq('id', userId)
-      })
-  })
+      .single();
+    const newCount = (data?.courses_enrolled_count || 0) + 1;
+    await supabase.from('users').update({ courses_enrolled_count: newCount }).eq('id', userId);
+  }
 
   // Create initial progress record
   const progressId = Date.now()
@@ -527,6 +532,32 @@ export async function enrollUser(userId: number, courseId: number): Promise<void
     progress_percentage: 0,
     unique_id: `${userId}-${courseId}`,
   })
+}
+
+export async function getUserEnrolledCourses(userId: number): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('user_courses')
+    .select(`
+      progress_percentage,
+      course_id,
+      courses (
+        id,
+        title,
+        thumbnail,
+        description,
+        level,
+        students
+      )
+    `)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  
+  // Format data
+  return (data || []).map((item: any) => ({
+    progress: item.progress_percentage || 0,
+    course: item.courses
+  }));
 }
 
 // ============================================================

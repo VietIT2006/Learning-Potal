@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getCourses, createCourse, updateCourse, deleteCourse } from '../../lib/supabaseService';
 import { Plus, Edit, Trash2, X, Search, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface Course {
   id: number;
@@ -92,12 +93,12 @@ export default function CourseManagement() {
       } else {
         await createCourse(payload);
       }
-      alert(isEditMode ? 'Cập nhật thành công!' : 'Thêm khóa học thành công!');
+      toast.success(isEditMode ? 'Cập nhật thành công!' : 'Thêm khóa học thành công!');
       setIsModalOpen(false);
       fetchCourses();
     } catch (err) { 
         console.error(err); 
-        alert('Lỗi mạng hoặc kết nối server.');
+        toast.error('Lỗi mạng hoặc kết nối server.');
     }
   };
 

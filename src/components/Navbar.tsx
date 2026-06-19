@@ -39,10 +39,10 @@ function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-5">
-                <div className="flex flex-col items-end">
-                  <span className="text-white text-sm font-semibold leading-none">{user.fullname}</span>
-                  <span className="text-[10px] text-sky-400 uppercase tracking-tighter mt-1 font-bold">Học viên</span>
-                </div>
+                <Link to="/profile" className="flex flex-col items-end group cursor-pointer">
+                  <span className="text-white text-sm font-semibold leading-none group-hover:text-sky-400 transition-colors">{user.fullname}</span>
+                  <span className="text-[10px] text-sky-400 uppercase tracking-tighter mt-1 font-bold">Hồ sơ cá nhân</span>
+                </Link>
                 <button 
                   onClick={logout}
                   className="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-lg hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all text-sm font-medium"
@@ -100,7 +100,7 @@ function Navbar() {
 
             {user ? (
                <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-2xl">
-                 <div className="flex items-center gap-3">
+                 <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer">
                    <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">
                      {user.username.charAt(0).toUpperCase()}
                    </div>
@@ -108,7 +108,7 @@ function Navbar() {
                      <span className="text-white font-bold">{user.fullname}</span>
                      <span className="text-xs text-slate-400">{user.username}</span>
                    </div>
-                 </div>
+                 </Link>
                  <button 
                   onClick={() => { logout(); setMobileMenuOpen(false); }} 
                   className="w-full bg-red-500/10 text-red-400 py-3 rounded-xl font-bold hover:bg-red-500/20 transition-all"

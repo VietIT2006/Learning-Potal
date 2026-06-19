@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getLessons, createLesson, deleteLesson, getQuizzes, createQuiz, updateQuiz } from '../../lib/supabaseService';
+import toast from 'react-hot-toast';
 import { 
   Plus, Trash2, Save, Video, FileQuestion, 
   ChevronDown, ChevronUp, ArrowLeft
@@ -80,7 +81,7 @@ export default function CourseContent() {
 
   const handleAddLesson = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newLessonTitle || !newVideoUrl) return alert("Vui lòng nhập đủ thông tin!");
+    if (!newLessonTitle || !newVideoUrl) return toast.error("Vui lòng nhập đủ thông tin!");
 
     try {
       await createLesson({
@@ -89,13 +90,13 @@ export default function CourseContent() {
         videoUrl: newVideoUrl,
         duration: "10:00" 
       });
-      alert("Thêm bài học thành công!");
+      toast.success("Thêm bài học thành công!");
       setNewLessonTitle('');
       setNewVideoUrl('');
       fetchLessons();
     } catch (error) {
       console.error(error);
-      alert("Lỗi khi thêm bài học");
+      toast.error("Lỗi khi thêm bài học");
     }
   };
 
@@ -104,8 +105,9 @@ export default function CourseContent() {
     try {
       await deleteLesson(lessonId);
       fetchLessons();
+      toast.success("Đã xóa bài học");
     } catch (error) {
-      alert("Lỗi khi xóa");
+      toast.error("Lỗi khi xóa");
     }
   };
 
@@ -145,10 +147,10 @@ export default function CourseContent() {
       } else {
         await createQuiz(quiz);
       }
-      alert("Lưu câu hỏi trắc nghiệm thành công!");
+      toast.success("Lưu câu hỏi trắc nghiệm thành công!");
     } catch (error) {
       console.error("Lỗi lưu quiz:", error);
-      alert("Có lỗi xảy ra khi lưu quiz.");
+      toast.error("Có lỗi xảy ra khi lưu quiz.");
     }
   };
 

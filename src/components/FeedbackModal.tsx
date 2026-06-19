@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { createTestimonial } from '../lib/supabaseService';
 import { X, Star, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -11,6 +13,7 @@ interface FeedbackModalProps {
 
 export default function FeedbackModal({ isOpen, onClose, onSuccess }: FeedbackModalProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,14 +23,15 @@ export default function FeedbackModal({ isOpen, onClose, onSuccess }: FeedbackMo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      alert("Vui lòng đăng nhập để gửi đánh giá!");
+      toast.error("Vui lòng đăng nhập để gửi đánh giá!");
+      navigate('/login');
       return;
     }
 
     setIsSubmitting(true);
     try {
       // Gửi dữ liệu lên server
-      await axios.post('/api/testimonials', {
+      await createTestimonial({
         name: user.username,
         role: "Học viên",
         avatar: "https://i.pravatar.cc/150?u=" + user.id,
@@ -36,14 +40,14 @@ export default function FeedbackModal({ isOpen, onClose, onSuccess }: FeedbackMo
         id: Date.now()
       });
       
-      alert("Cảm ơn bạn đã gửi đánh giá!");
+      toast.success("Cảm ơn bạn đã gửi đánh giá!");
       setContent('');
       setRating(5);
       onSuccess(); 
       onClose();
     } catch (error) {
       console.error("Lỗi khi gửi feedback:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại.");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }

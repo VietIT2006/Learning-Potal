@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, deleteUser } from '../../lib/supabaseService';
 import { Search, Mail, Phone, Calendar, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-interface Student {
-  id: number;
-  fullname: string;
-  username: string;
-  email: string;
-  phone?: string;
-  joinDate?: string;
-  status?: 'active' | 'inactive';
-  coursesEnrolled?: number;
-  role: string;
-}
+import type { User } from '../../lib/supabaseService';
 
 export default function StudentManagement() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchStudents();
-  }, []);
 
   const fetchStudents = async () => {
     try {
@@ -34,13 +21,19 @@ export default function StudentManagement() {
     }
   };
 
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
   const handleDelete = async (id: number) => {
     if (window.confirm('Bạn có chắc muốn xóa học viên này?')) {
       try {
         await deleteUser(id);
-        setStudents(students.filter(s => s.id !== id));
+        await fetchStudents();
+        toast.success('Xóa học viên thành công!');
       } catch (error) {
-        alert('Có lỗi xảy ra khi xóa!');
+        console.error(error);
+        toast.error('Có lỗi xảy ra khi xóa!');
       }
     }
   };

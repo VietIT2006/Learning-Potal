@@ -9,10 +9,13 @@ import AdminLayout from '../layouts/AdminLayout';
 import HomePage from '../pages/Home';
 import CoursesPage from '../pages/Courses';
 import LoginPage from '../pages/Login';
+import RegisterPage from '../pages/Register'; 
+import ForgotPasswordPage from '../pages/ForgotPassword';
+import Profile from '../pages/Profile';
 import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
 import QuizPage from '../pages/Quiz';
-import PaymentResult from '../pages/PaymentResult'; // IMPORT TRANG MỚI
+import PaymentResult from '../pages/PaymentResult'; 
 
 // --- Pages (Admin) ---
 import Dashboard from '../pages/Admin/Dashboard';
@@ -29,23 +32,29 @@ function AppRoutes() {
     <Routes>
       
       {/* =========================================
-          LUỒNG 1: NGƯỜI DÙNG (User / Guest)
+          TRANG TOÀN MÀN HÌNH (Không có Navbar/Footer)
+      ========================================= */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+      {/* =========================================
+          LUỒNG 1: NGƯỜI DÙNG (Có Navbar & Footer)
       ========================================= */}
       <Route path="/" element={<MainLayout />}>
         {/* Các trang công khai */}
         <Route index element={<HomePage />} />
         <Route path="courses" element={<CoursesPage />} />
-        <Route path="login" element={<LoginPage />} />
         <Route path="course/:id" element={<CourseDetailPage />} />
-        <Route path="payment-result" element={<PaymentResult />} /> {/* ROUTE MỚI */}
+        <Route path="payment-result" element={<PaymentResult />} />
 
         {/* Các trang cần đăng nhập (User) */}
         <Route element={<ProtectedRoute />}>
           <Route path="watch/:courseId/lesson/:lessonId" element={<WatchCoursePage />} />
           <Route path="quiz/:quizId" element={<QuizPage />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Route>
-
 
       {/* =========================================
           LUỒNG 2: QUẢN TRỊ VIÊN (Admin)
