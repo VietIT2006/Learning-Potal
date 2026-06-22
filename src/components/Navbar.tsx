@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Crown } from 'lucide-react';
+import { Menu, X, Crown, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logoLearn from '../assets/logo/logoLearn.png';
 
@@ -33,6 +33,11 @@ function Navbar() {
             
             {user && user.role === 'admin' && (
                <Link to="/admin" className="text-slate-300 hover:text-sky-400 transition-colors font-medium text-sm tracking-wide">Quản trị</Link>
+            )}
+            {user && user.role === 'support' && (
+               <Link to="/support" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium text-sm tracking-wide flex items-center gap-1">
+                 <MessageCircle className="w-4 h-4" /> Kênh Hỗ trợ
+               </Link>
             )}
 
             <div className="h-6 w-[1px] bg-white/10 mx-2"></div>

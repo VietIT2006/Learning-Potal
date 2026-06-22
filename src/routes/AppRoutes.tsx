@@ -8,10 +8,11 @@ import AdminLayout from '../layouts/AdminLayout';
 // --- Pages (Người dùng) ---
 import HomePage from '../pages/Home';
 import CoursesPage from '../pages/Courses';
+import AdminChatDashboard from '../pages/Admin/AdminChatDashboard';
 import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register'; 
 import ForgotPasswordPage from '../pages/ForgotPassword';
-import Profile from '../pages/Profile';
+import ProfilePage from '../pages/Profile';
 import Wallet from '../pages/Wallet';
 import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
@@ -25,6 +26,10 @@ import CourseContent from '../pages/Admin/CourseContent';
 import StudentManagement from '../pages/Admin/StudentManagement';
 import SettingsPage from '../pages/Admin/Settings'; 
 import Analytics from '../pages/Admin/Analytics'; 
+
+// --- Pages (Support) ---
+import SupportLayout from '../layouts/SupportLayout';
+import SupportDashboard from '../pages/Support/SupportDashboard';
 
 // --- Logic bảo vệ Route ---
 import ProtectedRoute from './ProtectedRoute';
@@ -54,7 +59,7 @@ function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path="watch/:courseId/lesson/:lessonId" element={<WatchCoursePage />} />
           <Route path="quiz/:quizId" element={<QuizPage />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="wallet" element={<Wallet />} />
         </Route>
       </Route>
@@ -70,6 +75,16 @@ function AppRoutes() {
           <Route path="students" element={<StudentManagement />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="chat" element={<AdminChatDashboard />} />
+        </Route>
+      </Route>
+
+      {/* =========================================
+          LUỒNG 3: NHÂN VIÊN HỖ TRỢ (Support)
+      ========================================= */}
+      <Route path="/support" element={<ProtectedRoute supportOnly={true} />}>
+        <Route element={<SupportLayout />}>
+          <Route index element={<SupportDashboard />} />
         </Route>
       </Route>
 

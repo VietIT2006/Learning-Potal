@@ -15,7 +15,7 @@ function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await register(email, password, username, fullname);
+    const success = await register({ email, password, username, fullname });
     if (success) {
       // Supabase gửi email xác nhận hoặc tự động login tùy cấu hình, ta đưa user về login
       navigate('/login');

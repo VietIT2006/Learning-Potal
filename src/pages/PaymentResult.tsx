@@ -17,7 +17,8 @@ export default function PaymentResult() {
     if (isSuccess) {
         refreshUser();
     }
-  }, [isSuccess, refreshUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

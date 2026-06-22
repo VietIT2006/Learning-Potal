@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, Users, BarChart3, Settings, 
-  LogOut, Menu, X 
+  LogOut, Menu, X, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,6 +16,7 @@ export default function AdminLayout() {
     { path: '/admin/courses', label: 'Quản lý khóa học', icon: BookOpen },
     { path: '/admin/students', label: 'Quản lý học viên', icon: Users },
     { path: '/admin/analytics', label: 'Thống kê', icon: BarChart3 },
+    { path: '/admin/chat', label: 'Liên hệ Hỗ trợ', icon: MessageCircle },
     { path: '/admin/settings', label: 'Cài đặt', icon: Settings },
   ];
 

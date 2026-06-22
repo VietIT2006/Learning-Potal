@@ -126,7 +126,7 @@ export async function deleteUser(id: number): Promise<void> {
   if (error) throw error
 }
 
-export async function updateUserProfile(id: number, updates: { full_name?: string, phone?: string }): Promise<void> {
+export async function updateUserProfile(id: number, updates: { full_name?: string, phone?: string, avatar_url?: string }): Promise<void> {
   const { error } = await supabase.from('users').update(updates).eq('id', id);
   if (error) throw error;
 }
@@ -899,11 +899,12 @@ export async function getTopDepositors(limit: number = 3): Promise<any[]> {
   data?.forEach(tx => {
     const uid = tx.user_id;
     if (!userMap.has(uid)) {
-      const u = tx.users || {};
+      const uArray: any = tx.users || {};
+      const u: any = Array.isArray(uArray) ? uArray[0] : uArray;
       userMap.set(uid, {
         userId: uid,
-        fullname: u.full_name || u.fullname || 'Học viên ẩn danh',
-        avatarUrl: u.avatar_url || u.avatarUrl,
+        fullname: u?.full_name || u?.fullname || 'Học viên ẩn danh',
+        avatarUrl: u?.avatar_url || u?.avatarUrl,
         totalDeposit: 0
       });
     }

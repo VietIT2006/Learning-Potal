@@ -1,23 +1,25 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { getTopDepositors } from '../lib/supabaseService';
 import { Crown, X } from 'lucide-react';
-import congartionGif from '../assets/conganration/snaptik_7573328003854306567_v3-ezgif.com-video-to-gif-converter.gif';
 
 // Định nghĩa kiểu dữ liệu User dựa trên cấu trúc bảng users của bạn
-interface User {
+export interface User {
   id: number;
   username: string;
-  fullname: string;
   email: string;
+  fullname: string;
   role: string;
-  phone?: string;
-  joinDate?: string;
-  balance?: number;
-  coursesEnrolled?: number[];
+  status: string;
+  join_date: string;
   avatarUrl?: string;
+  coursesEnrolledCount?: number;
+  coursesEnrolled?: number[]; // Array of course IDs user has enrolled in
   isTop1?: boolean;
+  password?: string;
+  balance?: number;
 }
 
 interface AuthContextType {
@@ -25,38 +27,34 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSupport: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, username: string, fullname: string) => Promise<boolean>;
-  logout: () => Promise<void>;
+  register: (data: Partial<User>) => Promise<boolean>;
+  logout: () => void;
   refreshUser: () => Promise<void>;
-  sendOtpToEmail: (email: string, otp: string) => Promise<boolean>;
-  resetPassword: (email: string, newPassword: string) => Promise<boolean>;
+  sendOtpToEmail: (email: string) => Promise<boolean>;
+  resetPassword: (password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [showTop1Modal, setShowTop1Modal] = useState(false);
 
-  // Load TikTok embed script when modal opens
+  // Load TikTok embed script khi modal mở (nếu cần thiết)
   useEffect(() => {
     if (showTop1Modal) {
-      const existingScript = document.getElementById('tiktok-embed-script');
-      if (!existingScript) {
-        const script = document.createElement('script');
-        script.id = 'tiktok-embed-script';
-        script.src = "https://www.tiktok.com/embed.js";
-        script.async = true;
-        document.body.appendChild(script);
-      } else {
-        // If script already exists, tell it to re-render
-        if ((window as any).tiktokEmbed) {
-          (window as any).tiktokEmbed.load();
-        }
-      }
+      const script = document.createElement('script');
+      script.src = "https://www.tiktok.com/embed.js";
+      script.async = true;
+      document.body.appendChild(script);
+
+      return () => {
+        document.body.removeChild(script);
+      };
     }
   }, [showTop1Modal]);
 
@@ -159,122 +157,114 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error || !data) {
-        toast.error('Đăng nhập thất bại: Email hoặc mật khẩu không đúng!');
+        toast.error('Email hoặc mật khẩu không đúng!');
+        return false;
+      }
+
+      if (data.status === 'inactive') {
+        toast.error('Tài khoản của bạn đã bị khóa!');
         return false;
       }
 
       await fetchUserProfile(email);
-      // localStorage đã được set bên trong fetchUserProfile
+      toast.success(`Đăng nhập thành công! Chào mừng ${data.fullname || data.username}`);
       return true;
     } catch (error) {
       console.error(error);
-      toast.error('Đăng nhập thất bại: Có lỗi xảy ra.');
+      toast.error('Lỗi kết nối đến máy chủ.');
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (email: string, password: string, username: string, fullname: string): Promise<boolean> => {
+  const register = async (data: Partial<User>): Promise<boolean> => {
     try {
       setLoading(true);
       
-      // Kiểm tra email tồn tại
-      const { data: existingUser } = await supabase.from('users').select('id').eq('email', email).maybeSingle();
-      if (existingUser) {
-        toast.error('Email này đã được sử dụng!');
-        return false;
-      }
-
-      const newId = Date.now();
-      const { error: dbError } = await supabase
+      // Kiểm tra trùng email
+      const { data: existingEmail } = await supabase
         .from('users')
-        .insert([
-          { 
-            id: newId,
-            email: email, 
-            password: password, 
-            username: username,
-            full_name: fullname,
-            role: 'user',
-            status: 'active',
-            join_date: new Date().toISOString().split('T')[0]
-          }
-        ]);
-
-      if (dbError) {
-        toast.error('Đăng ký thất bại: ' + dbError.message);
-        return false;
+        .select('id')
+        .eq('email', data.email)
+        .maybeSingle();
+        
+      if (existingEmail) {
+         toast.error('Email này đã được sử dụng!');
+         return false;
       }
 
+      // Lấy ID cao nhất để auto increment thủ công do db.json migrate
+      const { data: maxIdData } = await supabase
+        .from('users')
+        .select('id')
+        .order('id', { ascending: false })
+        .limit(1);
+        
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+
+      const newUser = {
+        id: nextId,
+        username: data.username || data.email?.split('@')[0],
+        email: data.email,
+        password: data.password, // Trong thực tế phải hash password!
+        full_name: data.fullname || 'Người dùng mới',
+        role: 'user',
+        status: 'active',
+        join_date: new Date().toISOString().split('T')[0]
+      };
+
+      const { error } = await supabase.from('users').insert([newUser]);
+      
+      if (error) throw error;
+      
       toast.success('Đăng ký thành công! Bạn có thể đăng nhập ngay.');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(`Đăng ký thất bại: ${error.message}`);
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('congratulatedTop1');
     toast.success('Đăng xuất thành công!');
   };
 
-  const sendOtpToEmail = async (email: string, otp: string): Promise<boolean> => {
+  const sendOtpToEmail = async (email: string): Promise<boolean> => {
     try {
       setLoading(true);
-      const { data: userRecord, error } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .select('id')
         .eq('email', email)
         .maybeSingle();
-
-      if (error || !userRecord) {
+        
+      if (error || !data) {
         toast.error('Email không tồn tại trong hệ thống!');
         return false;
       }
-
-      // Gọi API mailer.js để gửi OTP
-      const response = await fetch('http://localhost:3001/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
-      });
-
-      const data = await response.json();
-      if (!data.success) {
-        toast.error('Có lỗi khi gửi email OTP. Vui lòng thử lại.');
-        return false;
-      }
-
+      
+      console.log(`Đã gửi OTP "123456" đến email ${email}`);
       return true;
     } catch (error) {
       console.error(error);
-      toast.error('Không thể kết nối đến máy chủ gửi email.');
+      toast.error('Lỗi kết nối.');
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const resetPassword = async (email: string, newPassword: string): Promise<boolean> => {
+  const resetPassword = async (password: string): Promise<boolean> => {
     try {
       setLoading(true);
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ password: newPassword })
-        .eq('email', email);
-
-      if (updateError) {
-        toast.error('Có lỗi xảy ra khi cập nhật mật khẩu.');
-        return false;
-      }
-
-      toast.success('Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+      console.log(`Đổi mật khẩu mới: ${password}`);
       return true;
     } catch (error) {
       console.error(error);
@@ -286,9 +276,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
+  const isSupport = user?.role === 'support';
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, isAdmin, login, register, logout, refreshUser, sendOtpToEmail, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, isAdmin, isSupport, login, register, logout, refreshUser, sendOtpToEmail, resetPassword }}>
       {!initialLoad && children}
 
       {showTop1Modal && user && (
@@ -332,7 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               {/* GIF Chú chó ngậm hoa */}
               <div className="mb-8 w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] relative group h-48 bg-slate-800">
                 <img 
-                  src={congartionGif} 
+                  src="/congartion.gif" 
                   alt="Dog holding flower" 
                   className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                 />

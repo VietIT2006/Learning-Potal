@@ -10,8 +10,8 @@ CREATE TABLE users (
     id INT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-    fullname TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'support')),
+    full_name TEXT NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20),
     join_date DATE,
@@ -20,7 +20,7 @@ CREATE TABLE users (
     avatar_url TEXT
 );
 
-INSERT INTO users (id, username, password, role, fullname, email, phone, join_date, status, courses_enrolled_count) VALUES
+INSERT INTO users (id, username, password, role, full_name, email, phone, join_date, status, courses_enrolled_count) VALUES
 (1,  'hocvien01',      '123', 'user',  'Nguyễn Văn An',     'an.nguyen@example.com',      '0901234567', '2023-10-15', 'active', 3),
 (2,  'hocvien02',      '123', 'user',  'Trần Thị Bích',     'bich.tran@example.com',      '0909888777', '2024-01-10', 'active', 2),
 (3,  'dev_pro',        '123', 'user',  'Lê Hoàng Nam',      'nam.dev@example.com',        '0912345678', '2024-02-20', 'active', 4),
@@ -31,6 +31,7 @@ INSERT INTO users (id, username, password, role, fullname, email, phone, join_da
 (8,  'business_man',   '123', 'user',  'Hoàng Quốc Việt',   'viet.hoang@example.com',     '0967890123', '2024-05-10', 'active', 2),
 (9,  'data_science',   '123', 'user',  'Trương Mỹ Lan',     'lan.truong@example.com',     '0978901234', '2024-06-01', 'active', 1),
 (10, 'fullstack_dev',  '123', 'user',  'Lý Hải',            'hai.ly@example.com',         '0989012345', '2024-06-15', 'active', 3),
+(98, 'support_agent',  '123', 'support', 'Nhân viên Hỗ trợ', 'support@learnhub.com',       '0911111111', '2024-06-20', 'active', 0),
 (99, 'admin',          '123', 'admin', 'Super Admin',        'admin@learnhub.com',         '0900000000', '2023-01-01', 'active', 0);
 
 -- ============================================================
@@ -92,10 +93,37 @@ INSERT INTO user_courses (user_id, course_id) VALUES
 (7, 1),
 -- User 8: coursesEnrolled [8, 9]
 (8, 8), (8, 9),
--- User 9: coursesEnrolled [7]
 (9, 7),
 -- User 10: coursesEnrolled [1, 2, 5]
 (10, 1), (10, 2), (10, 5);
+
+-- ============================================================
+-- 4. BẢNG CHAT_MESSAGES (Hệ thống Hỗ trợ Realtime)
+-- ============================================================
+CREATE TABLE chat_messages (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sender_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    image_url TEXT,
+    is_internal BOOLEAN DEFAULT FALSE,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bật realtime cho chat_messages (nếu chưa bật)
+-- alter publication supabase_realtime add table chat_messages;
+
+-- ==========================================
+-- 8. STORAGE (Lưu trữ ảnh chat)
+-- ==========================================
+-- Tạo bucket 'chat_images' (Cần thực hiện qua Supabase Dashboard hoặc script Storage API, giả lập SQL dưới đây)
+-- insert into storage.buckets (id, name, public) values ('chat_images', 'chat_images', true);
+
+-- Bật tính năng Realtime cho bảng chat_messages
+-- Chú ý: Bạn cần phải enable Realtime cho bảng này trên giao diện Supabase (Database -> Replication)
+-- hoặc chạy lệnh publication:
+-- alter publication supabase_realtime add table chat_messages;
 
 -- ============================================================
 -- 4. BẢNG LESSONS

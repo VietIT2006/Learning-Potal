@@ -24,7 +24,7 @@ function ForgotPassword() {
     
     setIsSending(true);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const success = await sendOtpToEmail(email, otp);
+    const success = await sendOtpToEmail(email);
     
     if (success) {
       setGeneratedOtp(otp);
@@ -52,7 +52,7 @@ function ForgotPassword() {
       return;
     }
 
-    const success = await resetPassword(email, newPassword);
+    const success = await resetPassword(newPassword);
     if (success) {
       navigate('/login');
     }
