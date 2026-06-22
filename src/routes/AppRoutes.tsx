@@ -12,6 +12,7 @@ import LoginPage from '../pages/Login';
 import RegisterPage from '../pages/Register'; 
 import ForgotPasswordPage from '../pages/ForgotPassword';
 import Profile from '../pages/Profile';
+import Wallet from '../pages/Wallet';
 import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
 import QuizPage from '../pages/Quiz';
@@ -23,6 +24,7 @@ import CourseManagement from '../pages/Admin/CourseManagement';
 import CourseContent from '../pages/Admin/CourseContent';
 import StudentManagement from '../pages/Admin/StudentManagement';
 import SettingsPage from '../pages/Admin/Settings'; 
+import Analytics from '../pages/Admin/Analytics'; 
 
 // --- Logic bảo vệ Route ---
 import ProtectedRoute from './ProtectedRoute';
@@ -53,6 +55,7 @@ function AppRoutes() {
           <Route path="watch/:courseId/lesson/:lessonId" element={<WatchCoursePage />} />
           <Route path="quiz/:quizId" element={<QuizPage />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="wallet" element={<Wallet />} />
         </Route>
       </Route>
 
@@ -66,7 +69,7 @@ function AppRoutes() {
           <Route path="courses/:id/content" element={<CourseContent />} />
           <Route path="students" element={<StudentManagement />} />
           <Route path="settings" element={<SettingsPage />} />
-          <Route path="analytics" element={<div className="p-8 text-gray-500">Tính năng Thống kê đang phát triển</div>} />
+          <Route path="analytics" element={<Analytics />} />
         </Route>
       </Route>
 

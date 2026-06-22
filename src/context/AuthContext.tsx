@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
+import { getTopDepositors } from '../lib/supabaseService';
+import { Crown, X } from 'lucide-react';
+import congartionGif from '../assets/conganration/snaptik_7573328003854306567_v3-ezgif.com-video-to-gif-converter.gif';
 
 // Định nghĩa kiểu dữ liệu User dựa trên cấu trúc bảng users của bạn
 interface User {
@@ -11,7 +14,10 @@ interface User {
   role: string;
   phone?: string;
   joinDate?: string;
+  balance?: number;
   coursesEnrolled?: number[];
+  avatarUrl?: string;
+  isTop1?: boolean;
 }
 
 interface AuthContextType {
@@ -33,6 +39,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [showTop1Modal, setShowTop1Modal] = useState(false);
+
+  // Load TikTok embed script when modal opens
+  useEffect(() => {
+    if (showTop1Modal) {
+      const existingScript = document.getElementById('tiktok-embed-script');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'tiktok-embed-script';
+        script.src = "https://www.tiktok.com/embed.js";
+        script.async = true;
+        document.body.appendChild(script);
+      } else {
+        // If script already exists, tell it to re-render
+        if ((window as any).tiktokEmbed) {
+          (window as any).tiktokEmbed.load();
+        }
+      }
+    }
+  }, [showTop1Modal]);
 
   // Hàm lấy thông tin chi tiết user từ bảng 'users' (public)
   const fetchUserProfile = async (email: string) => {
@@ -57,12 +83,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = {
           id: data.id,
           username: data.username,
-          fullname: data.full_name || data.username, 
+          fullname: data.full_name || data.fullname || data.username, 
           email: data.email,
           role: data.role || 'user',
+          phone: data.phone,
+          joinDate: data.join_date || data.joinDate,
+          balance: data.balance || 0,
           coursesEnrolled,
+          avatarUrl: data.avatar_url || data.avatarUrl,
         };
-        setUser(userData);
+
+        // Kiểm tra Top 1
+        try {
+          const topDeps = await getTopDepositors(1);
+          if (topDeps.length > 0 && String(topDeps[0].userId) === String(data.id)) {
+            (userData as any).isTop1 = true;
+            
+            // Hiện thông báo chúc mừng nếu chưa hiện trong session này
+            if (!sessionStorage.getItem('congratulatedTop1')) {
+              setShowTop1Modal(true);
+              sessionStorage.setItem('congratulatedTop1', 'true');
+            }
+          } else {
+            (userData as any).isTop1 = false;
+          }
+        } catch (e) {
+          console.error("Lỗi lấy Top 1:", e);
+        }
+
+        setUser(userData as User);
         localStorage.setItem('currentUser', JSON.stringify(userData));
       }
     } catch (error) {
@@ -115,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       await fetchUserProfile(email);
-      localStorage.setItem('currentUser', JSON.stringify({ email }));
+      // localStorage đã được set bên trong fetchUserProfile
       return true;
     } catch (error) {
       console.error(error);
@@ -171,6 +220,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setUser(null);
     localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('congratulatedTop1');
+    toast.success('Đăng xuất thành công!');
   };
 
   const sendOtpToEmail = async (email: string, otp: string): Promise<boolean> => {
@@ -239,6 +290,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated, isAdmin, login, register, logout, refreshUser, sendOtpToEmail, resetPassword }}>
       {!initialLoad && children}
+
+      {showTop1Modal && user && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative max-w-md w-full bg-gradient-to-b from-[#0f172a] to-slate-900 rounded-[2rem] border-2 border-yellow-400/50 shadow-[0_0_100px_rgba(250,204,21,0.3)] p-8 text-center animate-in zoom-in-95 duration-500 overflow-hidden">
+            
+            {/* Nút đóng */}
+            <button 
+              onClick={() => setShowTop1Modal(false)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-20"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Hiệu ứng ánh sáng nền */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-yellow-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+
+            <div className="relative z-10 flex flex-col items-center">
+              {/* Avatar với Vương miện */}
+              <div className="relative mb-6 animate-bounce-small">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(250,204,21,0.6)] z-20 pointer-events-none">
+                  <Crown className="w-6 h-6 text-[#0f172a]" />
+                </div>
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full object-cover shadow-[0_0_30px_rgba(250,204,21,0.6)] border-4 border-yellow-400" />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-[0_0_30px_rgba(250,204,21,0.6)] border-4 border-yellow-400">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 mb-2 uppercase tracking-wide">
+                Vinh Danh Đại Gia
+              </h2>
+              
+              <p className="text-slate-300 text-base leading-relaxed mb-6">
+                Chào mừng <span className="font-bold text-white text-lg">{user.fullname}</span>! Bạn đang là <strong className="text-yellow-400 font-bold text-lg">Top 1 Server</strong> với số tiền nạp cao nhất. Sự ủng hộ của bạn là niềm vinh hạnh lớn nhất của LearnHub!
+              </p>
+
+              {/* GIF Chú chó ngậm hoa */}
+              <div className="mb-8 w-full rounded-2xl overflow-hidden border-2 border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)] relative group h-48 bg-slate-800">
+                <img 
+                  src={congartionGif} 
+                  alt="Dog holding flower" 
+                  className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent opacity-80 pointer-events-none"></div>
+              </div>
+
+              <button 
+                onClick={() => setShowTop1Modal(false)}
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-[#0f172a] font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.4)] hover:shadow-[0_0_30px_rgba(250,204,21,0.6)] transition-all transform hover:-translate-y-1"
+              >
+                Tiếp tục trải nghiệm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

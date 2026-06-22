@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getCourses } from '../lib/supabaseService';
 import { Search, Filter, BookOpen } from 'lucide-react';
-import CourseCard from '../components/CourseCard'; // Sử dụng component chung để đồng bộ
+import CourseCard from '../components/CourseCard';
+import { LoadingSpinner } from '../components/LoadingSpinner'; // Sử dụng component chung để đồng bộ
 import ParticleBackground from '../components/ParticleBackground';
 
 interface Course {
@@ -105,7 +106,7 @@ function CoursesPage() {
 
           {/* Courses Grid */}
           {loading ? (
-            <div className="text-center py-20 text-blue-400 animate-pulse">Đang tải dữ liệu...</div>
+            <LoadingSpinner message="Đang tải danh sách khóa học..." />
           ) : filteredCourses.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {filteredCourses.map((course) => (

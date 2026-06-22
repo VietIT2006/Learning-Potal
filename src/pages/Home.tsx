@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getCourses } from '../lib/supabaseService';
+import { getCourses, getTopDepositors } from '../lib/supabaseService';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Users, Star, Trophy, Target } from 'lucide-react';
+import { ArrowRight, BookOpen, Users, Star, Trophy, Target, Crown } from 'lucide-react';
 import CourseCard from '../components/CourseCard';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import ParticleBackground from '../components/ParticleBackground';
 import Testimonials from '../components/Testimonials';
+import AnnouncementBanner from '../components/AnnouncementBanner';
 
 interface Course {
   id: number;
@@ -16,13 +18,18 @@ interface Course {
 
 function HomePage() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [topDepositors, setTopDepositors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCourses = async () => {
         try {
-          const data = await getCourses();
-           setCourses(data);
+          const [data, topDeps] = await Promise.all([
+            getCourses(),
+            getTopDepositors(3)
+          ]);
+          setCourses(data);
+          setTopDepositors(topDeps);
         } catch (error) {
           console.error("Lỗi:", error);
         } finally {
@@ -45,10 +52,12 @@ function HomePage() {
       <div className="gradient-bg"></div>
       <ParticleBackground />
 
-      <div className="relative z-10">
+      <div className="relative z-10 pt-16">
         
+        <AnnouncementBanner />
+
         {/* Hero Section */}
-        <section className="relative pt-32 pb-20 px-4">
+        <section className="relative pt-16 pb-20 px-4">
             <div className="cube-container">
                 <div className="cube" style={{ top: '20%', left: '10%', animationDelay: '0s' }}>
                     <div className="front"></div><div className="back"></div><div className="right"></div><div className="left"></div><div className="top"></div><div className="bottom"></div>
@@ -119,6 +128,73 @@ function HomePage() {
              </div>
         </section>
 
+        {/* Top Depositors Section */}
+        {topDepositors.length > 0 && (
+          <section className="py-20 px-4 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-64 bg-yellow-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+            <div className="max-w-5xl mx-auto text-center relative z-10">
+              <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">Bảng Vàng <span className="text-yellow-400">Đại Gia</span></h2>
+              <p className="text-gray-400 mb-16">Vinh danh những học viên nạp tiền và đóng góp tích cực nhất trong hệ thống.</p>
+              
+              <div className="flex flex-col md:flex-row items-end justify-center gap-6 md:gap-8">
+                {/* Top 2 */}
+                {topDepositors[1] && (
+                  <div className="w-full md:w-1/3 bg-white/5 backdrop-blur-md border border-slate-300/30 p-6 rounded-3xl text-center transform hover:-translate-y-2 transition-all relative mt-8 md:mt-0 order-2 md:order-1">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-slate-300 to-slate-400 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(203,213,225,0.4)]">
+                      <span className="font-bold text-[#0f172a]">2</span>
+                    </div>
+                    {topDepositors[1].avatarUrl ? (
+                      <img src={topDepositors[1].avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full mx-auto mt-6 mb-4 object-cover border-2 border-slate-400/50" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-slate-800 mx-auto mt-6 mb-4 flex items-center justify-center text-2xl font-bold text-slate-300 border-2 border-slate-400/50">
+                        {topDepositors[1].fullname.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-white mb-2 truncate">{topDepositors[1].fullname}</h3>
+                    <p className="text-yellow-400 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(topDepositors[1].totalDeposit)}</p>
+                  </div>
+                )}
+
+                {/* Top 1 */}
+                {topDepositors[0] && (
+                  <div className="w-full md:w-1/3 bg-white/10 backdrop-blur-md border border-yellow-400/50 p-8 rounded-3xl text-center transform hover:-translate-y-4 transition-all relative shadow-[0_0_40px_rgba(250,204,21,0.2)] z-20 order-1 md:order-2">
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_30px_rgba(250,204,21,0.6)]">
+                      <Crown className="w-8 h-8 text-[#0f172a]" />
+                    </div>
+                    {topDepositors[0].avatarUrl ? (
+                      <img src={topDepositors[0].avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full mx-auto mt-6 mb-4 object-cover border-4 border-yellow-400/50 shadow-inner" />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-slate-800 mx-auto mt-6 mb-4 flex items-center justify-center text-4xl font-bold text-yellow-400 border-4 border-yellow-400/50 shadow-inner">
+                        {topDepositors[0].fullname.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold text-white mb-2 truncate">{topDepositors[0].fullname}</h3>
+                    <p className="text-yellow-400 font-bold text-xl">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(topDepositors[0].totalDeposit)}</p>
+                  </div>
+                )}
+
+                {/* Top 3 */}
+                {topDepositors[2] && (
+                  <div className="w-full md:w-1/3 bg-white/5 backdrop-blur-md border border-orange-400/30 p-6 rounded-3xl text-center transform hover:-translate-y-2 transition-all relative mt-8 md:mt-0 order-3 md:order-3">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-orange-300 to-orange-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                      <span className="font-bold text-[#0f172a]">3</span>
+                    </div>
+                    {topDepositors[2].avatarUrl ? (
+                      <img src={topDepositors[2].avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full mx-auto mt-6 mb-4 object-cover border-2 border-orange-400/50" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-slate-800 mx-auto mt-6 mb-4 flex items-center justify-center text-2xl font-bold text-orange-300 border-2 border-orange-400/50">
+                        {topDepositors[2].fullname.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-white mb-2 truncate">{topDepositors[2].fullname}</h3>
+                    <p className="text-yellow-400 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(topDepositors[2].totalDeposit)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Courses Section */}
         <section className="py-20 px-4">
             <div className="max-w-7xl mx-auto">
@@ -135,7 +211,7 @@ function HomePage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {loading ? (
                          // THAY ĐỔI: Màu chữ loading sáng hơn để dễ nhìn
-                         <div className="col-span-4 text-center text-blue-400/60 py-20 animate-pulse">Đang tải dữ liệu...</div>
+                         <div className="col-span-1 md:col-span-2 lg:col-span-4"><LoadingSpinner message="Đang tải các khóa học..." /></div>
                     ) : (
                         courses.slice(0, 4).map(course => (
                             <CourseCard key={course.id} course={course} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { updateUserProfile, getUserEnrolledCourses } from '../lib/supabaseService';
-import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2 } from 'lucide-react';
+import { updateUserProfile, getUserEnrolledCourses, uploadAvatar, getTopDepositors } from '../lib/supabaseService';
+import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2, Camera, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ParticleBackground from '../components/ParticleBackground';
@@ -16,6 +16,7 @@ function Profile() {
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -63,6 +64,34 @@ function Profile() {
     setIsEditing(false);
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh hợp lệ.');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Kích thước ảnh tối đa là 2MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      const publicUrl = await uploadAvatar(user!.id, file);
+      await updateUserProfile(user!.id, { avatar_url: publicUrl });
+      await refreshUser();
+      toast.success('Cập nhật ảnh đại diện thành công!');
+    } catch (error) {
+      console.error("Lỗi upload avatar:", error);
+      toast.error('Không thể tải lên ảnh đại diện.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#020617]">
@@ -93,10 +122,44 @@ function Profile() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-sky-500/20"></div>
               
               <div className="flex flex-col items-center mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-lg shadow-sky-900/50 mb-4 ring-4 ring-[#0f172a]">
-                  {user.username.charAt(0).toUpperCase()}
+                <div className="relative group/avatar cursor-pointer">
+                  {user.isTop1 && (
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(250,204,21,0.6)] z-20 pointer-events-none">
+                      <Crown className="w-6 h-6 text-[#0f172a]" />
+                    </div>
+                  )}
+                  {user.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl} 
+                      alt="Avatar" 
+                      className={`w-24 h-24 rounded-full object-cover shadow-lg mb-4 ring-4 ${user.isTop1 ? 'ring-yellow-400 shadow-yellow-400/30' : 'ring-[#0f172a] shadow-sky-900/50'}`}
+                    />
+                  ) : (
+                    <div className={`w-24 h-24 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-lg mb-4 ring-4 ${user.isTop1 ? 'ring-yellow-400 shadow-yellow-400/30' : 'ring-[#0f172a] shadow-sky-900/50'}`}>
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  
+                  {/* Lớp phủ khi hover */}
+                  <label className="absolute inset-0 w-24 h-24 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
+                    {isUploadingAvatar ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <>
+                        <Camera className="w-6 h-6 text-white mb-1" />
+                        <span className="text-[10px] text-white font-medium">Thay đổi</span>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleAvatarUpload} 
+                      disabled={isUploadingAvatar}
+                    />
+                  </label>
                 </div>
-                <h2 className="text-xl font-bold text-white">{user.fullname}</h2>
+                <h2 className="text-xl font-bold text-white mt-2">{user.fullname}</h2>
                 <span className="text-sm font-medium text-sky-400 bg-sky-500/10 px-3 py-1 rounded-full mt-2 capitalize">
                   {user.role}
                 </span>

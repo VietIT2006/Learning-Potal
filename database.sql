@@ -16,7 +16,8 @@ CREATE TABLE users (
     phone VARCHAR(20),
     join_date DATE,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
-    courses_enrolled_count INT DEFAULT 0
+    courses_enrolled_count INT DEFAULT 0,
+    avatar_url TEXT
 );
 
 INSERT INTO users (id, username, password, role, fullname, email, phone, join_date, status, courses_enrolled_count) VALUES

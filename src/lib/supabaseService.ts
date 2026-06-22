@@ -46,8 +46,10 @@ export interface User {
   phone: string
   joinDate: string
   status: 'active' | 'inactive' | string
+  balance?: number
   coursesEnrolledCount: number
   coursesEnrolled: number[]
+  avatarUrl?: string
 }
 
 export async function getUsers(filters?: { username?: string; password?: string; role?: string }): Promise<User[]> {
@@ -101,7 +103,7 @@ export async function registerUser(info: {
     throw new Error('Tên đăng nhập hoặc Email đã tồn tại')
   }
 
-  const newId = Date.now()
+  const newId = Math.floor(Math.random() * 2000000000)
   const { error } = await supabase.from('users').insert({
     id: newId,
     username: info.username,
@@ -168,7 +170,7 @@ export async function getCourseById(id: number): Promise<Course | null> {
 }
 
 export async function createCourse(courseData: Partial<Course>): Promise<void> {
-  const id = Date.now()
+  const id = Math.floor(Math.random() * 2000000000)
   const dbData = toDb({ ...courseData, id })
   const { error } = await supabase.from('courses').insert(dbData)
   if (error) throw error
@@ -201,11 +203,15 @@ export interface Lesson {
 export async function getLessons(courseId?: number): Promise<Lesson[]> {
   let query = supabase.from('lessons').select('*')
   if (courseId) query = query.eq('course_id', courseId)
-  query = query.order('lesson_order', { ascending: true })
+  query = query.order('order', { ascending: true })
 
   const { data, error } = await query
   if (error) throw error
-  return fromDb<Lesson[]>(data || [])
+  return (data || []).map(d => {
+      const mapped = fromDb<any>(d)
+      mapped.lessonOrder = d.order
+      return mapped as Lesson
+  })
 }
 
 export async function getLessonById(id: number): Promise<Lesson | null> {
@@ -227,11 +233,11 @@ export async function createLesson(lessonData: { courseId: number; title: string
   // Get lesson order
   const { data: courseLessons } = await supabase
     .from('lessons')
-    .select('lesson_order')
+    .select('order')
     .eq('course_id', lessonData.courseId)
-    .order('lesson_order', { ascending: false })
+    .order('order', { ascending: false })
     .limit(1)
-  const nextOrder = courseLessons && courseLessons.length > 0 ? courseLessons[0].lesson_order + 1 : 1
+  const nextOrder = courseLessons && courseLessons.length > 0 ? courseLessons[0].order + 1 : 1
 
   const { error } = await supabase.from('lessons').insert({
     id: newId,
@@ -239,7 +245,7 @@ export async function createLesson(lessonData: { courseId: number; title: string
     title: lessonData.title,
     video_url: lessonData.videoUrl || null,
     duration: lessonData.duration || null,
-    lesson_order: nextOrder,
+    order: nextOrder,
   })
   if (error) throw error
 }
@@ -456,7 +462,7 @@ export async function submitQuiz(submission: QuizSubmission): Promise<QuizResult
   }
 
   // Save quiz result
-  const resultId = Date.now()
+  const resultId = Math.floor(Math.random() * 2000000000)
   await supabase.from('quiz_results').insert({
     id: resultId,
     unique_id: `${submission.lessonId}-${submission.userId}`,
@@ -524,7 +530,7 @@ export async function enrollUser(userId: number, courseId: number): Promise<void
   }
 
   // Create initial progress record
-  const progressId = Date.now()
+  const progressId = Math.floor(Math.random() * 2000000000); // Prevent INT overflow
   await supabase.from('progresses').insert({
     id: progressId,
     user_id: userId,
@@ -600,7 +606,7 @@ export async function completeLesson(userId: number, courseId: number, lessonId:
     .single()
 
   if (!progressData) {
-    const newId = Date.now()
+    const newId = Math.floor(Math.random() * 2000000000)
     const { data: newProgress, error } = await supabase
       .from('progresses')
       .insert({
@@ -648,11 +654,18 @@ export async function completeLesson(userId: number, courseId: number, lessonId:
   const totalCount = totalLessonsData?.length || 0
   const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
-  // Update progress percentage
+  // Update progress percentage in progresses table
   await supabase
     .from('progresses')
     .update({ progress_percentage: percentage })
     .eq('id', progressData.id)
+
+  // Also update progress percentage in user_courses table
+  await supabase
+    .from('user_courses')
+    .update({ progress_percentage: percentage })
+    .eq('user_id', userId)
+    .eq('course_id', courseId)
 
   return {
     completedLessons: (allCompleted || []).map((c: any) => c.lesson_id),
@@ -683,7 +696,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
 
 export async function createTestimonial(testimonialData: Partial<Testimonial>): Promise<void> {
   const { error } = await supabase.from('testimonials').insert({
-    id: testimonialData.id || Date.now(),
+    id: testimonialData.id || Math.floor(Math.random() * 2000000000),
     name: testimonialData.name,
     role: testimonialData.role,
     avatar: testimonialData.avatar,
@@ -691,4 +704,232 @@ export async function createTestimonial(testimonialData: Partial<Testimonial>): 
     rating: testimonialData.rating,
   })
   if (error) throw error
+}
+
+// ============================================================
+// GLOBAL ANNOUNCEMENTS (Stored in Testimonials)
+// ============================================================
+export async function getGlobalAnnouncement(): Promise<{ content: string, isActive: boolean, level: string } | null> {
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('content, rating, name')
+    .eq('role', 'GLOBAL_ANNOUNCEMENT')
+    .limit(1)
+    .single();
+
+  if (error || !data) return null;
+  return { 
+    content: data.content, 
+    isActive: data.rating === 1,
+    level: data.name || 'info' // Use 'name' to store the level
+  };
+}
+
+export async function saveGlobalAnnouncement(content: string, isActive: boolean, level: string = 'info'): Promise<void> {
+  const { data: existing } = await supabase
+    .from('testimonials')
+    .select('id')
+    .eq('role', 'GLOBAL_ANNOUNCEMENT')
+    .limit(1)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('testimonials')
+      .update({ content, rating: isActive ? 1 : 0, name: level })
+      .eq('id', existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('testimonials').insert({
+      id: Math.floor(Math.random() * 2000000000),
+      name: level,
+      role: 'GLOBAL_ANNOUNCEMENT',
+      avatar: '',
+      content,
+      rating: isActive ? 1 : 0,
+    });
+    if (error) throw error;
+  }
+}
+
+// ============================================================
+// WALLET AND TRANSACTIONS
+// ============================================================
+
+export async function getUserTransactions(userId: number): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function verifyAndDeposit(userId: number, orderCode: number, amount: number): Promise<boolean> {
+  // Check if transaction already exists
+  const { data: existingTx } = await supabase
+    .from('transactions')
+    .select('id')
+    .like('description', `%Mã GD: ${orderCode}%`)
+    .limit(1);
+
+  if (existingTx && existingTx.length > 0) {
+    return false; // Already deposited
+  }
+
+  // Record transaction
+  const { error: txError } = await supabase.from('transactions').insert({
+    user_id: userId,
+    amount: amount,
+    type: 'deposit',
+    description: `Nạp tiền qua PayOS (Mã GD: ${orderCode})`
+  });
+
+  if (txError) throw txError;
+
+  // Update user balance
+  const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
+  const currentBalance = user?.balance || 0;
+  
+  const { error: updateError } = await supabase.from('users').update({ balance: currentBalance + amount }).eq('id', userId);
+  if (updateError) throw updateError;
+  
+  return true;
+}
+
+export async function adminDeposit(userId: number, amount: number, description: string = 'Admin cộng tiền'): Promise<boolean> {
+  // 1. Get current balance
+  const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
+  const currentBalance = user?.balance || 0;
+
+  // 2. Add transaction
+  const { error: txError } = await supabase.from('transactions').insert({
+    user_id: userId,
+    amount: amount,
+    type: 'deposit',
+    description: description
+  });
+  if (txError) throw txError;
+
+  // 3. Update balance
+  const { error: updateError } = await supabase.from('users').update({ balance: currentBalance + amount }).eq('id', userId);
+  if (updateError) throw updateError;
+
+  return true;
+}
+
+export async function purchaseCourseWithBalance(userId: number, courseId: number, price: number): Promise<boolean> {
+  // 1. Check balance
+  const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
+  const currentBalance = user?.balance || 0;
+
+  if (currentBalance < price) {
+    throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền!');
+  }
+
+  // 2. Deduct balance
+  const { error: updateError } = await supabase.from('users').update({ balance: currentBalance - price }).eq('id', userId);
+  if (updateError) throw updateError;
+
+  try {
+    // 3. Record transaction
+    const { error: txError } = await supabase.from('transactions').insert({
+      user_id: userId,
+      amount: price,
+      type: 'purchase',
+      description: `Mua khóa học ID ${courseId}`
+    });
+    if (txError) throw txError;
+
+    // 4. Enroll user
+    await enrollUser(userId, courseId);
+  } catch (err) {
+    // Rollback balance if anything fails
+    await supabase.from('users').update({ balance: currentBalance }).eq('id', userId);
+    throw err;
+  }
+
+  return true;
+}
+
+// ============================================================
+// ANALYTICS (HISTORY)
+// ============================================================
+
+export async function getAllTransactionsForAnalytics(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*, users(*)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getAllOrdersForAnalytics(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, users(*), courses(title)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getAllQuizResultsForAnalytics(): Promise<any[]> {
+  const { data, error } = await supabase
+    .from('quiz_results')
+    .select('*, users(*), lessons(title, courses(title))')
+    .order('completed_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getTopDepositors(limit: number = 3): Promise<any[]> {
+  // Get all deposits
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('user_id, amount, users(*)')
+    .eq('type', 'deposit');
+
+  if (error) throw error;
+
+  // Aggregate by user
+  const userMap = new Map();
+  data?.forEach(tx => {
+    const uid = tx.user_id;
+    if (!userMap.has(uid)) {
+      const u = tx.users || {};
+      userMap.set(uid, {
+        userId: uid,
+        fullname: u.full_name || u.fullname || 'Học viên ẩn danh',
+        avatarUrl: u.avatar_url || u.avatarUrl,
+        totalDeposit: 0
+      });
+    }
+    userMap.get(uid).totalDeposit += Number(tx.amount || 0);
+  });
+
+  // Sort and limit
+  const sorted = Array.from(userMap.values()).sort((a, b) => b.totalDeposit - a.totalDeposit);
+  return sorted.slice(0, limit);
+}
+
+export async function uploadAvatar(userId: number, file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}_${Date.now()}.${fileExt}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, { upsert: true });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
 }

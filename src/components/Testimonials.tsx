@@ -22,7 +22,10 @@ export default function Testimonials() {
   const fetchTestimonials = async () => {
     try {
       const data = await getTestimonials();
-      const sortedData = data.reverse().slice(0, 3); 
+      const sortedData = data
+        .filter(t => t.role !== 'GLOBAL_ANNOUNCEMENT')
+        .reverse()
+        .slice(0, 3); 
       setTestimonials(sortedData);
     } catch (err) {
       console.error("Lỗi tải feedback:", err);

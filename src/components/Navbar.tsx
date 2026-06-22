@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react'; // Đã bỏ BookOpen vì dùng logo ảnh
+import { Menu, X, Crown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import logoLearn from '../assets/logo/logoLearn.png';
 
@@ -39,9 +39,31 @@ function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-5">
-                <Link to="/profile" className="flex flex-col items-end group cursor-pointer">
-                  <span className="text-white text-sm font-semibold leading-none group-hover:text-sky-400 transition-colors">{user.fullname}</span>
-                  <span className="text-[10px] text-sky-400 uppercase tracking-tighter mt-1 font-bold">Hồ sơ cá nhân</span>
+                <Link to="/wallet" className="flex flex-col items-end group cursor-pointer mr-2">
+                  <span className="text-purple-400 text-sm font-bold leading-none group-hover:text-purple-300 transition-colors">
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(user.balance || 0)}
+                  </span>
+                  <span className="text-[10px] text-purple-300 uppercase tracking-tighter mt-1">Ví của tôi</span>
+                </Link>
+                <Link to="/profile" className="flex items-center gap-3 group cursor-pointer">
+                  <div className="flex flex-col items-end mr-2">
+                    <span className="text-white text-sm font-semibold leading-none group-hover:text-sky-400 transition-colors">{user.fullname}</span>
+                    <span className="text-[10px] text-sky-400 uppercase tracking-tighter mt-1 font-bold">Hồ sơ cá nhân</span>
+                  </div>
+                  <div className="relative">
+                    {user.isTop1 && (
+                      <div className="absolute -top-2 -right-2 z-10 w-5 h-5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                        <Crown className="w-3 h-3 text-[#0f172a]" />
+                      </div>
+                    )}
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="Avatar" className={`w-10 h-10 rounded-full object-cover border-2 transition-colors ${user.isTop1 ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'border-white/10 group-hover:border-sky-400/50'}`} />
+                    ) : (
+                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold border-2 transition-colors ${user.isTop1 ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'border-white/10 group-hover:border-sky-400/50'}`}>
+                        {user.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                 </Link>
                 <button 
                   onClick={logout}
@@ -100,10 +122,25 @@ function Navbar() {
 
             {user ? (
                <div className="flex flex-col gap-4 p-4 bg-white/5 rounded-2xl">
-                 <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer">
-                   <div className="w-10 h-10 bg-sky-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">
-                     {user.username.charAt(0).toUpperCase()}
-                   </div>
+                 <Link to="/wallet" onClick={() => setMobileMenuOpen(false)} className="flex justify-between items-center bg-purple-500/10 p-3 rounded-xl hover:bg-purple-500/20 transition-colors">
+                   <span className="text-purple-300 font-bold">Ví của tôi</span>
+                   <span className="text-purple-400 font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(user.balance || 0)}</span>
+                 </Link>
+                  <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 hover:bg-white/5 p-2 rounded-xl transition-colors cursor-pointer">
+                    <div className="relative">
+                      {user.isTop1 && (
+                        <div className="absolute -top-1 -right-1 z-10 w-4 h-4 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border border-[#0f172a] shadow-lg">
+                          <Crown className="w-2.5 h-2.5 text-[#0f172a]" />
+                        </div>
+                      )}
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt="Avatar" className={`w-10 h-10 rounded-full object-cover shadow-lg ${user.isTop1 ? 'border border-yellow-400 shadow-yellow-400/20' : 'shadow-sky-500/20'}`} />
+                      ) : (
+                        <div className={`w-10 h-10 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${user.isTop1 ? 'border border-yellow-400 shadow-yellow-400/20' : 'shadow-sky-500/20'}`}>
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
                    <div className="flex flex-col">
                      <span className="text-white font-bold">{user.fullname}</span>
                      <span className="text-xs text-slate-400">{user.username}</span>

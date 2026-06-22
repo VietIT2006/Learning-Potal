@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getCourseById, getLessons, enrollUser } from '../lib/supabaseService';
+import { getCourseById, getLessons, enrollUser, purchaseCourseWithBalance } from '../lib/supabaseService';
+import { FullScreenLoader } from '../components/LoadingSpinner';
 import { ChevronRight, Clock, Users, DollarSign, CheckCircle, Star, BookOpen } from 'lucide-react'; 
 import { useAuth } from '../context/AuthContext'; 
 import ParticleBackground from '../components/ParticleBackground';
@@ -66,7 +67,29 @@ function CourseDetailPage() {
       navigate('/login');
       return;
     }
-    enrollDirectly();
+
+    if (course && course.price > 0) {
+      if ((user?.balance || 0) < course.price) {
+        toast.error('Số dư không đủ. Vui lòng nạp tiền vào ví!');
+        navigate('/wallet');
+        return;
+      }
+      if (window.confirm(`Xác nhận mua khóa học này với giá ${formatCurrency(course.price)}? Số dư của bạn sẽ bị trừ đi.`)) {
+        purchaseCourse();
+      }
+    } else {
+      enrollDirectly();
+    }
+  };
+
+  const purchaseCourse = async () => {
+    try {
+      await purchaseCourseWithBalance(user!.id, courseId, course!.price);
+      toast.success("Mua khóa học thành công! Bạn có thể vào học ngay.");
+      refreshUser(); 
+    } catch (err: any) {
+      toast.error(`Lỗi: ${err.message || 'Không thể thanh toán'}`);
+    }
   };
 
   const enrollDirectly = async () => {
@@ -79,7 +102,7 @@ function CourseDetailPage() {
       }
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen text-blue-400">Đang tải...</div>;
+  if (loading) return <FullScreenLoader message="Đang tải thông tin khóa học..." />;
   if (!course) return <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy khóa học.</div>;
 
   return (

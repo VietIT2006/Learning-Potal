@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext'; 
 import toast from 'react-hot-toast';
+import ParticleBackground from '../components/ParticleBackground';
 
 interface Question {
   id: string;
@@ -132,24 +133,27 @@ function QuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <ParticleBackground />
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 relative z-10"></div>
       </div>
     );
   }
 
   if (error || !quizData || !quizData.questions) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+      <div className="relative min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 text-white overflow-hidden">
+        <div className="gradient-bg"></div>
+        <ParticleBackground />
+        <div className="relative z-10 bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+            <AlertCircle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Đã xảy ra lỗi</h2>
-          <p className="text-gray-600 mb-6">{error || "Không tìm thấy dữ liệu bài kiểm tra."}</p>
+          <h2 className="text-xl font-bold text-white mb-2">Đã xảy ra lỗi</h2>
+          <p className="text-gray-400 mb-6">{error || "Không tìm thấy dữ liệu bài kiểm tra."}</p>
           <button 
             onClick={() => navigate(-1)}
-            className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition w-full"
+            className="bg-white/10 text-white px-6 py-2 rounded-lg hover:bg-white/20 transition w-full"
           >
             Quay lại
           </button>
@@ -163,23 +167,25 @@ function QuizPage() {
     const title = result.passed ? 'Hoàn thành Xuất sắc!' : 'Ôn tập thêm';
     
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center animate-fade-in-up">
-          <div className={`w-20 h-20 ${iconColor} rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner`}>
+      <div className="relative min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 text-white overflow-hidden">
+        <div className="gradient-bg"></div>
+        <ParticleBackground />
+        <div className="relative z-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl p-8 max-w-md w-full text-center animate-fade-in-up">
+          <div className={`w-20 h-20 ${result.passed ? 'text-green-400 bg-green-500/20 border-green-500/20' : 'text-red-400 bg-red-500/20 border-red-500/20'} rounded-full flex items-center justify-center mx-auto mb-6 border`}>
             <Award className="w-10 h-10" />
           </div>
           
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>
-          <p className="text-gray-600 mb-8 font-medium">{result.message}</p>
+          <h2 className="text-3xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-gray-300 mb-8 font-medium">{result.message}</p>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100">
-            <div className="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-1">Kết quả của bạn</div>
-            <div className="text-5xl font-black text-purple-600 mb-2">
-              {result.score}<span className="text-2xl text-gray-400 font-medium">/{quizData.questions.length}</span>
+          <div className="bg-black/50 rounded-xl p-6 mb-8 border border-white/5">
+            <div className="text-sm text-gray-400 uppercase tracking-wide font-semibold mb-1">Kết quả của bạn</div>
+            <div className="text-5xl font-black text-purple-400 mb-2">
+              {result.score}<span className="text-2xl text-gray-500 font-medium">/{quizData.questions.length}</span>
             </div>
             
             {result.passed && result.totalLessons && (
-                 <div className="text-sm font-medium text-gray-600 bg-white inline-block px-3 py-1 rounded-full border border-gray-200 shadow-sm mt-3">
+                 <div className="text-sm font-medium text-gray-300 bg-white/10 inline-block px-3 py-1 rounded-full border border-white/10 mt-3">
                      Tiến độ khóa học: {result.progressPercentage}%
                  </div>
             )}
@@ -196,7 +202,7 @@ function QuizPage() {
             {!result.passed && (
                  <button
                     onClick={() => window.location.reload()}
-                    className="w-full bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-50 transition duration-200 flex items-center justify-center gap-2"
+                    className="w-full bg-white/5 text-gray-300 border border-white/10 py-3 rounded-xl font-semibold hover:bg-white/10 transition duration-200 flex items-center justify-center gap-2"
                  >
                    Làm lại <RotateCcw className="w-4 h-4" />
                  </button>
@@ -212,25 +218,28 @@ function QuizPage() {
   const progress = ((currentQuestionIndex + 1) / quizData.questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      <div className="w-full max-w-3xl mb-8 flex items-center justify-between">
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center overflow-hidden">
+      <div className="gradient-bg"></div>
+      <ParticleBackground />
+
+      <div className="relative z-10 w-full max-w-3xl mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{quizData.title}</h1>
-          <p className="text-gray-500 flex items-center gap-2 mt-1">
+          <h1 className="text-2xl font-bold text-white">{quizData.title}</h1>
+          <p className="text-gray-400 flex items-center gap-2 mt-1">
             <HelpCircle className="w-4 h-4" /> 
             Câu hỏi {currentQuestionIndex + 1} trên {quizData.questions.length}
           </p>
         </div>
-        <button onClick={() => navigate(-1)} className="text-gray-500 hover:text-gray-900 font-medium text-sm">Thoát</button>
+        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-white font-medium text-sm transition-colors">Thoát</button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden">
-        <div className="w-full h-2 bg-gray-100">
-          <div className="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
+      <div className="relative z-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden">
+        <div className="w-full h-2 bg-white/10">
+          <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
         </div>
 
         <div className="p-8 md:p-10">
-          <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-8 leading-relaxed">
+          <h3 className="text-xl md:text-2xl font-semibold text-white mb-8 leading-relaxed">
             {currentQuestion.questionText}
           </h3>
 
@@ -242,15 +251,15 @@ function QuizPage() {
                   key={index}
                   onClick={() => handleOptionSelect(index)}
                   className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-4 group ${
-                    isSelected ? 'border-purple-600 bg-purple-50 shadow-md' : 'border-gray-100 bg-white hover:border-purple-200 hover:bg-gray-50'
+                    isSelected ? 'border-purple-500 bg-purple-500/20 shadow-md' : 'border-white/10 bg-black/50 hover:border-purple-400/50 hover:bg-white/5'
                   }`}
                 >
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                    isSelected ? 'border-purple-600' : 'border-gray-300 group-hover:border-purple-400'
+                    isSelected ? 'border-purple-500' : 'border-gray-500 group-hover:border-purple-400'
                   }`}>
-                    {isSelected && <div className="w-3 h-3 rounded-full bg-purple-600 animate-bounce-small" />}
+                    {isSelected && <div className="w-3 h-3 rounded-full bg-purple-500 animate-bounce-small" />}
                   </div>
-                  <span className={`font-medium text-lg ${isSelected ? 'text-purple-900' : 'text-gray-700'}`}>{option}</span>
+                  <span className={`font-medium text-lg ${isSelected ? 'text-purple-300' : 'text-gray-300 group-hover:text-white'}`}>{option}</span>
                 </div>
               );
             })}
@@ -261,7 +270,7 @@ function QuizPage() {
               onClick={handleNextOrSubmit}
               disabled={currentAnswer === undefined}
               className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white transition-all duration-300
-                ${currentAnswer === undefined ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:scale-105 shadow-md'}
+                ${currentAnswer === undefined ? 'bg-white/10 text-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:scale-105 shadow-md'}
               `}
             >
               {currentQuestionIndex === quizData.questions.length - 1 ? 'Nộp bài' : 'Câu tiếp theo'}
