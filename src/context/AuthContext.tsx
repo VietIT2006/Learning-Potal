@@ -12,14 +12,16 @@ export interface User {
   email: string;
   fullname: string;
   role: string;
-  status: string;
-  join_date: string;
+  status?: string;
+  join_date?: string;
+  joinDate?: string;
+  phone?: string;
+  balance?: number;
   avatarUrl?: string;
   coursesEnrolledCount?: number;
   coursesEnrolled?: number[]; // Array of course IDs user has enrolled in
   isTop1?: boolean;
   password?: string;
-  balance?: number;
 }
 
 interface AuthContextType {
