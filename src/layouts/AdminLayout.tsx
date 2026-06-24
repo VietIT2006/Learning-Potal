@@ -5,6 +5,7 @@ import {
   LogOut, Menu, X, MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import LoginApprovalAdminMonitor from '../components/LoginApprovalAdminMonitor';
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
@@ -104,6 +105,8 @@ export default function AdminLayout() {
           <Outlet />
         </div>
       </div>
+
+      <LoginApprovalAdminMonitor />
     </div>
   );
 }

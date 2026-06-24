@@ -17,7 +17,9 @@ CREATE TABLE users (
     join_date DATE,
     status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     courses_enrolled_count INT DEFAULT 0,
-    avatar_url TEXT
+    avatar_url TEXT,
+    two_factor_secret TEXT,
+    two_factor_enabled BOOLEAN DEFAULT FALSE
 );
 
 INSERT INTO users (id, username, password, role, full_name, email, phone, join_date, status, courses_enrolled_count) VALUES

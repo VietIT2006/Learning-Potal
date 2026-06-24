@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Bell, User, Save, Megaphone, Mail, Search, CheckSquare, Square, X, Send } from 'lucide-react';
+import { Moon, Sun, Bell, User, Save, Megaphone, Mail, Search, CheckSquare, Square, X, Send, ShieldCheck, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { getGlobalAnnouncement, saveGlobalAnnouncement, getUsers } from '../../lib/supabaseService';
 import type { User as UserType } from '../../lib/supabaseService';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SettingsPage() {
+  const { user } = useAuth();
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' || 
@@ -114,6 +117,86 @@ export default function SettingsPage() {
     { value: 'error', label: 'Khẩn cấp', color: 'bg-red-500' },
     { value: 'success', label: 'Thành công', color: 'bg-emerald-500' },
   ];
+
+  // 2FA state
+  const [is2FASetupModalOpen, setIs2FASetupModalOpen] = useState(false);
+  const [qrUrl, setQrUrl] = useState('');
+  const [tempSecret, setTempSecret] = useState('');
+  const [twoFaCode, setTwoFaCode] = useState('');
+  const [isVerifying2FA, setIsVerifying2FA] = useState(false);
+  const [isDisabling2FA, setIsDisabling2FA] = useState(false);
+  
+  // Update internal status based on context
+  const [is2FAEnabled, setIs2FAEnabled] = useState(user?.is2FAEnabled || false);
+
+  useEffect(() => {
+    if (user) {
+      setIs2FAEnabled(user.is2FAEnabled || false);
+    }
+  }, [user]);
+
+  const handleStart2FASetup = async () => {
+    if (is2FAEnabled) {
+      toast.error('2FA đã được bật!');
+      return;
+    }
+    try {
+      const res = await axios.post('http://localhost:3001/api/admin/setup-2fa', { email: user?.email });
+      if (res.data.success) {
+        setQrUrl(res.data.qrCodeUrl);
+        setTempSecret(res.data.secret);
+        setIs2FASetupModalOpen(true);
+      }
+    } catch (err) {
+      toast.error('Không thể lấy mã QR');
+    }
+  };
+
+  const handleConfirm2FA = async () => {
+    if (twoFaCode.length < 6) {
+      toast.error('Vui lòng nhập đủ 6 số');
+      return;
+    }
+    setIsVerifying2FA(true);
+    try {
+      const res = await axios.post('http://localhost:3001/api/admin/confirm-2fa', { 
+        email: user?.email, 
+        secret: tempSecret, 
+        code: twoFaCode 
+      });
+      if (res.data.success) {
+        toast.success('Bật 2FA thành công!');
+        setIs2FAEnabled(true);
+        if (user) user.is2FAEnabled = true;
+        setIs2FASetupModalOpen(false);
+        setTwoFaCode('');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Mã xác nhận sai');
+    } finally {
+      setIsVerifying2FA(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn tắt xác minh 2 bước không? Tài khoản của bạn sẽ kém an toàn hơn.')) {
+      return;
+    }
+    
+    setIsDisabling2FA(true);
+    try {
+      const res = await axios.post('http://localhost:3001/api/admin/disable-2fa', { email: user?.email });
+      if (res.data.success) {
+        toast.success('Đã tắt xác minh 2 bước!');
+        setIs2FAEnabled(false);
+        if (user) user.is2FAEnabled = false;
+      }
+    } catch (err: any) {
+      toast.error('Lỗi khi tắt 2FA');
+    } finally {
+      setIsDisabling2FA(false);
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fade-in relative pb-10">
@@ -322,7 +405,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 relative z-10">
+      <div className="flex justify-end pt-4 relative z-10 mb-8">
           <button 
             onClick={handleSaveSettings}
             disabled={isSaving}
@@ -332,6 +415,82 @@ export default function SettingsPage() {
               {isSaving ? 'Đang lưu...' : 'Lưu tất cả thay đổi'}
           </button>
       </div>
+
+      {/* --- Section 4: Security (2FA) --- */}
+      <div className="bg-[#0a0a0f]/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/5 p-8 transition-all duration-300 relative z-10 group hover:border-white/10">
+        <div className="flex items-center gap-5 mb-8 border-b border-white/5 pb-6">
+            <div className="p-3.5 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl text-emerald-400 border border-green-500/20 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Bảo mật (Xác minh 2 bước)</h3>
+                <p className="text-sm text-slate-400 mt-1">Sử dụng Google Authenticator để tăng cường bảo mật cho tài khoản Admin.</p>
+            </div>
+        </div>
+
+        <div className="flex items-center justify-between py-3 px-2">
+            <div>
+              <span className="text-slate-300 font-medium block">Trạng thái: {is2FAEnabled ? <span className="text-emerald-400">Đã bật</span> : <span className="text-slate-500">Chưa bật</span>}</span>
+              <p className="text-xs text-slate-500 mt-1">Khi bật tính năng này, bạn sẽ cần nhập mã 6 số mỗi khi đăng nhập.</p>
+            </div>
+            
+            {!is2FAEnabled ? (
+              <button 
+                onClick={handleStart2FASetup}
+                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/25 border border-emerald-400/20"
+              >
+                <QrCode className="w-4 h-4" /> Bật 2FA
+              </button>
+            ) : (
+              <button 
+                onClick={handleDisable2FA}
+                disabled={isDisabling2FA}
+                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-medium rounded-xl transition-colors text-sm flex items-center gap-2 border border-red-500/20"
+              >
+                {isDisabling2FA ? 'Đang tắt...' : 'Tắt 2FA'}
+              </button>
+            )}
+        </div>
+      </div>
+
+      {/* Modal Setup 2FA */}
+      {is2FASetupModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 rounded-2xl border border-slate-700 shadow-2xl p-6 text-center max-w-sm w-full relative">
+            <button 
+              onClick={() => setIs2FASetupModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/5 rounded-full p-1 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold text-white mb-2 mt-4">Cài đặt mã 2FA</h3>
+            <p className="text-sm text-slate-400 mb-6">Sử dụng ứng dụng Authenticator để quét mã QR dưới đây:</p>
+            
+            <div className="flex justify-center mb-6 bg-white p-2 rounded-xl w-fit mx-auto border-4 border-slate-800">
+              <img src={qrUrl} alt="QR Code" className="w-48 h-48" />
+            </div>
+            
+            <div className="mb-6">
+              <input
+                type="text"
+                value={twoFaCode}
+                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Nhập mã 6 số"
+                className="w-full bg-slate-800 text-white text-center text-2xl tracking-[0.5em] font-mono p-4 rounded-xl border border-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-500 placeholder:tracking-normal"
+                maxLength={6}
+              />
+            </div>
+            
+            <button 
+              onClick={handleConfirm2FA}
+              disabled={isVerifying2FA || twoFaCode.length < 6}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-700 disabled:text-slate-400 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/25"
+            >
+              {isVerifying2FA ? 'Đang xác nhận...' : 'Hoàn tất cài đặt'}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

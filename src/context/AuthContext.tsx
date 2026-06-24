@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { getTopDepositors } from '../lib/supabaseService';
 import { Crown, X } from 'lucide-react';
+import axios from 'axios';
+import { TwoFactorModal } from '../components/TwoFactorModal';
 
 // Định nghĩa kiểu dữ liệu User dựa trên cấu trúc bảng users của bạn
 export interface User {
@@ -22,6 +24,7 @@ export interface User {
   coursesEnrolled?: number[]; // Array of course IDs user has enrolled in
   isTop1?: boolean;
   password?: string;
+  is2FAEnabled?: boolean;
 }
 
 interface AuthContextType {
@@ -45,6 +48,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [showTop1Modal, setShowTop1Modal] = useState(false);
+  
+  // 2FA State
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFactorData, setTwoFactorData] = useState<{ email: string, setupRequired: boolean, qrCodeUrl: string | null } | null>(null);
+
+  // Login Approval State
+  const [pendingLoginRequestId, setPendingLoginRequestId] = useState<string | null>(null);
+
+  // Polling for Login Approval
+  useEffect(() => {
+    let interval: any;
+    if (pendingLoginRequestId) {
+      interval = setInterval(async () => {
+        try {
+          const res = await axios.get(`http://localhost:3001/api/auth/check-login-status?requestId=${pendingLoginRequestId}`);
+          if (res.data.status === 'approved') {
+            setPendingLoginRequestId(null);
+            localStorage.setItem('adminToken', res.data.token);
+            await fetchUserProfile(res.data.user.email);
+            toast.success(`Đăng nhập thành công! Chào mừng ${res.data.user.fullname || res.data.user.username}`);
+            setTimeout(() => {
+              window.location.href = (res.data.user.role === 'admin' || res.data.user.role === 'support') ? '/admin' : '/';
+            }, 500);
+          } else if (res.data.status === 'rejected') {
+            setPendingLoginRequestId(null);
+            toast.error('Đăng nhập của bạn đã bị TỪ CHỐI bởi Admin!');
+          }
+        } catch (e) {
+          // ignore network errors
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [pendingLoginRequestId]);
 
   // Load TikTok embed script khi modal mở (nếu cần thiết)
   useEffect(() => {
@@ -91,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           balance: data.balance || 0,
           coursesEnrolled,
           avatarUrl: data.avatar_url || data.avatarUrl,
+          is2FAEnabled: !!data.two_factor_secret,
         };
 
         // Kiểm tra Top 1
@@ -150,33 +188,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
-      // Thay vì dùng supabase.auth, ta check trực tiếp trong bảng users (phù hợp với data migrate)
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single();
 
-      if (error || !data) {
-        toast.error('Email hoặc mật khẩu không đúng!');
-        return false;
+      // Gọi API phân luồng kiểm tra admin/support
+      try {
+        const response = await axios.post('http://localhost:3001/api/admin/login', { email, password });
+        if (response.data.success && response.data.require2FA) {
+          setTwoFactorData({
+            email: response.data.email,
+            setupRequired: false,
+            qrCodeUrl: null
+          });
+          setShow2FAModal(true);
+          return false; // Chưa đăng nhập xong, chờ 2FA
+        } else if (response.data.success && response.data.pendingApproval) {
+          setPendingLoginRequestId(response.data.requestId);
+          toast.success(response.data.message || 'Đang gửi yêu cầu phê duyệt...');
+          return false;
+        }
+      } catch (err: any) {
+        // Nếu lỗi 403 (không phải admin/support) -> rớt xuống login user bình thường
+        // Nếu lỗi 401 (sai pass) -> báo lỗi luôn
+        if (err.response?.status === 401) {
+          toast.error('Email hoặc mật khẩu không đúng!');
+          return false;
+        }
       }
 
-      if (data.status === 'inactive') {
-        toast.error('Tài khoản của bạn đã bị khóa!');
+      // Login cho user bình thường qua backend API để tạo Pending Request
+      const res = await axios.post('http://localhost:3001/api/user/login-request', { email, password });
+      if (res.data && res.data.success && res.data.pendingApproval) {
+        setPendingLoginRequestId(res.data.requestId);
+        toast.success('Vui lòng kiểm tra Email của bạn để XÁC NHẬN đăng nhập!');
         return false;
       }
-
-      await fetchUserProfile(email);
-      toast.success(`Đăng nhập thành công! Chào mừng ${data.fullname || data.username}`);
-      return true;
-    } catch (error) {
-      console.error(error);
-      toast.error('Lỗi kết nối đến máy chủ.');
+      
+      return false;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error(error.response?.data?.message || 'Lỗi đăng nhập');
+      } else {
+        toast.error('Lỗi kết nối đến máy chủ.');
+      }
       return false;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handle2FASuccess = async (responseData: any) => {
+    setShow2FAModal(false);
+    setTwoFactorData(null);
+    if (responseData.pendingApproval) {
+       setPendingLoginRequestId(responseData.requestId);
+       toast.success(responseData.message || 'Đang gửi yêu cầu phê duyệt...');
     }
   };
 
@@ -234,6 +298,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('adminToken');
     sessionStorage.removeItem('congratulatedTop1');
     toast.success('Đăng xuất thành công!');
   };
@@ -338,6 +403,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               >
                 Tiếp tục trải nghiệm
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {twoFactorData && (
+        <TwoFactorModal
+          isOpen={show2FAModal}
+          onClose={() => { setShow2FAModal(false); setTwoFactorData(null); }}
+          email={twoFactorData.email}
+          setupRequired={twoFactorData.setupRequired}
+          qrCodeUrl={twoFactorData.qrCodeUrl}
+          onSuccess={handle2FASuccess}
+        />
+      )}
+
+      {pendingLoginRequestId && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
+          <div className="bg-slate-900 rounded-3xl border border-slate-700/50 shadow-2xl p-10 text-center max-w-md w-full relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 to-purple-500/10"></div>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-8 shadow-[0_0_30px_rgba(59,130,246,0.3)]"></div>
+              <h3 className="text-2xl font-bold text-white mb-3">Đang chờ xác nhận</h3>
+              <p className="text-slate-400 leading-relaxed">Hệ thống đã gửi một email chứa liên kết đăng nhập đến địa chỉ của bạn. Vui lòng kiểm tra hộp thư đến và bấm CHẤP NHẬN để tiếp tục...</p>
             </div>
           </div>
         </div>
