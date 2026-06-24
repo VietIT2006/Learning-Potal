@@ -53,7 +53,7 @@ export interface User {
 }
 
 export async function getUsers(filters?: { username?: string; password?: string; role?: string }): Promise<User[]> {
-  let query = supabase.from('users').select('*')
+  let query = supabase.from('users').select('*, user_courses(course_id)')
   if (filters?.username) query = query.eq('username', filters.username)
   if (filters?.password) query = query.eq('password', filters.password)
   if (filters?.role) query = query.eq('role', filters.role)
@@ -61,16 +61,15 @@ export async function getUsers(filters?: { username?: string; password?: string;
   const { data, error } = await query
   if (error) throw error
 
-  const users = fromDb<User[]>(data || [])
+  const users = (data || []).map(row => {
+    const userDb = { ...row }
+    const coursesEnrolled = (userDb.user_courses || []).map((e: any) => e.course_id)
+    delete userDb.user_courses
 
-  // Attach coursesEnrolled array from user_courses table
-  for (const user of users) {
-    const { data: enrollments } = await supabase
-      .from('user_courses')
-      .select('course_id')
-      .eq('user_id', user.id)
-    user.coursesEnrolled = (enrollments || []).map((e: any) => e.course_id)
-  }
+    const user = fromDb<User>(userDb)
+    user.coursesEnrolled = coursesEnrolled
+    return user
+  })
 
   return users
 }
@@ -273,69 +272,61 @@ export interface Quiz {
 }
 
 export async function getQuizzes(lessonId?: number): Promise<Quiz[]> {
-  let query = supabase.from('quizzes').select('*')
+  let query = supabase.from('quizzes').select('*, quiz_questions(*, quiz_options(*))')
   if (lessonId) query = query.eq('lesson_id', lessonId)
 
   const { data, error } = await query
   if (error) throw error
   if (!data || data.length === 0) return []
 
-  const quizzes: Quiz[] = []
-  for (const quiz of data) {
-    const questions = await getQuizQuestions(quiz.id)
-    quizzes.push({
-      id: quiz.id,
-      lessonId: quiz.lesson_id,
-      title: quiz.title,
-      questions,
+  const quizzes: Quiz[] = data.map((quizData: any) => {
+    const sortedQuestions = (quizData.quiz_questions || []).sort((a: any, b: any) => a.id - b.id)
+    const questions = sortedQuestions.map((q: any) => {
+      const sortedOptions = (q.quiz_options || []).sort((a: any, b: any) => a.option_index - b.option_index)
+      return {
+        id: q.question_code,
+        questionText: q.question_text,
+        options: sortedOptions.map((o: any) => o.option_text),
+        correctAnswerIndex: q.correct_answer_index,
+      }
     })
-  }
+
+    return {
+      id: quizData.id,
+      lessonId: quizData.lesson_id,
+      title: quizData.title,
+      questions,
+    }
+  })
   return quizzes
 }
 
 export async function getQuizById(id: number): Promise<Quiz | null> {
   const { data, error } = await supabase
     .from('quizzes')
-    .select('*')
+    .select('*, quiz_questions(*, quiz_options(*))')
     .eq('id', id)
     .single()
   if (error) return null
   if (!data) return null
 
-  const questions = await getQuizQuestions(data.id)
+  const sortedQuestions = (data.quiz_questions || []).sort((a: any, b: any) => a.id - b.id)
+  const questions = sortedQuestions.map((q: any) => {
+    const sortedOptions = (q.quiz_options || []).sort((a: any, b: any) => a.option_index - b.option_index)
+    return {
+      id: q.question_code,
+      questionText: q.question_text,
+      options: sortedOptions.map((o: any) => o.option_text),
+      correctAnswerIndex: q.correct_answer_index,
+    }
+  })
+
   return {
     id: data.id,
     lessonId: data.lesson_id,
     title: data.title,
     questions,
   }
-}
-
-async function getQuizQuestions(quizId: number): Promise<QuizQuestion[]> {
-  const { data: questionsData } = await supabase
-    .from('quiz_questions')
-    .select('*')
-    .eq('quiz_id', quizId)
-    .order('id', { ascending: true })
-
-  if (!questionsData || questionsData.length === 0) return []
-
-  const questions: QuizQuestion[] = []
-  for (const q of questionsData) {
-    const { data: optionsData } = await supabase
-      .from('quiz_options')
-      .select('*')
-      .eq('question_id', q.id)
-      .order('option_index', { ascending: true })
-
-    questions.push({
-      id: q.question_code,
-      questionText: q.question_text,
-      options: (optionsData || []).map((o: any) => o.option_text),
-      correctAnswerIndex: q.correct_answer_index,
-    })
-  }
-  return questions
 }
 
 export async function createQuiz(quizData: Quiz): Promise<void> {

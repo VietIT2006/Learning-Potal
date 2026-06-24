@@ -1,5 +1,3 @@
-import fetch from 'node-fetch'; // We might need node-fetch if Node version doesn't support global fetch
-
 export async function getIpLocation(ip) {
   let location = 'Localhost / Không xác định';
   let publicIp = ip;

@@ -34,8 +34,8 @@ function Footer() {
           <div>
             <h4 className="text-white font-bold mb-6">Hỗ trợ</h4>
             <ul className="space-y-4 text-sm text-slate-400">
-              <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> 0123 456 789</li>
-              <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> support@learnhub.vn</li>
+              <li className="flex items-center gap-2"><Phone className="w-4 h-4" /> 0365 113 154</li>
+              <li className="flex items-center gap-2"><Mail className="w-4 h-4" /> soft.msonviet2006@gmail.com</li>
             </ul>
           </div>
 

@@ -1,14 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
+import './config/env.js';
 import emailRoutes from './routes/email.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import adminAuthRoutes from './routes/adminAuth.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
-
-dotenv.config({ path: '../.env' }); // Load from root dir
-dotenv.config();
 
 const app = express();
 
