@@ -2,6 +2,7 @@ import supabase from '../config/supabase.js';
 import transporter from '../config/nodemailer.js';
 import { loginRequests } from '../store/store.js';
 import { getIpLocation } from '../utils/ipLocation.js';
+import { renderApprovalPage } from '../utils/htmlTemplate.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
@@ -104,14 +105,14 @@ export const checkLoginStatus = (req, res) => {
 export const emailApprove = (req, res) => {
   const { id, action } = req.query;
   const reqData = loginRequests[id];
-  if (!reqData) return res.send('<h2>Yêu cầu không tồn tại hoặc đã hết hạn/được xử lý.</h2>');
+  if (!reqData) return res.send(renderApprovalPage('warning', 'Yêu cầu không tồn tại, đã hết hạn hoặc đã được xử lý. Vui lòng thử lại.'));
   
   if (action === 'approve') {
     reqData.status = 'approved';
-    res.send('<h2 style="color: green;">Đã CHẤP NHẬN đăng nhập thành công! Người dùng có thể vào hệ thống.</h2>');
+    res.send(renderApprovalPage('success', 'Đã CHẤP NHẬN đăng nhập thành công!<br/>Trình duyệt ở thiết bị kia sẽ tự động đăng nhập.'));
   } else {
     reqData.status = 'rejected';
-    res.send('<h2 style="color: red;">Đã TỪ CHỐI đăng nhập.</h2>');
+    res.send(renderApprovalPage('error', 'Đã TỪ CHỐI đăng nhập thành công để bảo vệ tài khoản.'));
   }
 };
 
