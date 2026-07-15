@@ -31,7 +31,7 @@ export async function createPendingLoginAndNotify(user, req) {
 
   // Gửi email xác nhận cho Người dùng (User) đang cố gắng đăng nhập
   const mailOptions = {
-    from: `"LearnHub Security" <${process.env.EMAIL_USER}>`,
+    from: `"LearnHub Security" <${process.env.VITE_EMAIL_USER}>`,
     to: user.email, // Gửi về email của chính user đó
     subject: `🚨 Xác nhận yêu cầu đăng nhập LearnHub`,
     html: `

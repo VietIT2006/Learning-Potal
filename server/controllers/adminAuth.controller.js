@@ -60,7 +60,7 @@ export const sendBackupOtp = async (req, res) => {
     emailOtpStore[email] = { otp: emailOtp, expires: Date.now() + 5 * 60000 };
 
     const mailOptions = {
-      from: `"LearnHub System" <${process.env.EMAIL_USER}>`,
+      from: `"LearnHub System" <${process.env.VITE_EMAIL_USER}>`,
       to: email,
       subject: 'Mã xác thực dự phòng 2FA',
       html: `<h2>Mã OTP dự phòng của bạn là: ${emailOtp}</h2><p>Mã này có hiệu lực trong 5 phút.</p>`

@@ -8,7 +8,7 @@ export const sendOtp = async (req, res) => {
   }
 
   const mailOptions = {
-    from: `"LearnHub Support" <${process.env.EMAIL_USER}>`,
+    from: `"LearnHub Support" <${process.env.VITE_EMAIL_USER}>`,
     to: email,
     subject: 'Mã xác nhận khôi phục mật khẩu (OTP)',
     html: `
@@ -44,7 +44,7 @@ export const sendCertificate = async (req, res) => {
   }
 
   const mailOptions = {
-    from: `"LearnHub Certification" <${process.env.EMAIL_USER}>`,
+    from: `"LearnHub Certification" <${process.env.VITE_EMAIL_USER}>`,
     to: email,
     subject: `🎓 Chúc mừng! Chứng chỉ khóa học ${courseName} của bạn`,
     html: `
@@ -90,7 +90,7 @@ export const sendAdminEmail = async (req, res) => {
   if (level === 'success') color = '#10b981';
 
   const mailOptions = {
-    from: `"LearnHub System" <${process.env.EMAIL_USER}>`,
+    from: `"LearnHub System" <${process.env.VITE_EMAIL_USER}>`,
     to: emails.join(','), // Gửi BCC hoặc To danh sách
     subject: subject,
     html: `
