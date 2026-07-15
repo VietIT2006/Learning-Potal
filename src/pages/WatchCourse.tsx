@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getLessonById, getLessons, getProgress, getQuizzes, completeLesson } from '../lib/supabaseService';
-import { PlayCircle, FileQuestion, ChevronRight, CheckCircle, Clock, Trophy } from 'lucide-react';
+import { PlayCircle, FileQuestion, ChevronRight, CheckCircle, Clock, Trophy, Crown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { FullScreenLoader } from '../components/LoadingSpinner'; 
 import toast from 'react-hot-toast';
@@ -190,7 +190,7 @@ function WatchCoursePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-            <div className="bg-black rounded-2xl overflow-hidden shadow-xl aspect-video relative">
+            <div className={`bg-black rounded-2xl overflow-hidden shadow-xl aspect-video relative ${user?.isTop1 ? 'border-2 border-yellow-500 shadow-[0_0_50px_rgba(250,204,21,0.5)]' : ''}`}>
               <iframe
                 className="w-full h-full"
                 src={getEmbedUrl(currentLesson.videoUrl)} 
@@ -199,12 +199,23 @@ function WatchCoursePage() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               ></iframe>
+              {user?.isTop1 && (
+                <div className="absolute top-4 left-4 bg-yellow-500/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-yellow-400/50 flex items-center gap-2 pointer-events-none">
+                  <Crown className="w-4 h-4 text-yellow-400" />
+                  <span className="text-yellow-300 text-xs font-bold uppercase tracking-wider">Phòng Học Hoàng Gia</span>
+                </div>
+              )}
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className={`bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-sm border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${user?.isTop1 ? 'border-yellow-500/30 bg-gradient-to-r from-yellow-900/20 to-black/40' : 'border-white/10'}`}>
               <div>
-                <h1 className="text-2xl font-bold text-white mb-2">{currentLesson.title}</h1>
-                <p className="text-gray-400 text-sm">Bài học {currentLesson.id} • Tiến độ: {progress.progressPercentage}%</p>
+                <h1 className={`text-2xl font-bold mb-2 ${user?.isTop1 ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-600' : 'text-white'}`}>
+                  {currentLesson.title} {user?.isTop1 && '👑'}
+                </h1>
+                <p className="text-gray-400 text-sm">
+                  {user?.isTop1 && <span className="text-yellow-500 font-medium mr-2">Dành riêng cho Vị Vua Hệ Thống •</span>}
+                  Bài học {currentLesson.id} • Tiến độ: {progress.progressPercentage}%
+                </p>
               </div>
 
               {progress.progressPercentage === 100 && (
@@ -250,6 +261,25 @@ function WatchCoursePage() {
                 Hãy chắc chắn rằng bạn đã xem kỹ video trước khi làm bài tập kiểm tra kiến thức.
               </p>
             </div>
+
+            {user?.isTop1 && (
+              <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-yellow-500/30">
+                <h3 className="font-bold text-yellow-400 mb-4 flex items-center gap-2">
+                  <Crown className="w-5 h-5" /> Tài Liệu VIP (Đặc Quyền Top 1)
+                </h3>
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  Chào mừng Đại gia! Dưới đây là các tài liệu đúc kết chuyên sâu và bộ E-book độc quyền chỉ dành riêng cho bạn.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <a href="#" onClick={(e) => { e.preventDefault(); toast.success('Đang tải xuống Cheat Sheet...'); }} className="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 text-white">
+                    <span className="text-xl">📄</span> Cheat Sheet Tổng hợp
+                  </a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); toast.success('Đang tải xuống E-book...'); }} className="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 text-white">
+                    <span className="text-xl">📚</span> E-book Nâng cao
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -309,9 +339,10 @@ function WatchCoursePage() {
       <div style={{ position: 'fixed', top: '200%', left: '200%', pointerEvents: 'none' }}>
         <div ref={certificateRef}>
           <Certificate 
-            studentName={user?.fullname || 'Học viên'} 
-            courseName={courseTitle || 'Khóa học của bạn'} 
-            date={new Date().toLocaleDateString('vi-VN')} 
+            studentName={user?.fullname || "Học viên ẩn danh"}
+            courseName={courseTitle}
+            date={new Date().toLocaleDateString('vi-VN')}
+            isTop1={user?.isTop1}
           />
         </div>
       </div>

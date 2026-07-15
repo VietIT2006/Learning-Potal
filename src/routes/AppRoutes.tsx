@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // --- Layouts ---
 import MainLayout from '../layouts/MainLayout'; 
@@ -18,6 +19,8 @@ import CourseDetailPage from '../pages/CourseDetail';
 import WatchCoursePage from '../pages/WatchCourse';
 import QuizPage from '../pages/Quiz';
 import PaymentResult from '../pages/PaymentResult'; 
+import ForumPage from '../pages/Forum';
+import ForumPostPage from '../pages/ForumPost';
 
 // --- Pages (Admin) ---
 import Dashboard from '../pages/Admin/Dashboard';
@@ -34,9 +37,56 @@ import SupportDashboard from '../pages/Support/SupportDashboard';
 // --- Logic bảo vệ Route ---
 import ProtectedRoute from './ProtectedRoute';
 
+// --- VIP Components ---
+import CursorTrail from '../components/CursorTrail';
+
 function AppRoutes() {
+  const { user } = useAuth();
+  const [customTheme, setCustomTheme] = useState<string | null>(null);
+
+  useEffect(() => {
+    const applyTheme = () => {
+      if (user?.isTop1) {
+        document.body.classList.add('top1-theme');
+        const savedTheme = localStorage.getItem(`top1_theme_${user.id}`);
+        setCustomTheme(savedTheme || null);
+      } else {
+        document.body.classList.remove('top1-theme');
+        setCustomTheme(null);
+      }
+    };
+
+    applyTheme();
+
+    window.addEventListener('themeUpdated', applyTheme);
+    return () => window.removeEventListener('themeUpdated', applyTheme);
+  }, [user]);
+
   return (
-    <Routes>
+    <>
+      {customTheme && (
+        <style>
+          {`
+            body.top1-theme::before {
+              content: "";
+              position: fixed;
+              inset: 0;
+              background-image: url('${customTheme}');
+              background-size: cover;
+              background-position: center;
+              background-attachment: fixed;
+              z-index: -10;
+              opacity: 0.85;
+            }
+            /* Hide the default gradient to show the custom image clearly */
+            .gradient-bg { display: none !important; }
+            /* Reduce particle opacity so they don't clutter the image */
+            #tsparticles { opacity: 0.3 !important; }
+          `}
+        </style>
+      )}
+      {user?.isTop1 && <CursorTrail />}
+      <Routes>
       
       {/* =========================================
           TRANG TOÀN MÀN HÌNH (Không có Navbar/Footer)
@@ -54,6 +104,8 @@ function AppRoutes() {
         <Route path="courses" element={<CoursesPage />} />
         <Route path="course/:id" element={<CourseDetailPage />} />
         <Route path="payment-result" element={<PaymentResult />} />
+        <Route path="forum" element={<ForumPage />} />
+        <Route path="forum/:id" element={<ForumPostPage />} />
 
         {/* Các trang cần đăng nhập (User) */}
         <Route element={<ProtectedRoute />}>
@@ -89,6 +141,7 @@ function AppRoutes() {
       </Route>
 
     </Routes>
+    </>
   );
 }
 

@@ -126,3 +126,30 @@ body {
   background: #4facfe;
   border-radius: 4px;
 }
+
+/* Top 1 VIP Theme */
+.top1-theme {
+  background: radial-gradient(circle at 100% 0%, rgba(250, 204, 21, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 0% 100%, rgba(250, 204, 21, 0.05) 0%, transparent 40%),
+              #0f172a;
+}
+.top1-theme .gradient-bg {
+  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #171102 100%);
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.avatar-top1-frame {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  border-radius: 50%;
+  border: 2px dashed #facc15;
+  animation: spin-slow 10s linear infinite;
+  box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+  pointer-events: none;
+}

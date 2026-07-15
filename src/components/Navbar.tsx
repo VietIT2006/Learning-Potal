@@ -30,6 +30,7 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-slate-300 hover:text-sky-400 transition-colors font-medium text-sm tracking-wide">Trang chủ</Link>
             <Link to="/courses" className="text-slate-300 hover:text-sky-400 transition-colors font-medium text-sm tracking-wide">Khóa học</Link>
+            <Link to="/forum" className="text-slate-300 hover:text-sky-400 transition-colors font-medium text-sm tracking-wide">Diễn đàn</Link>
             
             {user && user.role === 'admin' && (
                <Link to="/admin" className="text-slate-300 hover:text-sky-400 transition-colors font-medium text-sm tracking-wide">Quản trị</Link>
@@ -57,9 +58,12 @@ function Navbar() {
                   </div>
                   <div className="relative">
                     {user.isTop1 && (
-                      <div className="absolute -top-2 -right-2 z-10 w-5 h-5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
-                        <Crown className="w-3 h-3 text-[#0f172a]" />
-                      </div>
+                      <>
+                        <div className="absolute -top-2 -right-2 z-10 w-5 h-5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                          <Crown className="w-3 h-3 text-[#0f172a]" />
+                        </div>
+                        <div className="avatar-top1-frame"></div>
+                      </>
                     )}
                     {user.avatarUrl ? (
                       <img src={user.avatarUrl} alt="Avatar" className={`w-10 h-10 rounded-full object-cover border-2 transition-colors ${user.isTop1 ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'border-white/10 group-hover:border-sky-400/50'}`} />
@@ -111,6 +115,13 @@ function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Khóa học
+            </Link>
+            <Link 
+              to="/forum" 
+              className="text-slate-300 hover:text-sky-400 hover:bg-sky-500/5 px-4 py-3 rounded-xl transition-all font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Diễn đàn
             </Link>
             
             {user && user.role === 'admin' && (

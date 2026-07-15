@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateUserProfile, getUserEnrolledCourses, uploadAvatar, getTopDepositors } from '../lib/supabaseService';
-import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2, Camera, Crown } from 'lucide-react';
+import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2, Camera, Crown, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ParticleBackground from '../components/ParticleBackground';
@@ -17,12 +17,18 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingTheme, setIsUploadingTheme] = useState(false);
+  const [currentThemeUrl, setCurrentThemeUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       setFullname(user.fullname || '');
       setPhone(user.phone || '');
       fetchEnrolledCourses(user.id);
+      if (user.isTop1) {
+        const savedTheme = localStorage.getItem(`top1_theme_${user.id}`);
+        if (savedTheme) setCurrentThemeUrl(savedTheme);
+      }
     }
   }, [user]);
 
@@ -90,6 +96,45 @@ function Profile() {
     } finally {
       setIsUploadingAvatar(false);
     }
+  };
+
+  const handleThemeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.isTop1) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh hợp lệ.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Kích thước ảnh nền tối đa là 5MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingTheme(true);
+      const { uploadThemeImage } = await import('../lib/supabaseService');
+      const publicUrl = await uploadThemeImage(user.id, file);
+      
+      localStorage.setItem(`top1_theme_${user.id}`, publicUrl);
+      setCurrentThemeUrl(publicUrl);
+      window.dispatchEvent(new Event('themeUpdated'));
+      toast.success('Cập nhật Theme VIP thành công!');
+    } catch (error) {
+      console.error("Lỗi upload theme:", error);
+      toast.error('Không thể tải lên ảnh nền.');
+    } finally {
+      setIsUploadingTheme(false);
+    }
+  };
+
+  const handleRemoveTheme = () => {
+    if (!user?.isTop1) return;
+    localStorage.removeItem(`top1_theme_${user.id}`);
+    setCurrentThemeUrl(null);
+    window.dispatchEvent(new Event('themeUpdated'));
+    toast.success('Đã khôi phục Theme mặc định.');
   };
 
   if (!user) {
@@ -262,6 +307,57 @@ function Profile() {
 
               </div>
             </div>
+
+            {/* Đặc Quyền Theme VIP */}
+            {user.isTop1 && (
+              <div className="bg-[#0f172a]/80 backdrop-blur-xl border border-yellow-500/30 rounded-3xl p-6 shadow-[0_0_15px_rgba(250,204,21,0.15)] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                
+                <div className="flex items-center gap-3 mb-6 border-b border-yellow-500/20 pb-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                    <Crown className="w-5 h-5 text-slate-900" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-yellow-400 text-lg">Đặc Quyền Theme VIP</h3>
+                    <p className="text-xs text-slate-400">Tùy chỉnh hình nền toàn cục</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {currentThemeUrl ? (
+                    <div className="relative rounded-xl overflow-hidden h-32 border border-yellow-500/30 group/theme">
+                      <img src={currentThemeUrl} alt="VIP Theme" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover/theme:opacity-100 transition-opacity">
+                        <button 
+                          onClick={handleRemoveTheme}
+                          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm"
+                        >
+                          <Trash2 className="w-4 h-4" /> Xóa Theme
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl h-32 border-2 border-dashed border-yellow-500/30 flex flex-col items-center justify-center text-slate-400 bg-yellow-500/5">
+                      <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                      <span className="text-sm">Chưa cài đặt Theme</span>
+                    </div>
+                  )}
+
+                  <label className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all shadow-lg ${isUploadingTheme ? 'bg-slate-700 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-[#0f172a] cursor-pointer shadow-yellow-500/20'}`}>
+                    {isUploadingTheme ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                    {isUploadingTheme ? 'Đang tải lên...' : (currentThemeUrl ? 'Đổi ảnh nền khác' : 'Tải lên ảnh nền')}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleThemeUpload} 
+                      disabled={isUploadingTheme}
+                    />
+                  </label>
+                  <p className="text-[10px] text-center text-slate-500 mt-2">Định dạng hỗ trợ: JPG, PNG. Tối đa 5MB. Ảnh sẽ được hiển thị trên toàn bộ các trang.</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Khóa học của tôi (Right Column) */}

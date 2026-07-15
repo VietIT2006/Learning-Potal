@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getCourseById, getLessons, enrollUser, purchaseCourseWithBalance } from '../lib/supabaseService';
+import { getCourseById, getLessons, enrollUser, purchaseCourseWithBalance, giftCourseWithBalance } from '../lib/supabaseService';
 import { FullScreenLoader } from '../components/LoadingSpinner';
-import { ChevronRight, Clock, Users, DollarSign, CheckCircle, Star, BookOpen } from 'lucide-react'; 
+import { ChevronRight, Clock, Users, DollarSign, CheckCircle, Star, BookOpen, Gift, X } from 'lucide-react'; 
 import { useAuth } from '../context/AuthContext'; 
 import ParticleBackground from '../components/ParticleBackground';
 import toast from 'react-hot-toast';
@@ -42,6 +42,11 @@ function CourseDetailPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Gift states
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [receiverEmail, setReceiverEmail] = useState('');
+  const [isGifting, setIsGifting] = useState(false);
+
   const isEnrolled = user?.coursesEnrolled?.includes(courseId) || false;
 
   useEffect(() => {
@@ -61,6 +66,10 @@ function CourseDetailPage() {
     fetchCourseData();
   }, [courseId]);
   
+  const originalPrice = course?.price || 0;
+  const isTop1 = user?.isTop1;
+  const effectivePrice = isTop1 ? originalPrice * 0.8 : originalPrice;
+
   const handleEnrollClick = () => {
     if (!isAuthenticated) {
       toast.error("Vui lòng đăng nhập để ghi danh khóa học!");
@@ -68,13 +77,13 @@ function CourseDetailPage() {
       return;
     }
 
-    if (course && course.price > 0) {
-      if ((user?.balance || 0) < course.price) {
+    if (course && originalPrice > 0) {
+      if ((user?.balance || 0) < effectivePrice) {
         toast.error('Số dư không đủ. Vui lòng nạp tiền vào ví!');
         navigate('/wallet');
         return;
       }
-      if (window.confirm(`Xác nhận mua khóa học này với giá ${formatCurrency(course.price)}? Số dư của bạn sẽ bị trừ đi.`)) {
+      if (window.confirm(`Xác nhận mua khóa học này với giá ${formatCurrency(effectivePrice)}? Số dư của bạn sẽ bị trừ đi.`)) {
         purchaseCourse();
       }
     } else {
@@ -84,7 +93,7 @@ function CourseDetailPage() {
 
   const purchaseCourse = async () => {
     try {
-      await purchaseCourseWithBalance(user!.id, courseId, course!.price);
+      await purchaseCourseWithBalance(user!.id, courseId, effectivePrice);
       toast.success("Mua khóa học thành công! Bạn có thể vào học ngay.");
       refreshUser(); 
     } catch (err: any) {
@@ -102,7 +111,38 @@ function CourseDetailPage() {
       }
   };
 
-  if (loading) return <FullScreenLoader message="Đang tải thông tin khóa học..." />;
+  const handleGiftCourse = async () => {
+    if (!receiverEmail.trim()) {
+      toast.error('Vui lòng nhập email người nhận!');
+      return;
+    }
+    
+    if (receiverEmail === user?.email) {
+      toast.error('Bạn không thể tự tặng khóa học cho chính mình!');
+      return;
+    }
+
+    if ((user?.balance || 0) < effectivePrice) {
+      toast.error('Số dư không đủ để tặng. Vui lòng nạp thêm tiền!');
+      navigate('/wallet');
+      return;
+    }
+
+    setIsGifting(true);
+    try {
+      await giftCourseWithBalance(user!.id, receiverEmail.trim(), courseId, effectivePrice, course!.title, user!.fullname);
+      toast.success(`Đã tặng thành công khóa học cho ${receiverEmail}!`);
+      setIsGiftModalOpen(false);
+      setReceiverEmail('');
+      refreshUser();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi khi tặng khóa học');
+    } finally {
+      setIsGifting(false);
+    }
+  };
+
+  if (loading) return <FullScreenLoader message="Đang tải dữ liệu khóa học..." />;
   if (!course) return <div className="flex justify-center items-center min-h-screen text-red-500">Không tìm thấy khóa học.</div>;
 
   return (
@@ -194,7 +234,19 @@ function CourseDetailPage() {
                     <div className="relative z-10">
                         <div className="text-gray-400 text-sm mb-2 font-medium uppercase tracking-wider">Học phí</div>
                         <div className="text-4xl font-bold mb-8 text-blue-400">
-                            {formatCurrency(course.price)}
+                            {isTop1 && originalPrice > 0 ? (
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xl text-gray-500 line-through">{formatCurrency(originalPrice)}</span>
+                                  <span className="text-xs bg-gradient-to-r from-yellow-400 to-yellow-600 text-[#0f172a] font-bold px-2 py-1 rounded-full border border-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.5)] flex items-center gap-1">
+                                    <Star className="w-3 h-3 fill-current" /> Đặc quyền Top 1 (-20%)
+                                  </span>
+                                </div>
+                                <span>{formatCurrency(effectivePrice)}</span>
+                              </div>
+                            ) : (
+                              formatCurrency(originalPrice)
+                            )}
                         </div>
                         
                         <div className="space-y-4 mb-8">
@@ -224,6 +276,15 @@ function CourseDetailPage() {
                           </button>
                         )}
                         
+                        {isTop1 && (
+                          <button
+                            onClick={() => setIsGiftModalOpen(true)}
+                            className="w-full mt-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all transform hover:-translate-y-1 active:scale-95"
+                          >
+                            <Gift className="w-5 h-5" /> Tặng khóa học này
+                          </button>
+                        )}
+
                         <p className="text-center text-xs text-gray-500 mt-6 italic">
                             Truy cập trọn đời • Chứng chỉ hoàn thành
                         </p>
@@ -233,6 +294,57 @@ function CourseDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Gift Modal */}
+      {isGiftModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#1e293b] rounded-2xl p-8 max-w-md w-full relative shadow-2xl border border-slate-700">
+            <button onClick={() => setIsGiftModalOpen(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                <Gift className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Tặng Khóa Học</h2>
+              <p className="text-slate-400 mt-2">Nhập email của người mà bạn muốn tặng khóa học này.</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Email người nhận</label>
+                <input
+                  type="email"
+                  value={receiverEmail}
+                  onChange={(e) => setReceiverEmail(e.target.value)}
+                  placeholder="ví dụ: ban@example.com"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none transition-all"
+                  disabled={isGifting}
+                />
+              </div>
+              
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+                <div className="flex justify-between items-center text-sm mb-1">
+                  <span className="text-slate-300">Khóa học:</span>
+                  <span className="text-white font-medium truncate ml-4">{course?.title}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-300">Giá ưu đãi (Top 1):</span>
+                  <span className="text-yellow-400 font-bold">{formatCurrency(effectivePrice)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleGiftCourse}
+                disabled={isGifting || !receiverEmail.trim()}
+                className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGifting ? 'Đang xử lý...' : 'Xác nhận tặng'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

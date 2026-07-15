@@ -89,6 +89,17 @@ export default function ChatWidget() {
       supabase.from('chat_messages').update({ is_read: true }).eq('user_id', user.id).neq('sender_id', user.id).then();
       setUnreadCount(0);
     }
+
+    // Top 1 System Message
+    if (isOpen && user?.isTop1 && !sessionStorage.getItem('top1_chat_joined')) {
+      sessionStorage.setItem('top1_chat_joined', 'true');
+      supabase.from('chat_messages').insert([{
+        user_id: user.id,
+        sender_id: user.id,
+        message: `👑 Đại gia ${user.fullname} vừa giáng lâm hệ thống! 👑`,
+        is_internal: false
+      }]).then();
+    }
   }, [isOpen, unreadCount, user]);
 
   const [isUploading, setIsUploading] = useState(false);
@@ -209,16 +220,19 @@ export default function ChatWidget() {
           ) : (
             messages.map((msg, idx) => {
               const isMe = msg.sender_id === user!.id;
+              const isTop1Msg = isMe && user?.isTop1;
               return (
                 <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${isMe ? 'bg-purple-600 text-white rounded-br-none' : 'bg-slate-700 text-slate-200 rounded-bl-none'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2 ${isMe ? (isTop1Msg ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-[#0f172a] shadow-[0_0_15px_rgba(250,204,21,0.4)] border border-yellow-300 rounded-br-none' : 'bg-purple-600 text-white rounded-br-none') : 'bg-slate-700 text-slate-200 rounded-bl-none'} ${msg.message.startsWith('🎁 LÌ XÌ KHỦNG') ? 'animate-bounce !bg-gradient-to-r !from-red-600 !to-red-500 !text-yellow-300 !border-2 !border-yellow-400 shadow-[0_0_20px_rgba(220,38,38,0.6)]' : ''}`}>
                     {msg.image_url ? (
                       <div className="mb-2">
                         <img src={msg.image_url} alt="Chat attachment" className="rounded-lg max-w-full h-auto cursor-pointer" onClick={() => window.open(msg.image_url, '_blank')} />
                       </div>
                     ) : null}
-                    <p className="text-sm">{msg.message}</p>
-                    <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-purple-200' : 'text-slate-400'}`}>
+                    <p className={`text-sm ${isTop1Msg ? 'font-medium' : ''} ${msg.message.startsWith('🎁') ? 'text-center font-black text-lg drop-shadow-md' : ''}`}>
+                      {msg.message}
+                    </p>
+                    <p className={`text-[10px] mt-1 text-right ${isMe ? (isTop1Msg ? 'text-yellow-900/70' : 'text-purple-200') : 'text-slate-400'} ${msg.message.startsWith('🎁') ? '!text-yellow-200/80' : ''}`}>
                       {new Date(msg.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -232,16 +246,19 @@ export default function ChatWidget() {
         {/* Input */}
         <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-700/50 bg-[#1e293b]/50">
           <div className="relative flex items-center">
-            <label className="absolute left-2 text-slate-400 hover:text-purple-400 cursor-pointer transition-colors" title="Gửi ảnh">
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
-              {isUploading ? <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div> : <ImageIcon className="w-5 h-5" />}
-            </label>
+            <div className="absolute left-2 flex items-center gap-1 z-10 bg-[#1e293b]/80 pr-2">
+              <label className="text-slate-400 hover:text-purple-400 cursor-pointer transition-colors p-1" title="Gửi ảnh">
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                {isUploading ? <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div> : <ImageIcon className="w-4 h-4" />}
+              </label>
+
+            </div>
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Nhập tin nhắn..."
-              className="w-full bg-slate-900/50 text-white placeholder-slate-400 text-sm rounded-full pl-10 pr-10 py-2.5 focus:outline-none focus:ring-1 focus:ring-purple-500 border border-slate-700"
+              className={`w-full bg-slate-900/50 text-white placeholder-slate-400 text-sm rounded-full py-2.5 focus:outline-none focus:ring-1 focus:ring-purple-500 border border-slate-700 pl-10 pr-10`}
               disabled={isUploading}
             />
             <button

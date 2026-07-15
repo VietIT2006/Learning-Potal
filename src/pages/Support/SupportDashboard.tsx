@@ -21,6 +21,7 @@ interface ChatUser {
   last_message?: string;
   last_message_time?: string;
   unread_count: number;
+  isTop1?: boolean;
 }
 
 function SupportDashboard() {
@@ -94,7 +95,40 @@ function SupportDashboard() {
         }
       }
 
-      setChatUsers(Array.from(usersMap.values()));
+      // 4. Lấy ID của Top 1 Đại gia
+      const { data: topUsers } = await supabase
+        .from('transactions')
+        .select('user_id, amount')
+        .eq('status', 'success')
+        .eq('type', 'deposit');
+      
+      let top1Id: number | null = null;
+      if (topUsers) {
+        const sums: Record<number, number> = {};
+        topUsers.forEach(t => {
+          sums[t.user_id] = (sums[t.user_id] || 0) + t.amount;
+        });
+        let max = 0;
+        for (const [uid, sum] of Object.entries(sums)) {
+          if (sum > max) { max = sum; top1Id = Number(uid); }
+        }
+      }
+
+      const finalList = Array.from(usersMap.values()).map(u => ({
+        ...u,
+        isTop1: u.id === top1Id
+      }));
+
+      // Sort by Top 1 first, then unread, then time
+      finalList.sort((a, b) => {
+        if (a.isTop1 && !b.isTop1) return -1;
+        if (!a.isTop1 && b.isTop1) return 1;
+        if (a.unread_count > 0 && b.unread_count === 0) return -1;
+        if (a.unread_count === 0 && b.unread_count > 0) return 1;
+        return new Date(b.last_message_time || 0).getTime() - new Date(a.last_message_time || 0).getTime();
+      });
+
+      setChatUsers(finalList);
     } catch (err) {
       console.error("Lỗi lấy danh sách chat users:", err);
     }
@@ -362,9 +396,9 @@ function SupportDashboard() {
               >
                 <div className="relative">
                   {u.avatar_url ? (
-                    <img src={u.avatar_url} className="w-10 h-10 rounded-full object-cover" />
+                    <img src={u.avatar_url} className={`w-10 h-10 rounded-full object-cover ${u.isTop1 ? 'border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : ''}`} />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 border border-emerald-500/30">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${u.isTop1 ? 'bg-gradient-to-br from-yellow-300 to-yellow-600 text-slate-900 border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30'}`}>
                       <UserIcon className="w-5 h-5" />
                     </div>
                   )}
@@ -376,7 +410,9 @@ function SupportDashboard() {
                 </div>
                 <div className="ml-3 flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-medium text-white truncate">{u.full_name}</p>
+                    <p className={`text-sm font-medium truncate ${u.isTop1 ? 'text-yellow-400' : 'text-white'}`}>
+                      {u.isTop1 && '👑'} {u.full_name}
+                    </p>
                     <span className="text-[10px] text-slate-500">{new Date(u.last_message_time || '').toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                   <p className={`text-xs truncate ${u.unread_count > 0 ? 'text-white font-medium' : 'text-slate-400'}`}>

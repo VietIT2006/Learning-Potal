@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, deleteUser, adminDeposit } from '../../lib/supabaseService';
-import { Search, Mail, Phone, Calendar, Trash2, Users, Send, X, Wallet, PlusCircle } from 'lucide-react';
+import { getUsers, deleteUser, adminDeposit, toggleUserStatus } from '../../lib/supabaseService';
+import { Search, Mail, Phone, Calendar, Trash2, Users, Send, X, Wallet, PlusCircle, Lock, Unlock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import type { User } from '../../lib/supabaseService';
@@ -48,6 +48,37 @@ export default function StudentManagement() {
       } catch (error) {
         console.error(error);
         toast.error('Có lỗi xảy ra khi xóa!');
+      }
+    }
+  };
+
+  const handleToggleLock = async (student: User) => {
+    const actionText = student.status === 'inactive' ? 'mở khóa' : 'khóa';
+    if (window.confirm(`Bạn có chắc muốn ${actionText} học viên này?`)) {
+      try {
+        await toggleUserStatus(student.id, student.status || 'active');
+        await fetchStudents();
+        toast.success(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)} thành công!`, { style: { background: '#333', color: '#fff' } });
+        
+        // Gửi email thông báo
+        if (student.email) {
+          const isLocking = student.status !== 'inactive';
+          fetch('http://localhost:3001/api/send-admin-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              emails: [student.email],
+              subject: isLocking ? '🚨 Cảnh báo: Tài khoản của bạn đã bị khóa' : '✅ Thông báo: Tài khoản của bạn đã được mở khóa',
+              content: isLocking 
+                ? `Chào ${student.fullname || 'bạn'},\n\nTài khoản của bạn trên hệ thống LearnHub đã bị khóa bởi Quản trị viên.\nNếu bạn cho rằng đây là sự nhầm lẫn, vui lòng phản hồi lại email này để được hỗ trợ.\n\nTrân trọng,\nĐội ngũ LearnHub`
+                : `Chào ${student.fullname || 'bạn'},\n\nTài khoản của bạn trên hệ thống LearnHub đã được mở khóa. Bạn có thể đăng nhập và tiếp tục trải nghiệm các khóa học của chúng tôi.\n\nTrân trọng,\nĐội ngũ LearnHub`,
+              level: isLocking ? 'error' : 'success'
+            })
+          }).catch(console.error);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error(`Có lỗi xảy ra khi ${actionText}!`);
       }
     }
   };
@@ -308,14 +339,18 @@ export default function StudentManagement() {
                           <Mail size={16} />
                         </button>
                         <button 
-                          onClick={() => {
-                            setStudentForDeposit(student);
-                            setIsDepositModalOpen(true);
-                          }}
-                          className="p-2 text-green-400 hover:text-white bg-green-500/10 hover:bg-green-500 border border-transparent hover:border-green-400 rounded-lg transition-all"
-                          title="Cộng tiền vào ví"
+                          onClick={() => { setStudentForDeposit(student); setDepositAmount(''); setIsDepositModalOpen(true); }}
+                          className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500 hover:text-white transition-colors"
+                          title="Cộng tiền"
                         >
-                          <Wallet size={16} />
+                          <PlusCircle className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleToggleLock(student)}
+                          className={`p-2 rounded-lg transition-colors ${student.status === 'inactive' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-white'}`}
+                          title={student.status === 'inactive' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                        >
+                          {student.status === 'inactive' ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </button>
                         <button 
                           onClick={() => handleDelete(student.id)} 

@@ -790,6 +790,13 @@ export async function verifyAndDeposit(userId: number, orderCode: number, amount
   return true;
 }
 
+export async function toggleUserStatus(userId: number, currentStatus: string): Promise<boolean> {
+  const newStatus = currentStatus === 'inactive' ? 'active' : 'inactive';
+  const { error } = await supabase.from('users').update({ status: newStatus }).eq('id', userId);
+  if (error) throw error;
+  return true;
+}
+
 export async function adminDeposit(userId: number, amount: number, description: string = 'Admin cộng tiền'): Promise<boolean> {
   // 1. Get current balance
   const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
@@ -839,6 +846,55 @@ export async function purchaseCourseWithBalance(userId: number, courseId: number
   } catch (err) {
     // Rollback balance if anything fails
     await supabase.from('users').update({ balance: currentBalance }).eq('id', userId);
+    throw err;
+  }
+
+  return true;
+}
+
+export async function giftCourseWithBalance(giverId: number, receiverEmail: string, courseId: number, price: number, courseTitle: string, giverName: string): Promise<boolean> {
+  // 1. Get receiver
+  const { data: receiver, error: receiverErr } = await supabase.from('users').select('id, fullname').eq('email', receiverEmail).single();
+  if (receiverErr || !receiver) {
+    throw new Error('Không tìm thấy người dùng với email này!');
+  }
+
+  // 2. Check balance
+  const { data: giver } = await supabase.from('users').select('balance').eq('id', giverId).single();
+  const currentBalance = giver?.balance || 0;
+
+  if (currentBalance < price) {
+    throw new Error('Số dư không đủ. Vui lòng nạp thêm tiền!');
+  }
+
+  // 3. Deduct balance
+  const { error: updateError } = await supabase.from('users').update({ balance: currentBalance - price }).eq('id', giverId);
+  if (updateError) throw updateError;
+
+  try {
+    // 4. Record transaction
+    const { error: txError } = await supabase.from('transactions').insert({
+      user_id: giverId,
+      amount: price,
+      type: 'purchase',
+      description: `Tặng khóa học ID ${courseId} cho ${receiverEmail}`
+    });
+    if (txError) throw txError;
+
+    // 5. Enroll receiver
+    await enrollUser(receiver.id, courseId);
+
+    // 6. Global Chat Announcement
+    await supabase.from('chat_messages').insert([{
+      user_id: giverId,
+      sender_id: giverId,
+      message: `👑 TẶNG QUÀ KHỦNG: Đại Gia ${giverName} vừa ban thưởng khóa học "${courseTitle}" cho ${receiver.fullname || receiverEmail}!`,
+      is_internal: false
+    }]);
+
+  } catch (err) {
+    // Rollback balance if anything fails
+    await supabase.from('users').update({ balance: currentBalance }).eq('id', giverId);
     throw err;
   }
 
@@ -924,4 +980,177 @@ export async function uploadAvatar(userId: number, file: File): Promise<string> 
     .getPublicUrl(fileName);
 
   return data.publicUrl;
+}
+
+export async function uploadThemeImage(userId: number, file: File): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `theme_${userId}_${Date.now()}.${fileExt}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, { upsert: true });
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
+// ============================================================
+// FORUM & GIVEAWAY (LÌ XÌ)
+// ============================================================
+
+export async function createForumPost(
+  authorId: number, 
+  title: string, 
+  content: string,
+  isGiveaway: boolean = false,
+  giveawayType: 'fixed' | 'random' | null = null,
+  giveawayTotal: number = 0,
+  giveawayFixedAmount: number = 0,
+  giveawayRandomMin: number = 0,
+  giveawayRandomMax: number = 0
+) {
+  if (isGiveaway && giveawayTotal > 0) {
+    // 1. Check user balance
+    const { data: user } = await supabase.from('users').select('balance').eq('id', authorId).single();
+    if ((user?.balance || 0) < giveawayTotal) {
+      throw new Error('Số dư không đủ để phát lì xì!');
+    }
+    // 2. Deduct balance
+    const { error: updateErr } = await supabase.from('users').update({ balance: user!.balance - giveawayTotal }).eq('id', authorId);
+    if (updateErr) throw updateErr;
+
+    // 3. Record tx
+    await supabase.from('transactions').insert({
+      user_id: authorId,
+      amount: giveawayTotal,
+      type: 'purchase',
+      description: `Phát lì xì: ${title}`
+    });
+  }
+
+  const { data, error } = await supabase.from('forum_posts').insert({
+    title,
+    content,
+    author_id: authorId,
+    parent_id: null,
+    is_giveaway: isGiveaway,
+    giveaway_total: giveawayTotal,
+    giveaway_claimed: 0,
+    giveaway_type: giveawayType,
+    giveaway_fixed_amount: giveawayFixedAmount,
+    giveaway_random_min: giveawayRandomMin,
+    giveaway_random_max: giveawayRandomMax,
+    likes_count: 0,
+    reply_count: 0
+  }).select().single();
+
+  if (error) {
+    if (isGiveaway) {
+      const { data: u } = await supabase.from('users').select('balance').eq('id', authorId).single();
+      await supabase.from('users').update({ balance: (u?.balance || 0) + giveawayTotal }).eq('id', authorId);
+    }
+    throw error;
+  }
+  return data;
+}
+
+export async function createForumReply(authorId: number, postId: number, content: string, mediaUrl?: string) {
+  // 1. Insert reply
+  const { data, error } = await supabase.from('forum_posts').insert({
+    title: '',
+    content,
+    author_id: authorId,
+    parent_id: postId,
+    media_url: mediaUrl || null
+  }).select().single();
+  
+  if (error) throw error;
+  
+  // 2. Increment reply_count on parent
+  const { data: parent } = await supabase.from('forum_posts').select('reply_count').eq('id', postId).single();
+  if (parent) {
+    await supabase.from('forum_posts').update({ reply_count: (parent.reply_count || 0) + 1 }).eq('id', postId);
+  }
+  
+  return data;
+}
+
+export async function toggleLikePost(postId: number, userId: number): Promise<boolean> {
+  // Check existing like
+  const { data: existingLike } = await supabase.from('forum_likes').select('id').eq('post_id', postId).eq('user_id', userId).maybeSingle();
+  
+  const { data: post } = await supabase.from('forum_posts').select('likes_count').eq('id', postId).single();
+  const currentLikes = post?.likes_count || 0;
+
+  if (existingLike) {
+    // Unlike
+    await supabase.from('forum_likes').delete().eq('id', existingLike.id);
+    await supabase.from('forum_posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
+    return false; // Liked = false
+  } else {
+    // Like
+    await supabase.from('forum_likes').insert({ post_id: postId, user_id: userId });
+    await supabase.from('forum_posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
+    return true; // Liked = true
+  }
+}
+
+export async function hasUserLiked(postId: number, userId: number): Promise<boolean> {
+  const { data } = await supabase.from('forum_likes').select('id').eq('post_id', postId).eq('user_id', userId).maybeSingle();
+  return !!data;
+}
+
+export async function claimGiveaway(postId: number, userId: number): Promise<number> {
+  const { data: post, error: postErr } = await supabase.from('forum_posts').select('*').eq('id', postId).single();
+  if (postErr || !post) throw new Error('Không tìm thấy bài viết');
+  
+  if (!post.is_giveaway) throw new Error('Đây không phải là bài lì xì');
+  if (post.giveaway_claimed >= post.giveaway_total) throw new Error('Đã hết lì xì');
+
+  const { data: existingClaim } = await supabase.from('forum_claims').select('id').eq('post_id', postId).eq('user_id', userId).maybeSingle();
+  if (existingClaim) throw new Error('Bạn đã nhận lì xì ở bài viết này rồi');
+
+  let amount = 0;
+  if (post.giveaway_type === 'fixed') {
+    amount = post.giveaway_fixed_amount;
+  } else {
+    amount = Math.floor(Math.random() * (post.giveaway_random_max - post.giveaway_random_min + 1)) + post.giveaway_random_min;
+  }
+
+  const remaining = post.giveaway_total - post.giveaway_claimed;
+  if (amount > remaining) {
+    amount = remaining;
+  }
+
+  if (amount <= 0) throw new Error('Lì xì đã hết!');
+
+  const { error: claimErr } = await supabase.from('forum_claims').insert({
+    post_id: postId,
+    user_id: userId,
+    amount
+  });
+  if (claimErr) throw new Error('Lỗi khi lưu nhận thưởng');
+
+  await supabase.from('forum_posts').update({
+    giveaway_claimed: post.giveaway_claimed + amount
+  }).eq('id', postId);
+
+  const { data: user } = await supabase.from('users').select('balance').eq('id', userId).single();
+  await supabase.from('users').update({ balance: (user?.balance || 0) + amount }).eq('id', userId);
+
+  await supabase.from('transactions').insert({
+    user_id: userId,
+    amount: amount,
+    type: 'deposit',
+    description: `Nhận lì xì từ bài viết #${postId}`
+  });
+
+  return amount;
 }
