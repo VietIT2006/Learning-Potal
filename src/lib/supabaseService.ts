@@ -535,7 +535,6 @@ export async function getUserEnrolledCourses(userId: number): Promise<any[]> {
   const { data, error } = await supabase
     .from('user_courses')
     .select(`
-      progress_percentage,
       course_id,
       courses (
         id,
@@ -550,9 +549,22 @@ export async function getUserEnrolledCourses(userId: number): Promise<any[]> {
 
   if (error) throw error;
   
+  // Get progresses from progresses table
+  const { data: progresses } = await supabase
+    .from('progresses')
+    .select('course_id, progress_percentage')
+    .eq('user_id', userId);
+
+  const progressMap = new Map();
+  if (progresses) {
+    progresses.forEach((p: any) => {
+      progressMap.set(p.course_id, p.progress_percentage || 0);
+    });
+  }
+
   // Format data
   return (data || []).map((item: any) => ({
-    progress: item.progress_percentage || 0,
+    progress: progressMap.get(item.course_id) || 0,
     course: item.courses
   }));
 }
@@ -575,14 +587,8 @@ export async function getProgress(userId: number, courseId: number): Promise<Pro
 
   if (!progressData) return { completedLessons: [], progressPercentage: 0 }
 
-  // Get completed lessons
-  const { data: completedData } = await supabase
-    .from('progress_completed_lessons')
-    .select('lesson_id')
-    .eq('progress_id', progressData.id)
-
   return {
-    completedLessons: (completedData || []).map((c: any) => c.lesson_id),
+    completedLessons: progressData.completed_lessons || [],
     progressPercentage: progressData.progress_percentage || 0,
   }
 }
@@ -604,6 +610,7 @@ export async function completeLesson(userId: number, courseId: number, lessonId:
         id: newId,
         user_id: userId,
         course_id: courseId,
+        completed_lessons: [],
         progress_percentage: 0,
         unique_id: `${userId}-${courseId}`,
       })
@@ -613,27 +620,11 @@ export async function completeLesson(userId: number, courseId: number, lessonId:
     progressData = newProgress
   }
 
-  // Check if lesson already completed
-  const { data: existing } = await supabase
-    .from('progress_completed_lessons')
-    .select('lesson_id')
-    .eq('progress_id', progressData.id)
-    .eq('lesson_id', lessonId)
-    .limit(1)
-
-  if (!existing || existing.length === 0) {
-    // Add completed lesson
-    await supabase.from('progress_completed_lessons').insert({
-      progress_id: progressData.id,
-      lesson_id: lessonId,
-    })
+  const completedLessons = progressData.completed_lessons || [];
+  
+  if (!completedLessons.includes(lessonId)) {
+    completedLessons.push(lessonId);
   }
-
-  // Get all completed lessons count
-  const { data: allCompleted } = await supabase
-    .from('progress_completed_lessons')
-    .select('lesson_id')
-    .eq('progress_id', progressData.id)
 
   // Get total lessons in course
   const { data: totalLessonsData } = await supabase
@@ -641,25 +632,21 @@ export async function completeLesson(userId: number, courseId: number, lessonId:
     .select('id')
     .eq('course_id', courseId)
 
-  const completedCount = allCompleted?.length || 0
-  const totalCount = totalLessonsData?.length || 0
-  const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const completedCount = completedLessons.length;
+  const totalCount = totalLessonsData?.length || 0;
+  const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Update progress percentage in progresses table
+  // Update progress array and percentage in progresses table
   await supabase
     .from('progresses')
-    .update({ progress_percentage: percentage })
+    .update({ 
+      completed_lessons: completedLessons,
+      progress_percentage: percentage 
+    })
     .eq('id', progressData.id)
 
-  // Also update progress percentage in user_courses table
-  await supabase
-    .from('user_courses')
-    .update({ progress_percentage: percentage })
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-
   return {
-    completedLessons: (allCompleted || []).map((c: any) => c.lesson_id),
+    completedLessons,
     progressPercentage: percentage,
   }
 }
@@ -737,6 +724,48 @@ export async function saveGlobalAnnouncement(content: string, isActive: boolean,
       role: 'GLOBAL_ANNOUNCEMENT',
       avatar: '',
       content,
+      rating: isActive ? 1 : 0,
+    });
+    if (error) throw error;
+  }
+}
+
+// ============================================================
+// MAINTENANCE MODE (Stored in Testimonials)
+// ============================================================
+export async function getMaintenanceStatus(): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('testimonials')
+    .select('rating')
+    .eq('role', 'MAINTENANCE_MODE')
+    .limit(1)
+    .single();
+
+  if (error || !data) return false;
+  return data.rating === 1; // 1 means active (maintenance on)
+}
+
+export async function saveMaintenanceStatus(isActive: boolean): Promise<void> {
+  const { data: existing } = await supabase
+    .from('testimonials')
+    .select('id')
+    .eq('role', 'MAINTENANCE_MODE')
+    .limit(1)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('testimonials')
+      .update({ rating: isActive ? 1 : 0 })
+      .eq('id', existing.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('testimonials').insert({
+      id: Math.floor(Math.random() * 2000000000),
+      name: 'Maintenance',
+      role: 'MAINTENANCE_MODE',
+      avatar: '',
+      content: 'System Maintenance',
       rating: isActive ? 1 : 0,
     });
     if (error) throw error;
@@ -1153,4 +1182,54 @@ export async function claimGiveaway(postId: number, userId: number): Promise<num
   });
 
   return amount;
+}
+
+export async function getGiveawayClaims(postId: number) {
+  const { data, error } = await supabase
+    .from('forum_claims')
+    .select(`
+      amount,
+      created_at,
+      users!user_id(id, username, full_name, avatar_url)
+    `)
+    .eq('post_id', postId)
+    .order('amount', { ascending: false });
+    
+  if (error) throw error;
+  
+  return data.map((item: any) => {
+    const uArray = item.users;
+    const u = Array.isArray(uArray) ? uArray[0] : uArray;
+    return {
+      amount: item.amount,
+      created_at: item.created_at,
+      user: {
+        id: u?.id,
+        fullname: u?.full_name || u?.username || 'Ẩn danh',
+        avatar_url: u?.avatar_url
+      }
+    };
+  });
+}
+
+// ============================================================
+// ADMIN FORUM MODERATION
+// ============================================================
+
+export async function deleteForumPost(postId: number): Promise<void> {
+  const { error } = await supabase
+    .from('forum_posts')
+    .delete()
+    .eq('id', postId);
+  
+  if (error) throw error;
+}
+
+export async function pinForumPost(postId: number, isPinned: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('forum_posts')
+    .update({ is_pinned: isPinned })
+    .eq('id', postId);
+  
+  if (error) throw error;
 }

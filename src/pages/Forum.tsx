@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { createForumPost } from '../lib/supabaseService';
-import { MessageSquare, Gift, Plus, Search, Star, Clock, Heart } from 'lucide-react';
+import { createForumPost, getTopDepositors, deleteForumPost, pinForumPost } from '../lib/supabaseService';
+import { MessageSquare, Gift, Plus, Search, Star, Clock, Heart, Crown, Trash2, Pin, PinOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { FullScreenLoader } from '../components/LoadingSpinner';
-import { checkToxicity } from '../lib/aiModeration';
+import { checkToxicity, loadAIModel } from '../lib/aiModeration';
 
 export default function ForumPage() {
   const { user, isAuthenticated } = useAuth();
@@ -31,24 +31,33 @@ export default function ForumPage() {
         .from('forum_posts')
         .select(`
           *,
-          users!author_id(username, full_name, avatar_url, role)
+          users!author_id(id, username, full_name, avatar_url, role)
         `)
         .is('parent_id', null)
+        .order('is_pinned', { ascending: false })
         .order('is_giveaway', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
+      // Lấy ID Top 1
+      let top1Id: number | null = null;
+      try {
+        const topDeps = await getTopDepositors(1);
+        if (topDeps.length > 0) top1Id = Number(topDeps[0].userId);
+      } catch (err) {
+        console.error(err);
+      }
+
       const formatted = data?.map(d => {
-        // Handle array or object from users join
         const uArray = d.users;
         const u = Array.isArray(uArray) ? uArray[0] : uArray;
         return {
           ...d,
           author: {
-            fullname: u?.full_name || u?.fullname || 'Ẩn danh',
+            fullname: u?.full_name || u?.username || 'Ẩn danh',
             avatar_url: u?.avatar_url || u?.avatarUrl,
-            isTop1: u?.role === 'admin' // Or whatever logic decides Top 1, in our system isTop1 is mapped in user context usually. We'll use a placeholder or assume we have it. Let's not use it in Forum.tsx list yet if not needed.
+            isTop1: u?.id === top1Id
           }
         }
       });
@@ -63,7 +72,32 @@ export default function ForumPage() {
 
   useEffect(() => {
     fetchPosts();
+    // Preload AI model in background so it doesn't block later submissions
+    loadAIModel();
   }, []);
+
+  const handleDeletePost = async (e: React.MouseEvent, postId: number) => {
+    e.preventDefault(); // Ngăn Link trigger
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài viết này vĩnh viễn?')) return;
+    try {
+      await deleteForumPost(postId);
+      toast.success('Đã xóa bài viết!');
+      fetchPosts();
+    } catch (err) {
+      toast.error('Lỗi khi xóa bài viết');
+    }
+  };
+
+  const handleTogglePin = async (e: React.MouseEvent, postId: number, currentPin: boolean) => {
+    e.preventDefault();
+    try {
+      await pinForumPost(postId, !currentPin);
+      toast.success(currentPin ? 'Đã bỏ ghim' : 'Đã ghim bài viết');
+      fetchPosts();
+    } catch (err) {
+      toast.error('Lỗi khi ghim bài viết');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,11 +175,22 @@ export default function ForumPage() {
             </div>
           ) : (
             posts.map(post => (
-              <Link to={`/forum/${post.id}`} key={post.id} className={`block p-6 rounded-2xl border backdrop-blur-md transition-all hover:scale-[1.01] shadow-lg ${post.is_giveaway ? 'bg-gradient-to-r from-yellow-900/30 to-red-900/30 border-yellow-500/50 hover:border-yellow-400' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+              <Link to={`/forum/${post.id}`} key={post.id} className={`block p-6 rounded-2xl border backdrop-blur-md transition-all hover:scale-[1.01] shadow-lg relative overflow-hidden ${post.is_giveaway ? 'bg-gradient-to-r from-yellow-900/30 to-red-900/30 border-yellow-500/50 hover:border-yellow-400' : post.author?.isTop1 ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-500/50 hover:border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                {post.author?.isTop1 && !post.is_giveaway && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-pulse"></div>}
                 <div className="flex items-start gap-4">
-                  <img src={post.author?.avatar_url || 'https://via.placeholder.com/50'} className={`w-12 h-12 rounded-full object-cover border-2 ${post.is_giveaway ? 'border-yellow-400' : 'border-slate-500'}`} alt="avatar"/>
+                  <div className="relative">
+                    {post.author?.isTop1 && (
+                      <>
+                        <div className="absolute -top-2 -right-2 z-10 w-5 h-5 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                          <Crown className="w-3 h-3 text-[#0f172a]" />
+                        </div>
+                        <div className="avatar-top1-frame"></div>
+                      </>
+                    )}
+                    <img src={post.author?.avatar_url || 'https://via.placeholder.com/50'} className={`w-12 h-12 rounded-full object-cover border-2 ${post.is_giveaway || post.author?.isTop1 ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'border-slate-500'}`} alt="avatar"/>
+                  </div>
                   <div className="flex-1">
-                    <h3 className={`text-xl font-bold mb-1 flex items-center gap-2 ${post.is_giveaway ? 'text-yellow-400' : 'text-white'}`}>
+                    <h3 className={`text-xl font-bold mb-1 flex items-center gap-2 ${post.is_giveaway || post.author?.isTop1 ? 'text-yellow-400' : 'text-white'}`}>
                       {post.is_giveaway && <Gift className="w-5 h-5 animate-pulse" />}
                       {post.title}
                     </h3>
@@ -162,6 +207,26 @@ export default function ForumPage() {
                       )}
                     </div>
                   </div>
+                  
+                  {/* Admin Controls */}
+                  {user?.role === 'admin' && (
+                    <div className="flex flex-col gap-2 ml-4">
+                      <button 
+                        onClick={(e) => handleTogglePin(e, post.id, post.is_pinned)}
+                        className={`p-2 rounded-lg transition-colors ${post.is_pinned ? 'bg-sky-500/20 text-sky-400 hover:bg-sky-500/40' : 'bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-600'}`}
+                        title={post.is_pinned ? "Bỏ ghim" : "Ghim bài"}
+                      >
+                        {post.is_pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                      </button>
+                      <button 
+                        onClick={(e) => handleDeletePost(e, post.id)}
+                        className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                        title="Xóa bài viết"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </Link>
             ))

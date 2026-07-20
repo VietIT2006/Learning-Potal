@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import ParticleBackground from '../components/ParticleBackground';
 import Testimonials from '../components/Testimonials';
 import AnnouncementBanner from '../components/AnnouncementBanner';
+import { useTranslation } from 'react-i18next';
 
 interface Course {
   id: number;
@@ -17,6 +18,7 @@ interface Course {
 }
 
 function HomePage() {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState<Course[]>([]);
   const [topDepositors, setTopDepositors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,20 +71,16 @@ function HomePage() {
 
             <div className="max-w-7xl mx-auto text-center relative z-20">
                 <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight animate-fade-in-up">
-                    Học tập <span className="text-gradient">Không Giới Hạn</span>
+                    {t('home.hero_title')}
                 </h1>
                 {/* THAY ĐỔI: text-gray-400 giúp chữ thanh thoát hơn trên nền tối */}
                 <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                    Tiếp cận tri thức từ các chuyên gia hàng đầu. 
-                    Nâng cao kỹ năng, phát triển sự nghiệp với lộ trình cá nhân hóa.
+                    {t('home.hero_subtitle')}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                     <Link to="/courses" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-bold hover:shadow-[0_0_30px_rgba(102,126,234,0.6)] transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
-                        Khám phá khóa học <ArrowRight className="w-5 h-5" />
+                        {t('home.explore_courses')} <ArrowRight className="w-5 h-5" />
                     </Link>
-                    <button className="px-8 py-4 rounded-full font-bold text-white border border-white/10 hover:bg-white/5 transition-all backdrop-blur-sm">
-                        Lộ trình học tập
-                    </button>
                 </div>
             </div>
         </section>
@@ -106,23 +104,22 @@ function HomePage() {
         {/* Features Section */}
         <section className="py-20 px-4">
              <div className="max-w-7xl mx-auto text-center">
-                <h2 className="text-3xl font-bold text-white mb-12">Tại sao chọn chúng tôi?</h2>
+                <h2 className="text-3xl font-bold text-white mb-12">{t('home.features_title')}</h2>
                 <div className="grid md:grid-cols-3 gap-8 text-left">
-                    {/* Thẻ Feature với hiệu ứng Gradient mờ */}
                     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
                         <Trophy className="w-12 h-12 text-yellow-500 mb-6" />
-                        <h3 className="text-xl font-bold text-white mb-3">Chứng chỉ uy tín</h3>
-                        <p className="text-gray-400 leading-relaxed">Hoàn thành khóa học và nhận chứng nhận được công nhận bởi các doanh nghiệp lớn.</p>
+                        <h3 className="text-xl font-bold text-white mb-3">{t('home.feature_3_title')}</h3>
+                        <p className="text-gray-400 leading-relaxed">{t('home.feature_3_desc')}</p>
                     </div>
                     <div className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
                         <Target className="w-12 h-12 text-red-500 mb-6" />
-                        <h3 className="text-xl font-bold text-white mb-3">Học thực chiến</h3>
-                        <p className="text-gray-400 leading-relaxed">Nội dung bài học tập trung vào thực hành, dự án thực tế giúp bạn làm được việc ngay.</p>
+                        <h3 className="text-xl font-bold text-white mb-3">{t('home.feature_1_title')}</h3>
+                        <p className="text-gray-400 leading-relaxed">{t('home.feature_1_desc')}</p>
                     </div>
                      <div className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/[0.08] transition-colors">
                         <Star className="w-12 h-12 text-purple-500 mb-6" />
-                        <h3 className="text-xl font-bold text-white mb-3">Hỗ trợ 24/7</h3>
-                        <p className="text-gray-400 leading-relaxed">Đội ngũ mentor và cộng đồng luôn sẵn sàng giải đáp mọi thắc mắc của bạn.</p>
+                        <h3 className="text-xl font-bold text-white mb-3">{t('home.feature_4_title')}</h3>
+                        <p className="text-gray-400 leading-relaxed">{t('home.feature_4_desc')}</p>
                     </div>
                 </div>
              </div>

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { claimGiveaway, createForumReply, toggleLikePost, hasUserLiked, getTopDepositors } from '../lib/supabaseService';
-import { ArrowLeft, Gift, MessageCircle, Send, Star, Clock, Crown, Heart, Smile, Image as ImageIcon } from 'lucide-react';
+import { claimGiveaway, createForumReply, toggleLikePost, hasUserLiked, getTopDepositors, deleteForumPost, getGiveawayClaims } from '../lib/supabaseService';
+import { ArrowLeft, Gift, MessageCircle, Send, Star, Clock, Crown, Heart, Smile, Image as ImageIcon, Trash2, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { FullScreenLoader } from '../components/LoadingSpinner';
-import { checkToxicity } from '../lib/aiModeration';
+import { checkToxicity, loadAIModel } from '../lib/aiModeration';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import { Grid } from '@giphy/react-components';
@@ -16,6 +16,7 @@ const gf = new GiphyFetch('sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh');
 
 export default function ForumPostPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const [post, setPost] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
@@ -24,6 +25,7 @@ export default function ForumPostPage() {
   const [isReplying, setIsReplying] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
   const [claimedAmount, setClaimedAmount] = useState<number | null>(null);
+  const [claimsList, setClaimsList] = useState<any[]>([]);
   
   // Likes
   const [isLiked, setIsLiked] = useState(false);
@@ -33,6 +35,7 @@ export default function ForumPostPage() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [selectedMediaUrl, setSelectedMediaUrl] = useState<string | null>(null);
+  const [gifSearch, setGifSearch] = useState('');
 
   const fetchPost = async () => {
     try {
@@ -83,10 +86,22 @@ export default function ForumPostPage() {
         } else {
           setClaimedAmount(null);
         }
-        
-        // Check if user liked
+      }
+      
+      // Get likes
+      if (user) {
         const liked = await hasUserLiked(Number(id), user.id);
         setIsLiked(liked);
+      }
+      
+      // Get claims if giveaway
+      if (formattedPost.is_giveaway) {
+        try {
+          const claims = await getGiveawayClaims(Number(id));
+          setClaimsList(claims);
+        } catch (err) {
+          console.error(err);
+        }
       }
 
       // Get replies
@@ -114,7 +129,14 @@ export default function ForumPostPage() {
         }
       });
 
-      setReplies(formattedReplies || []);
+      // Sắp xếp lại để Top 1 luôn ở trên cùng
+      const sortedReplies = formattedReplies?.sort((a, b) => {
+        if (a.author.isTop1 && !b.author.isTop1) return -1;
+        if (!a.author.isTop1 && b.author.isTop1) return 1;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      }) || [];
+
+      setReplies(sortedReplies);
     } catch (err) {
       toast.error('Không thể tải bài viết');
     } finally {
@@ -124,6 +146,7 @@ export default function ForumPostPage() {
 
   useEffect(() => {
     if (id) fetchPost();
+    loadAIModel();
   }, [id, user]);
 
   const handleLike = async () => {
@@ -137,6 +160,28 @@ export default function ForumPostPage() {
       toast.error('Lỗi thao tác');
     } finally {
       setIsLikeLoading(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài viết này vĩnh viễn?')) return;
+    try {
+      await deleteForumPost(Number(id));
+      toast.success('Đã xóa bài viết!');
+      navigate('/forum');
+    } catch (err) {
+      toast.error('Lỗi khi xóa bài viết');
+    }
+  };
+
+  const handleDeleteReply = async (replyId: number) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bình luận này?')) return;
+    try {
+      await deleteForumPost(replyId);
+      toast.success('Đã xóa bình luận!');
+      fetchPost(); // Reload replies
+    } catch (err) {
+      toast.error('Lỗi khi xóa bình luận');
     }
   };
 
@@ -201,13 +246,24 @@ export default function ForumPostPage() {
         </Link>
 
         {/* Main Post */}
-        <div className={`p-6 md:p-8 rounded-3xl border shadow-2xl relative overflow-hidden mb-8 ${isGiveaway ? 'bg-gradient-to-br from-red-900/40 via-orange-900/40 to-yellow-900/40 border-yellow-500/50' : 'bg-[#1e293b]/50 border-slate-700/50'}`}>
+        <div className={`p-6 md:p-8 rounded-3xl border shadow-2xl relative overflow-hidden mb-8 ${isGiveaway ? 'bg-gradient-to-br from-red-900/40 via-orange-900/40 to-yellow-900/40 border-yellow-500/50' : post.author?.isTop1 ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'bg-[#1e293b]/50 border-slate-700/50'}`}>
           {isGiveaway && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400"></div>}
+          {post.author?.isTop1 && !isGiveaway && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-pulse"></div>}
           
           <div className="flex items-start gap-4 md:gap-6">
-            <img src={post.author?.avatar_url || 'https://via.placeholder.com/60'} className={`w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 flex-shrink-0 ${isGiveaway ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]' : 'border-slate-500'}`} alt="avatar"/>
+            <div className="relative">
+              {post.author?.isTop1 && (
+                <>
+                  <div className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-2 border-[#0f172a] shadow-lg">
+                    <Crown className="w-3.5 h-3.5 text-[#0f172a]" />
+                  </div>
+                  <div className="avatar-top1-frame"></div>
+                </>
+              )}
+              <img src={post.author?.avatar_url || 'https://via.placeholder.com/60'} className={`w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 flex-shrink-0 ${isGiveaway || post.author?.isTop1 ? 'border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]' : 'border-slate-500'}`} alt="avatar"/>
+            </div>
             <div className="flex-1 min-w-0">
-              <h1 className={`text-2xl md:text-3xl font-bold mb-2 flex items-center gap-3 ${isGiveaway ? 'text-yellow-400' : 'text-white'}`}>
+              <h1 className={`text-2xl md:text-3xl font-bold mb-2 flex items-center gap-3 ${isGiveaway || post.author?.isTop1 ? 'text-yellow-400' : 'text-white'}`}>
                 {isGiveaway && <Gift className="w-8 h-8 animate-bounce shrink-0" />}
                 {post.title}
               </h1>
@@ -221,6 +277,14 @@ export default function ForumPostPage() {
                 >
                   <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} /> {post.likes_count || 0}
                 </button>
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={handleDeletePost}
+                    className="flex items-center gap-1 ml-auto text-red-400 hover:text-red-300 transition-colors bg-red-500/10 px-3 py-1.5 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" /> Xóa bài
+                  </button>
+                )}
               </div>
               <div className="prose prose-invert max-w-none text-slate-300 whitespace-pre-wrap">
                 {post.content}
@@ -238,17 +302,42 @@ export default function ForumPostPage() {
                   </div>
 
                   {claimedAmount !== null ? (
-                    <div className="bg-green-500/20 text-green-400 px-6 py-4 rounded-xl border border-green-500/30 text-lg font-bold animate-in zoom-in">
+                    <div className="bg-green-500/20 text-green-400 px-6 py-4 rounded-xl border border-green-500/30 text-lg font-bold animate-in zoom-in mb-6">
                       🎉 Bạn đã nhận {new Intl.NumberFormat('vi-VN').format(claimedAmount)} VNĐ!
                     </div>
                   ) : (
                     <button 
                       onClick={handleClaim}
                       disabled={isGiveawayEmpty || isClaiming}
-                      className={`px-10 py-4 rounded-xl font-black text-xl shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all transform hover:scale-105 active:scale-95 ${isGiveawayEmpty ? 'bg-slate-700 text-slate-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 hover:from-yellow-300 hover:to-yellow-400'}`}
+                      className={`px-10 py-4 mb-6 rounded-xl font-black text-xl shadow-[0_0_30px_rgba(250,204,21,0.4)] transition-all transform hover:scale-105 active:scale-95 ${isGiveawayEmpty ? 'bg-slate-700 text-slate-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 hover:from-yellow-300 hover:to-yellow-400'}`}
                     >
                       {isClaiming ? 'Đang mở...' : (isGiveawayEmpty ? 'ĐÃ HẾT LÌ XÌ' : 'GIẬT LÌ XÌ')}
                     </button>
+                  )}
+                  
+                  {/* Danh sách người đã nhận lì xì */}
+                  {claimsList.length > 0 && (
+                    <div className="w-full mt-4 bg-black/30 rounded-xl border border-white/5 overflow-hidden">
+                      <div className="bg-white/5 py-3 px-4 border-b border-white/5 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-slate-400" />
+                        <h4 className="font-bold text-sm text-slate-300">Danh sách đã nhận ({claimsList.length})</h4>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                        {claimsList.map((claim, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <span className="text-slate-500 text-xs w-4 font-bold">{idx + 1}</span>
+                              <img src={claim.user.avatar_url || 'https://via.placeholder.com/30'} alt="avatar" className="w-8 h-8 rounded-full border border-slate-600 object-cover" />
+                              <div className="text-left">
+                                <p className="text-sm font-bold text-slate-200">{claim.user.fullname}</p>
+                                <p className="text-[10px] text-slate-500">{new Date(claim.created_at).toLocaleTimeString('vi-VN')}</p>
+                              </div>
+                            </div>
+                            <span className="font-black text-yellow-400 text-sm">{new Intl.NumberFormat('vi-VN').format(claim.amount)} VNĐ</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -278,6 +367,15 @@ export default function ForumPostPage() {
                         {reply.author?.fullname}
                       </span>
                       <span className="text-xs text-slate-500">{new Date(reply.created_at).toLocaleString('vi-VN')}</span>
+                      {user?.role === 'admin' && (
+                        <button 
+                          onClick={() => handleDeleteReply(reply.id)}
+                          className="ml-auto text-red-400/50 hover:text-red-400 transition-colors p-1"
+                          title="Xóa bình luận"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                     <p className="text-slate-300 whitespace-pre-wrap">{reply.content}</p>
                     {reply.media_url && (
@@ -328,12 +426,29 @@ export default function ForumPostPage() {
                       GIF
                     </button>
                     {showGifPicker && (
-                      <div className="absolute bottom-12 right-0 z-50 w-[300px] h-[400px] bg-[#1e293b] border border-slate-700 rounded-xl overflow-y-auto shadow-2xl p-2">
-                        <Grid width={280} columns={2} fetchGifs={(offset) => gf.trending({ offset, limit: 10 })} onGifClick={(gif, e) => {
-                          e.preventDefault();
-                          setSelectedMediaUrl(gif.images.fixed_height.url);
-                          setShowGifPicker(false);
-                        }} />
+                      <div className="absolute bottom-12 right-0 z-50 w-[300px] h-[400px] bg-[#1e293b] border border-slate-700 rounded-xl flex flex-col shadow-2xl p-2">
+                        <div className="mb-2 relative">
+                          <input 
+                            type="text" 
+                            placeholder="Tìm kiếm GIF..." 
+                            value={gifSearch}
+                            onChange={(e) => setGifSearch(e.target.value)}
+                            className="w-full bg-[#0f172a] text-sm text-white px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                          <Grid 
+                            key={gifSearch} // Re-mount grid when search changes
+                            width={280} 
+                            columns={2} 
+                            fetchGifs={(offset) => gifSearch ? gf.search(gifSearch, { offset, limit: 10 }) : gf.trending({ offset, limit: 10 })} 
+                            onGifClick={(gif, e) => {
+                              e.preventDefault();
+                              setSelectedMediaUrl(gif.images.fixed_height.url);
+                              setShowGifPicker(false);
+                            }} 
+                          />
+                        </div>
                       </div>
                     )}
                   </div>

@@ -11,7 +11,7 @@ const Certificate: React.FC<CertificateProps> = ({ studentName, courseName, date
   return (
     <div
       id="certificate-container"
-      className="p-12 text-center relative shadow-2xl"
+      className="p-12 text-center relative"
       style={{
         width: '800px',
         height: '600px',
@@ -21,6 +21,7 @@ const Certificate: React.FC<CertificateProps> = ({ studentName, courseName, date
         border: isTop1 ? '12px solid #ca8a04' : '10px solid #1e3a8a',
         boxSizing: 'border-box',
         backgroundImage: isTop1 ? 'linear-gradient(135deg, #fef9c3 0%, #fef08a 100%)' : 'linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
       }}
     >
       <div 
@@ -49,20 +50,26 @@ const Certificate: React.FC<CertificateProps> = ({ studentName, courseName, date
 
         <div className="flex justify-between items-end mt-16 px-12">
           <div className="text-center">
-            <p className="border-b-2 w-40 mb-2 pb-1 font-semibold text-lg" style={{ borderColor: isTop1 ? '#ca8a04' : '#9ca3af' }}>{date}</p>
+            <p className="w-40 mb-2 pb-1 font-semibold text-lg" style={{ borderBottom: '2px solid', borderColor: isTop1 ? '#ca8a04' : '#9ca3af' }}>{date}</p>
             <p className="text-sm font-medium uppercase" style={{ color: isTop1 ? '#a16207' : '#6b7280' }}>Ngày cấp</p>
           </div>
           
           <div className="text-center">
-            <p className="border-b-2 w-40 mb-2 pb-1 font-bold italic text-2xl" style={{ borderColor: isTop1 ? '#ca8a04' : '#9ca3af', fontFamily: '"Brush Script MT", cursive', color: isTop1 ? '#854d0e' : '#1e3a8a' }}>LearnHub</p>
+            <p className="w-40 mb-2 pb-1 font-bold italic text-2xl" style={{ borderBottom: '2px solid', borderColor: isTop1 ? '#ca8a04' : '#9ca3af', fontFamily: '"Brush Script MT", cursive', color: isTop1 ? '#854d0e' : '#1e3a8a' }}>LearnHub</p>
             <p className="text-sm font-medium uppercase" style={{ color: isTop1 ? '#a16207' : '#6b7280' }}>Giám đốc trung tâm</p>
           </div>
         </div>
 
         {/* Decorative seal */}
         <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center ${isTop1 ? 'shadow-[0_0_20px_rgba(202,138,4,0.5)]' : ''}`} style={{ border: isTop1 ? '4px solid #854d0e' : '4px solid #eab308', backgroundColor: isTop1 ? '#facc15' : '#fef9c3' }}>
-                <span className={`font-bold text-center tracking-wider uppercase ${isTop1 ? 'text-sm text-yellow-900' : 'text-xs text-yellow-600'}`}>
+            <div className="w-24 h-24 rounded-full flex items-center justify-center" 
+                 style={{ 
+                   border: isTop1 ? '4px solid #854d0e' : '4px solid #eab308', 
+                   backgroundColor: isTop1 ? '#facc15' : '#fef9c3',
+                   boxShadow: isTop1 ? '0 0 20px rgba(202,138,4,0.5)' : 'none'
+                 }}>
+                <span className={`font-bold text-center tracking-wider uppercase ${isTop1 ? 'text-sm' : 'text-xs'}`}
+                      style={{ color: isTop1 ? '#713f12' : '#ca8a04' }}>
                   {isTop1 ? <>TOP 1<br/>VIP</> : <>LearnHub<br/>Certified</>}
                 </span>
             </div>

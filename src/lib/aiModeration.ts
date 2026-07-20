@@ -17,30 +17,30 @@ export const loadAIModel = async () => {
   }
 };
 
+const vietnameseBadWords = [
+  "địt", "đụ", "lồn", "cặc", "buồi", "đĩ", "điếm", "đéo", "vcl", "vl", "vãi lồn", "chó đẻ", "mẹ mày", "con cặc", "thằng chó", "súc vật", "óc chó", "phò", "bitch", "fuck", "asshole", "shit"
+];
+
+const containsVietnameseBadWords = (text: string): boolean => {
+  const lowerText = text.toLowerCase();
+  for (const word of vietnameseBadWords) {
+    // Regex to match whole word or variations
+    const regex = new RegExp(`\\b${word}\\b`, 'i');
+    if (regex.test(lowerText) || lowerText.includes(word)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export const checkToxicity = async (text: string): Promise<boolean> => {
   if (!text.trim()) return false;
   
-  if (!model) {
-    await loadAIModel();
+  // 1. Kiểm tra bằng danh sách từ khóa Tiếng Việt (Cực nhanh)
+  if (containsVietnameseBadWords(text)) {
+    return true;
   }
-  
-  if (!model) return false; // Fallback if AI fails to load
 
-  try {
-    const predictions = await model.classify([text]);
-    
-    // predictions is an array of objects for each label
-    for (let i = 0; i < predictions.length; i++) {
-      const pred = predictions[i];
-      if (pred.results[0].match === true) {
-        // match === true means toxicity is detected with probability >= threshold
-        return true; 
-      }
-    }
-    
-    return false;
-  } catch (error) {
-    console.error("Lỗi khi AI phân tích văn bản", error);
-    return false;
-  }
+  // 2. Bỏ qua AI vì quá nặng gây lag theo phản hồi của người dùng
+  return false;
 };

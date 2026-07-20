@@ -59,10 +59,35 @@ export const loginRequest = async (req, res) => {
       .from('users')
       .select('*')
       .eq('email', email)
-      .eq('password', password)
       .single();
 
     if (error || !user) return res.status(401).json({ success: false, message: 'Sai email hoặc mật khẩu' });
+    
+    if (user.password !== password) {
+      let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || 'Unknown IP';
+      const locData = await getIpLocation(ip);
+      ip = locData.ip;
+      const location = locData.location;
+
+      const mailOptions = {
+        from: `"LearnHub Security" <${process.env.VITE_EMAIL_USER}>`,
+        to: user.email,
+        subject: `🚨 Cảnh báo đăng nhập sai mật khẩu`,
+        html: `
+          <h2>Cảnh báo bảo mật</h2>
+          <p>Hệ thống ghi nhận một nỗ lực đăng nhập sai mật khẩu vào tài khoản của bạn.</p>
+          <p><strong>Tài khoản:</strong> ${user.email}</p>
+          <p><strong>IP:</strong> ${ip}</p>
+          <p><strong>Vị trí:</strong> ${location}</p>
+          <p><strong>Thiết bị:</strong> ${req.headers['user-agent']}</p>
+          <p>Nếu không phải bạn, vui lòng đổi mật khẩu ngay lập tức để đảm bảo an toàn.</p>
+        `
+      };
+      transporter.sendMail(mailOptions).catch(console.error);
+      
+      return res.status(401).json({ success: false, message: 'Sai email hoặc mật khẩu' });
+    }
+
     if (user.status === 'inactive') return res.status(403).json({ success: false, message: 'Tài khoản đã bị khóa' });
 
     const requestId = await createPendingLoginAndNotify(user, req);
@@ -82,7 +107,12 @@ export const checkLoginStatus = (req, res) => {
     const token = jwt.sign(
       { id: reqData.user.id, email: reqData.user.email, role: reqData.user.role },
       JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: '15m' }
+    );
+    const refreshToken = jwt.sign(
+      { id: reqData.user.id, email: reqData.user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
     // Xoá request sau khi đã trả token thành công
     delete loginRequests[requestId];
@@ -90,6 +120,7 @@ export const checkLoginStatus = (req, res) => {
     return res.json({
       status: 'approved',
       token: token,
+      refreshToken: refreshToken,
       user: reqData.user
     });
   }
@@ -128,5 +159,43 @@ export const approveLogin = (req, res) => {
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Not found' });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(401).json({ success: false, message: 'Không tìm thấy refresh token' });
+
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_SECRET);
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', decoded.id)
+      .single();
+
+    if (error || !user || user.status === 'inactive') {
+      return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc tài khoản bị khóa' });
+    }
+
+    const newToken = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+    const newRefreshToken = jwt.sign(
+      { id: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      token: newToken,
+      refreshToken: newRefreshToken,
+      user: user
+    });
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Refresh token hết hạn hoặc không hợp lệ' });
   }
 };

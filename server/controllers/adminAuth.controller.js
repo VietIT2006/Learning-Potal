@@ -2,6 +2,7 @@ import supabase from '../config/supabase.js';
 import transporter from '../config/nodemailer.js';
 import { emailOtpStore } from '../store/store.js';
 import { createPendingLoginAndNotify } from './auth.controller.js';
+import { getIpLocation } from '../utils/ipLocation.js';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 
@@ -14,10 +15,34 @@ export const adminLogin = async (req, res) => {
       .from('users')
       .select('*')
       .eq('email', email)
-      .eq('password', password)
       .single();
 
     if (error || !user) {
+      return res.status(401).json({ success: false, message: 'Sai email hoặc mật khẩu' });
+    }
+
+    if (user.password !== password) {
+      let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || 'Unknown IP';
+      const locData = await getIpLocation(ip);
+      ip = locData.ip;
+      const location = locData.location;
+
+      const mailOptions = {
+        from: `"LearnHub Security" <${process.env.VITE_EMAIL_USER}>`,
+        to: user.email,
+        subject: `🚨 Cảnh báo đăng nhập sai mật khẩu (Admin/Support)`,
+        html: `
+          <h2>Cảnh báo bảo mật</h2>
+          <p>Hệ thống ghi nhận một nỗ lực đăng nhập sai mật khẩu vào tài khoản quản trị của bạn.</p>
+          <p><strong>Tài khoản:</strong> ${user.email}</p>
+          <p><strong>IP:</strong> ${ip}</p>
+          <p><strong>Vị trí:</strong> ${location}</p>
+          <p><strong>Thiết bị:</strong> ${req.headers['user-agent']}</p>
+          <p>Nếu không phải bạn, vui lòng đổi mật khẩu ngay lập tức để đảm bảo an toàn.</p>
+        `
+      };
+      transporter.sendMail(mailOptions).catch(console.error);
+      
       return res.status(401).json({ success: false, message: 'Sai email hoặc mật khẩu' });
     }
 

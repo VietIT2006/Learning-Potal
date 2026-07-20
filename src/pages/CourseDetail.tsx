@@ -68,7 +68,7 @@ function CourseDetailPage() {
   
   const originalPrice = course?.price || 0;
   const isTop1 = user?.isTop1;
-  const effectivePrice = isTop1 ? originalPrice * 0.8 : originalPrice;
+  const effectivePrice = isTop1 ? originalPrice * 0.5 : originalPrice;
 
   const handleEnrollClick = () => {
     if (!isAuthenticated) {
@@ -239,7 +239,7 @@ function CourseDetailPage() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-xl text-gray-500 line-through">{formatCurrency(originalPrice)}</span>
                                   <span className="text-xs bg-gradient-to-r from-yellow-400 to-yellow-600 text-[#0f172a] font-bold px-2 py-1 rounded-full border border-yellow-300 shadow-[0_0_10px_rgba(250,204,21,0.5)] flex items-center gap-1">
-                                    <Star className="w-3 h-3 fill-current" /> Đặc quyền Top 1 (-20%)
+                                    <Star className="w-3 h-3 fill-current" /> Đặc quyền Top 1 (-50%)
                                   </span>
                                 </div>
                                 <span>{formatCurrency(effectivePrice)}</span>

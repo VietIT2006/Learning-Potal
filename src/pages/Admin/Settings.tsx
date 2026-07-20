@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Bell, User, Save, Megaphone, Mail, Search, CheckSquare, Square, X, Send, ShieldCheck, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
-import { getGlobalAnnouncement, saveGlobalAnnouncement, getUsers } from '../../lib/supabaseService';
+import api from '../../api';
+import { getGlobalAnnouncement, saveGlobalAnnouncement, getUsers, getMaintenanceStatus, saveMaintenanceStatus } from '../../lib/supabaseService';
 import type { User as UserType } from '../../lib/supabaseService';
 import { useAuth } from '../../context/AuthContext';
 
@@ -71,10 +71,26 @@ export default function SettingsPage() {
     fetchAnnouncement();
   }, []);
 
+  // Maintenance state
+  const [maintenanceActive, setMaintenanceActive] = useState(false);
+
+  useEffect(() => {
+    const fetchMaintenance = async () => {
+      try {
+        const isActive = await getMaintenanceStatus();
+        setMaintenanceActive(isActive);
+      } catch (error) {
+        console.error("Lỗi lấy trạng thái bảo trì:", error);
+      }
+    };
+    fetchMaintenance();
+  }, []);
+
   const handleSaveSettings = async () => {
     try {
       setIsSaving(true);
       await saveGlobalAnnouncement(announcementContent, announcementActive, announcementLevel);
+      await saveMaintenanceStatus(maintenanceActive);
       toast.success('Lưu cài đặt thành công!', { style: { background: '#333', color: '#fff' } });
     } catch (error) {
       console.error(error);
@@ -141,7 +157,7 @@ export default function SettingsPage() {
       return;
     }
     try {
-      const res = await axios.post('http://localhost:3001/api/admin/setup-2fa', { email: user?.email });
+      const res = await api.post('/admin/setup-2fa', { email: user?.email });
       if (res.data.success) {
         setQrUrl(res.data.qrCodeUrl);
         setTempSecret(res.data.secret);
@@ -159,7 +175,7 @@ export default function SettingsPage() {
     }
     setIsVerifying2FA(true);
     try {
-      const res = await axios.post('http://localhost:3001/api/admin/confirm-2fa', { 
+      const res = await api.post('/admin/confirm-2fa', { 
         email: user?.email, 
         secret: tempSecret, 
         code: twoFaCode 
@@ -185,7 +201,7 @@ export default function SettingsPage() {
     
     setIsDisabling2FA(true);
     try {
-      const res = await axios.post('http://localhost:3001/api/admin/disable-2fa', { email: user?.email });
+      const res = await api.post('/admin/disable-2fa', { email: user?.email });
       if (res.data.success) {
         toast.success('Đã tắt xác minh 2 bước!');
         setIs2FAEnabled(false);
@@ -405,6 +421,33 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* --- Section 4: Chế độ bảo trì --- */}
+      <div className="bg-[#0a0a0f]/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/5 p-8 transition-all duration-300 relative z-10 group hover:border-white/10 mb-8">
+        <div className="flex items-center gap-5 mb-8 border-b border-white/5 pb-6">
+            <div className="p-3.5 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-xl text-red-400 border border-red-500/20 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+                <h3 className="text-lg font-semibold text-white tracking-tight">Chế độ bảo trì</h3>
+                <p className="text-sm text-slate-400 mt-1">Đóng cửa website tạm thời đối với tất cả người dùng bình thường.</p>
+            </div>
+        </div>
+
+        <div className="flex items-center justify-between py-3 px-2">
+            <div>
+              <span className="text-slate-300 font-medium block">Trạng thái bảo trì</span>
+              <p className="text-xs text-slate-500 mt-1">Khi bật, website sẽ ngừng hoạt động. Chỉ Admin mới có thể truy cập.</p>
+            </div>
+            
+            <button 
+                onClick={() => setMaintenanceActive(!maintenanceActive)}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:ring-offset-[#0a0a0f] mr-4 ${maintenanceActive ? 'bg-red-500' : 'bg-white/20'}`}
+            >
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${maintenanceActive ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+        </div>
+      </div>
+
       <div className="flex justify-end pt-4 relative z-10 mb-8">
           <button 
             onClick={handleSaveSettings}
@@ -416,7 +459,7 @@ export default function SettingsPage() {
           </button>
       </div>
 
-      {/* --- Section 4: Security (2FA) --- */}
+      {/* --- Section 5: Security (2FA) --- */}
       <div className="bg-[#0a0a0f]/60 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/5 p-8 transition-all duration-300 relative z-10 group hover:border-white/10">
         <div className="flex items-center gap-5 mb-8 border-b border-white/5 pb-6">
             <div className="p-3.5 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl text-emerald-400 border border-green-500/20 group-hover:scale-110 transition-transform">

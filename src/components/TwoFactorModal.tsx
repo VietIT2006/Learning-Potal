@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShieldCheck, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../api';
 
 interface TwoFactorModalProps {
   isOpen: boolean;
@@ -28,7 +28,7 @@ export function TwoFactorModal({ isOpen, onClose, email, onSuccess }: TwoFactorM
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3001/api/admin/verify-2fa', { email, code });
+      const response = await api.post('/admin/verify-2fa', { email, code });
       if (response.data.success) {
         toast.success(response.data.message);
         onSuccess(response.data);
@@ -43,7 +43,7 @@ export function TwoFactorModal({ isOpen, onClose, email, onSuccess }: TwoFactorM
   const handleSendBackup = async () => {
     setSendingEmail(true);
     try {
-      const res = await axios.post('http://localhost:3001/api/admin/send-backup-otp', { email });
+      const res = await api.post('/admin/send-backup-otp', { email });
       if (res.data.success) {
         toast.success('Đã gửi mã dự phòng đến email của bạn!', { duration: 5000 });
       }

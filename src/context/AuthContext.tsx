@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 import { getTopDepositors } from '../lib/supabaseService';
 import { Crown, X } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 import { TwoFactorModal } from '../components/TwoFactorModal';
 import confetti from 'canvas-confetti';
 
@@ -153,10 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (pendingLoginRequestId) {
       interval = setInterval(async () => {
         try {
-          const res = await axios.get(`http://localhost:3001/api/auth/check-login-status?requestId=${pendingLoginRequestId}`);
+          const res = await api.get(`/auth/check-login-status?requestId=${pendingLoginRequestId}`);
           if (res.data.status === 'approved') {
             setPendingLoginRequestId(null);
             localStorage.setItem('adminToken', res.data.token);
+            if (res.data.refreshToken) {
+               localStorage.setItem('refreshToken', res.data.refreshToken);
+            }
             await fetchUserProfile(res.data.user.email);
             toast.success(`Đăng nhập thành công! Chào mừng ${res.data.user.fullname || res.data.user.username}`);
             setTimeout(() => {
@@ -285,7 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Gọi API phân luồng kiểm tra admin/support
       try {
-        const response = await axios.post('http://localhost:3001/api/admin/login', { email, password });
+        const response = await api.post('/admin/login', { email, password });
         if (response.data.success && response.data.require2FA) {
           setTwoFactorData({
             email: response.data.email,
@@ -309,7 +312,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Login cho user bình thường qua backend API để tạo Pending Request
-      const res = await axios.post('http://localhost:3001/api/user/login-request', { email, password });
+      const res = await api.post('/user/login-request', { email, password });
       if (res.data && res.data.success && res.data.pendingApproval) {
         setPendingLoginRequestId(res.data.requestId);
         toast.success('Vui lòng kiểm tra Email của bạn để XÁC NHẬN đăng nhập!');
@@ -393,6 +396,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem('currentUser');
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('refreshToken');
     sessionStorage.removeItem('congratulatedTop1');
     toast.success('Đăng xuất thành công!');
   };

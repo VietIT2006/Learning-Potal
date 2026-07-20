@@ -64,7 +64,11 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5 shrink-0 bg-black/20">
+        <div className="p-4 border-t border-white/5 shrink-0 bg-black/20 space-y-2">
+          <Link to="/" className="w-full flex items-center gap-4 px-4 py-3 text-sky-400/80 hover:text-sky-400 hover:bg-sky-500/10 rounded-xl transition-all duration-300 group">
+            <LayoutDashboard className="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
+            {sidebarOpen && <span className="text-sm font-medium">Về Trang chủ</span>}
+          </Link>
           <button onClick={logout} className="w-full flex items-center gap-4 px-4 py-3 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300 group">
             <LogOut className="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
             {sidebarOpen && <span className="text-sm font-medium">Đăng xuất</span>}

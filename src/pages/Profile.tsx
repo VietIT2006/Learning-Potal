@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateUserProfile, getUserEnrolledCourses, uploadAvatar, getTopDepositors } from '../lib/supabaseService';
-import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2, Camera, Crown, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { User, Mail, Phone, Calendar, BookOpen, Edit2, Check, X, PlayCircle, Loader2, Camera, Crown, Image as ImageIcon, Trash2, Gem } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ParticleBackground from '../components/ParticleBackground';
+import Certificate from '../components/Certificate';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 function Profile() {
   const { user, refreshUser } = useAuth();
@@ -19,6 +22,60 @@ function Profile() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingTheme, setIsUploadingTheme] = useState(false);
   const [currentThemeUrl, setCurrentThemeUrl] = useState<string | null>(null);
+  const [nameColor1, setNameColor1] = useState('#a855f7');
+  const [nameColor2, setNameColor2] = useState('#ec4899');
+  
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
+  const [currentCertCourse, setCurrentCertCourse] = useState('');
+  const certificateRef = React.useRef<HTMLDivElement>(null);
+
+  const handleDownloadCertificate = async (courseName: string) => {
+    if (!certificateRef.current || !user) return;
+    try {
+      setCurrentCertCourse(courseName);
+      // Wait for React to render the updated course name
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      setIsGeneratingCertificate(true);
+      toast.loading("Đang tạo chứng chỉ...", { id: "cert-loading" });
+      
+      const canvas = await html2canvas(certificateRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [800, 600]
+      });
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, 800, 600);
+      pdf.save(`ChungChi_${courseName.replace(/\s+/g, '_')}.pdf`);
+      
+      const pdfBase64 = pdf.output('datauristring');
+      
+      const response = await fetch('http://localhost:3001/api/send-certificate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          userName: user.fullname,
+          courseName: courseName,
+          pdfBase64
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Lỗi server: ${response.status} - ${errText}`);
+      }
+      toast.success("Đã tải xuống chứng chỉ và gửi về email của bạn!", { id: "cert-loading" });
+    } catch (error: any) {
+      console.error('Lỗi khi tạo chứng chỉ:', error);
+      toast.error(`Có lỗi: ${error?.message || "Không xác định"}`, { id: "cert-loading" });
+    } finally {
+      setIsGeneratingCertificate(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -28,6 +85,10 @@ function Profile() {
       if (user.isTop1) {
         const savedTheme = localStorage.getItem(`top1_theme_${user.id}`);
         if (savedTheme) setCurrentThemeUrl(savedTheme);
+        const c1 = localStorage.getItem(`top1_color1_${user.id}`);
+        const c2 = localStorage.getItem(`top1_color2_${user.id}`);
+        if (c1) setNameColor1(c1);
+        if (c2) setNameColor2(c2);
       }
     }
   }, [user]);
@@ -130,11 +191,16 @@ function Profile() {
   };
 
   const handleRemoveTheme = () => {
-    if (!user?.isTop1) return;
-    localStorage.removeItem(`top1_theme_${user.id}`);
+    localStorage.removeItem(`top1_theme_${user!.id}`);
     setCurrentThemeUrl(null);
-    window.dispatchEvent(new Event('themeUpdated'));
-    toast.success('Đã khôi phục Theme mặc định.');
+    toast.success('Đã xóa hình nền, hệ thống sẽ trở về mặc định.');
+  };
+
+  const handleSaveNameColors = () => {
+    localStorage.setItem(`top1_color1_${user!.id}`, nameColor1);
+    localStorage.setItem(`top1_color2_${user!.id}`, nameColor2);
+    toast.success('Cập nhật màu Tên hiển thị thành công!');
+    window.dispatchEvent(new Event('top1ColorChanged')); // Thông báo các components khác cập nhật nếu cần
   };
 
   if (!user) {
@@ -169,9 +235,14 @@ function Profile() {
               <div className="flex flex-col items-center mb-6">
                 <div className="relative group/avatar cursor-pointer">
                   {user.isTop1 && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(250,204,21,0.6)] z-20 pointer-events-none">
-                      <Crown className="w-6 h-6 text-[#0f172a]" />
-                    </div>
+                    <>
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_20px_rgba(250,204,21,0.6)] z-20 pointer-events-none">
+                        <Crown className="w-6 h-6 text-[#0f172a]" />
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 z-20 w-8 h-8 bg-gradient-to-br from-cyan-300 to-blue-500 rounded-full flex items-center justify-center border-4 border-[#0f172a] shadow-[0_0_15px_rgba(34,211,238,0.8)] animate-pulse pointer-events-none">
+                        <Gem className="w-4 h-4 text-white" />
+                      </div>
+                    </>
                   )}
                   {user.avatarUrl ? (
                     <img 
@@ -439,6 +510,17 @@ function Profile() {
                               <PlayCircle className="w-5 h-5" />
                               {enrollment.progress === 0 ? 'Bắt đầu học' : 'Tiếp tục học'}
                             </Link>
+
+                            {enrollment.progress === 100 && (
+                              <button
+                                onClick={() => handleDownloadCertificate(course.title)}
+                                disabled={isGeneratingCertificate}
+                                className="mt-2 w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg"
+                              >
+                                <Crown className="w-5 h-5" />
+                                {isGeneratingCertificate ? 'Đang tạo...' : 'Tải chứng chỉ'}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -447,8 +529,72 @@ function Profile() {
                 </div>
               )}
             </div>
+
+            {/* Đặc quyền Top 1 - Màu tên */}
+            {user.isTop1 && (
+              <div className="bg-[#1e293b]/80 backdrop-blur-md rounded-3xl p-8 border border-purple-500/50 shadow-[0_0_30px_rgba(168,85,247,0.15)] relative overflow-hidden mt-8">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-pulse"></div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg text-white">
+                    <Edit2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Đặc Quyền Màu Tên</h2>
+                    <p className="text-sm text-slate-400">Tùy chỉnh màu sắc tên hiển thị của bạn</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2 block">Màu bắt đầu</label>
+                      <input type="color" value={nameColor1} onChange={e => setNameColor1(e.target.value)} className="w-16 h-10 rounded cursor-pointer bg-transparent border-0" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2 block">Màu kết thúc</label>
+                      <input type="color" value={nameColor2} onChange={e => setNameColor2(e.target.value)} className="w-16 h-10 rounded cursor-pointer bg-transparent border-0" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2 block">Xem trước</label>
+                    <div className="bg-black/30 p-4 rounded-xl inline-block">
+                      <span 
+                        className="text-2xl font-bold font-sans" 
+                        style={{ 
+                          background: `linear-gradient(to right, ${nameColor1}, ${nameColor2})`,
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}
+                      >
+                        {user.fullname}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleSaveNameColors}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-all"
+                  >
+                    Lưu Màu Tên
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           </div>
+        </div>
+      </div>
+
+      {/* Hidden Certificate Generator */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', pointerEvents: 'none' }}>
+        <div ref={certificateRef}>
+          <Certificate 
+            studentName={user?.fullname || "Học viên ẩn danh"}
+            courseName={currentCertCourse}
+            date={new Date().toLocaleDateString('vi-VN')}
+            isTop1={user?.isTop1}
+          />
         </div>
       </div>
     </div>

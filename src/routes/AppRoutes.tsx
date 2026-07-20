@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getMaintenanceStatus } from '../lib/supabaseService';
 
 // --- Layouts ---
 import MainLayout from '../layouts/MainLayout'; 
@@ -21,6 +22,7 @@ import QuizPage from '../pages/Quiz';
 import PaymentResult from '../pages/PaymentResult'; 
 import ForumPage from '../pages/Forum';
 import ForumPostPage from '../pages/ForumPost';
+import MaintenancePage from '../pages/Maintenance';
 
 // --- Pages (Admin) ---
 import Dashboard from '../pages/Admin/Dashboard';
@@ -43,6 +45,7 @@ import CursorTrail from '../components/CursorTrail';
 function AppRoutes() {
   const { user } = useAuth();
   const [customTheme, setCustomTheme] = useState<string | null>(null);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -58,8 +61,22 @@ function AppRoutes() {
 
     applyTheme();
 
+    const checkMaintenance = async () => {
+      try {
+        const status = await getMaintenanceStatus();
+        setIsMaintenanceMode(status);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    checkMaintenance();
+    const interval = setInterval(checkMaintenance, 30000); // Check every 30s
+
     window.addEventListener('themeUpdated', applyTheme);
-    return () => window.removeEventListener('themeUpdated', applyTheme);
+    return () => {
+      window.removeEventListener('themeUpdated', applyTheme);
+      clearInterval(interval);
+    };
   }, [user]);
 
   return (
@@ -86,9 +103,16 @@ function AppRoutes() {
         </style>
       )}
       {user?.isTop1 && <CursorTrail />}
-      <Routes>
       
-      {/* =========================================
+      {isMaintenanceMode && user?.role !== 'admin' ? (
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<MaintenancePage />} />
+        </Routes>
+      ) : (
+        <Routes>
+        
+        {/* =========================================
           TRANG TOÀN MÀN HÌNH (Không có Navbar/Footer)
       ========================================= */}
       <Route path="/login" element={<LoginPage />} />
@@ -140,7 +164,8 @@ function AppRoutes() {
         </Route>
       </Route>
 
-    </Routes>
+      </Routes>
+      )}
     </>
   );
 }

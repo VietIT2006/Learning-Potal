@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCourses, createCourse, updateCourse, deleteCourse } from '../../lib/supabaseService';
+import { getCourses, createCourse, updateCourse, deleteCourse, getLessons } from '../../lib/supabaseService';
 import { Plus, Edit, Trash2, X, Search, BookOpen, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -20,6 +20,7 @@ interface Course {
 export default function CourseManagement() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [lessonCounts, setLessonCounts] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -41,8 +42,18 @@ export default function CourseManagement() {
 
   const fetchCourses = async () => {
     try {
-      const data = await getCourses();
+      const [data, allLessons] = await Promise.all([
+        getCourses(),
+        getLessons()
+      ]);
       setCourses(data);
+      
+      const counts: Record<number, number> = {};
+      allLessons.forEach(lesson => {
+        counts[lesson.courseId] = (counts[lesson.courseId] || 0) + 1;
+      });
+      setLessonCounts(counts);
+      
       setLoading(false);
     } catch (err) { console.error(err); setLoading(false); }
   };
@@ -153,13 +164,14 @@ export default function CourseManagement() {
                 <th className="p-5 text-xs font-semibold text-slate-300 uppercase tracking-wider">Khóa học</th>
                 <th className="p-5 text-xs font-semibold text-slate-300 uppercase tracking-wider">Giá</th>
                 <th className="p-5 text-xs font-semibold text-slate-300 uppercase tracking-wider">Học viên</th>
+                <th className="p-5 text-xs font-semibold text-slate-300 uppercase tracking-wider text-center">Số bài học</th>
                 <th className="p-5 text-xs font-semibold text-slate-300 uppercase tracking-wider text-right">Hành động</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center">
+                  <td colSpan={6} className="p-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="relative w-10 h-10 mb-4">
                         <div className="absolute inset-0 rounded-full border-t-2 border-purple-500 animate-spin"></div>
@@ -170,7 +182,7 @@ export default function CourseManagement() {
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-12 text-center text-slate-400">
+                  <td colSpan={6} className="p-12 text-center text-slate-400">
                     <AlertCircle className="w-8 h-8 mx-auto mb-3 opacity-50" />
                     Không tìm thấy khóa học nào
                   </td>
@@ -196,6 +208,11 @@ export default function CourseManagement() {
                     <td className="p-5">
                       <span className="bg-white/10 text-slate-300 px-2.5 py-1 rounded-md text-xs font-medium border border-white/5">
                         {course.students || 0}
+                      </span>
+                    </td>
+                    <td className="p-5 text-center">
+                      <span className="bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-md text-xs font-medium border border-purple-500/20">
+                        {lessonCounts[course.id] || 0} bài
                       </span>
                     </td>
                     <td className="p-5 flex gap-2 justify-end">

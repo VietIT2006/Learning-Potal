@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { ShieldAlert, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -9,7 +9,7 @@ export default function LoginApprovalAdminMonitor() {
   useEffect(() => {
     const fetchPendingLogins = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/api/admin/pending-logins');
+        const res = await api.get('/admin/pending-logins');
         if (res.data.success) {
           setPendingRequests(res.data.requests);
         }
@@ -25,7 +25,7 @@ export default function LoginApprovalAdminMonitor() {
 
   const handleAction = async (requestId: string, action: 'approve' | 'reject') => {
     try {
-      const res = await axios.post('http://localhost:3001/api/admin/approve-login', { requestId, action });
+      const res = await api.post('/admin/approve-login', { requestId, action });
       if (res.data.success) {
         toast.success(action === 'approve' ? 'Đã chấp nhận đăng nhập' : 'Đã từ chối đăng nhập');
         setPendingRequests(prev => prev.filter(r => r.id !== requestId));
